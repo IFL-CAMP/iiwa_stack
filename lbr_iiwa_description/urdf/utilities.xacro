@@ -7,24 +7,18 @@
   <!--Little helper macros to define the inertia matrix needed for links.-->
   <!--Cuboid-->
   <xacro:macro name="cuboid_inertia" params="width height length mass">
-    <inertial>
-    <mass value="${mass}" />
     <inertia ixx="${mass * (height * height + length * length) / 12)}"
              iyy="${mass * (width * width + length * length) / 12)}"
              izz="${mass * (width * width + height * height) / 12)}"
              ixy="0" iyz="0" ixz="0"/>
-    </inertial>
   </xacro:macro>
 
   <!--Cylinder: length is along the y-axis! -->
   <xacro:macro name="cylinder_inertia" params="radius length mass">
-  <inertial>
-    <mass value="${mass}" />
     <inertia ixx="${mass * (3 * radius * radius + length * length) / 12)}"
              iyy="${mass * radius* radius / 2)}"
              izz="${mass * (3 * radius * radius + length * length) / 12)}"
              ixy="0" iyz="0" ixz="0"/>
-    </inertial>
   </xacro:macro>
 
 </robot>
