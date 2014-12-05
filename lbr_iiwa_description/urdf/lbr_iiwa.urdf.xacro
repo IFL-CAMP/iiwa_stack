@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<robot name="lwr">
+
+  <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.xacro"/>
+
+  <link name="world_link">
+  
+    <inertial>
+      <mass value="50.0"/>
+      <com xyz="0 0 0"/>
+      <inertia  ixx="0.01" ixy="0.00"  ixz="0.00"
+                iyy="0.01" iyz="0.00"
+                izz="0.01" />
+    </inertial>
+
+    <visual>
+      <origin xyz="0 0 0.50" rpy="0 0 0"/>
+      <geometry>
+        <box size="1 1 1.0"/>
+      </geometry>
+    </visual>
+>
+    <collision>
+      <origin xyz="0 0 0.50" rpy="0 0 0"/>
+      <geometry>
+        <box size="1 1 1.0"/>
+      </geometry>
+    </collision> -->
+  </link> 
+  
+  <lbr_iiwa parent="world" name="lbr_iiwa" right="1">
+    <origin xyz="0 0 1.1" rpy="0 0 0"/>
+  </lwr_arm>
+
+</robot>

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>lbr_iiwa_description</name>
+  <version>0.0.0</version>
+  <description>The rrbot_description package</description>
+
+  <maintainer email="robert.krug@oru.se">Robert Krug</maintainer>
+
+  <license>BSD</license>
+
+  <author email="robert.krug@oru.se">Robert Krug</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+</package>
