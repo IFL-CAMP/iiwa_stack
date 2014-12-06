@@ -310,7 +310,7 @@
         <geometry>
           <mesh filename="package://lbr_iiwa_description/meshes/link_7.stl"/>
         </geometry>
-        <material name="Orange"/>
+        <material name="Grey"/>
       </visual>
 
       <collision>
@@ -318,7 +318,7 @@
         <geometry>
           <mesh filename="package://lbr_iiwa_description/meshes/link_7.stl"/>
         </geometry>
-        <material name="Orange"/>
+        <material name="Grey"/>
       </collision>
     </link>
 
