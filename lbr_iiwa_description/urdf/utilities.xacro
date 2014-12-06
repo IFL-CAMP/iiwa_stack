@@ -4,6 +4,7 @@
 
   <xacro:property name="PI" value="3.1415926535897931"/>
 
+<!-- The following macros are adapted from the LWR 4 definitions of the RCPRG - https://github.com/RCPRG-ros-pkg/lwr_robot -->
   <!--Little helper macros to define the inertia matrix needed for links.-->
   <!--Cuboid-->
   <xacro:macro name="cuboid_inertia" params="width height length mass">
