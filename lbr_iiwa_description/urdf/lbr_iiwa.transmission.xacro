@@ -3,78 +3,78 @@
 
   <xacro:macro name="lbr_iiwa_transmission" params="name">
 
-    <transmission name="{name}_tran_1">
+    <transmission name="${name}_tran_1">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_1">
+      <joint name="${name}_joint_1">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_1">
+      <actuator name="${name}_motor_1">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_2">
+    <transmission name="${name}_tran_2">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_2">
+      <joint name="${name}_joint_2">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_2">
+      <actuator name="${name}_motor_2">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_3">
+    <transmission name="${name}_tran_3">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_3">
+      <joint name="${name}_joint_3">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_3">
+      <actuator name="${name}_motor_3">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_4">
+    <transmission name="${name}_tran_4">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_4">
+      <joint name="${name}_joint_4">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_4">
+      <actuator name="${name}_motor_4">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_5">
+    <transmission name="${name}_tran_5">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_5">
+      <joint name="${name}_joint_5">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_5">
+      <actuator name="${name}_motor_5">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_6">
+    <transmission name="${name}_tran_6">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_6">
+      <joint name="${name}_joint_6">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_6">
+      <actuator name="${name}_motor_6">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="{name}_tran_7">
+    <transmission name="${name}_tran_7">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="{name}_joint_7">
+      <joint name="${name}_joint_7">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
       </joint>
-      <actuator name="{name}_motor_7">
+      <actuator name="${name}_motor_7">
 	<hardwareInterface>EffortJointInterface</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
@@ -83,3 +83,6 @@
   </xacro:macro>
 
 </robot>
+
+
+
