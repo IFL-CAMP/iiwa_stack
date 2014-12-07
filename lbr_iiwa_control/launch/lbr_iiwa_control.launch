@@ -1,0 +1,23 @@
+<launch>
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find lbr_iiwa_control)/config/lbr_iiwa_control.yaml" command="load"/>
+
+  <!-- load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	output="screen" ns="/lbr_iiwa" args="joint_state_controller
+					  lbr_iiwa_joint_1_position_controller
+					  lbr_iiwa_joint_2_position_controller
+					  lbr_iiwa_joint_3_position_controller
+					  lbr_iiwa_joint_4_position_controller
+					  lbr_iiwa_joint_5_position_controller
+					  lbr_iiwa_joint_6_position_controller
+					  lbr_iiwa_joint_7_position_controller"/>
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+	respawn="false" output="screen">
+    <remap from="/joint_states" to="/lbr_iiwa/joint_states" />
+  </node>
+
+</launch>

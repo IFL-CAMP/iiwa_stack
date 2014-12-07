@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <robot name="lbr_iiwa" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:property name="PI" value="3.1415926535897931"/>

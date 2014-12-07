@@ -10,8 +10,8 @@
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/utilities.xacro"/>
 
   <!-- some constants -->
-  <xacro:property name="safety_controller_k_pos" value="100" />
-  <xacro:property name="safety_controller_k_vel" value="2" />
+ <!-- <xacro:property name="safety_controller_k_pos" value="100" />
+  <xacro:property name="safety_controller_k_vel" value="2" /> -->
   <xacro:property name="joint_damping" value="0.1" />
   <xacro:property name="velocity_scale_factor" value="1"/>
 
@@ -324,6 +324,7 @@
 
     <!--Extensions -->
     <xacro:lbr_iiwa_gazebo name="${name}" />
+    <xacro:lbr_iiwa_transmission name="${name}" />
 
   </xacro:macro>
 
