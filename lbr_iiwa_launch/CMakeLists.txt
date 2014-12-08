@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(lbr_iiwa_control)
+project(lbr_iiwa_launch)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)

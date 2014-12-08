@@ -1,0 +1,8 @@
+<launch>
+
+<!--Convenience launch file to start gazebo + control + rqt plugin perspective for control tuning -->
+<include file="$(find lbr_iiwa_gazebo)/launch/lbr_iiwa_world.launch"/>
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_control.launch"/>
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_rqt.launch"/>
+
+</launch>
