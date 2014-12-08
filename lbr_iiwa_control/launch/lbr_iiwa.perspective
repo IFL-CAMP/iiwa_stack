@@ -9,6 +9,72 @@
         }
       }, 
       "groups": {
+        "plugin__rqt_reconfigure__Param__1": {
+          "keys": {}, 
+          "groups": {
+            "dock_widget___plugincontainer_top_widget": {
+              "keys": {
+                "dockable": {
+                  "type": "repr", 
+                  "repr": "True"
+                }, 
+                "parent": {
+                  "type": "repr", 
+                  "repr": "None"
+                }
+              }, 
+              "groups": {}
+            }, 
+            "plugin": {
+              "keys": {
+                "splitter": {
+                  "type": "repr(QByteArray.hex)", 
+                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff0000000000000002000000ae0000005a01000000060100000001')", 
+                  "pretty-print": "         Z     "
+                }, 
+                "_splitter": {
+                  "type": "repr(QByteArray.hex)", 
+                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000000000020000012c0000006401000000090100000002')", 
+                  "pretty-print": "       , d     "
+                }
+              }, 
+              "groups": {}
+            }
+          }
+        }, 
+        "plugin__rqt_reconfigure__Param__2": {
+          "keys": {}, 
+          "groups": {
+            "dock_widget___plugincontainer_top_widget": {
+              "keys": {
+                "dockable": {
+                  "type": "repr", 
+                  "repr": "u'false'"
+                }, 
+                "parent": {
+                  "type": "repr", 
+                  "repr": "None"
+                }
+              }, 
+              "groups": {}
+            }, 
+            "plugin": {
+              "keys": {
+                "splitter": {
+                  "type": "repr(QByteArray.hex)", 
+                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff0000000000000002000000ae0000006401000000060100000001')", 
+                  "pretty-print": "         d     "
+                }, 
+                "_splitter": {
+                  "type": "repr(QByteArray.hex)", 
+                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000000000020000012c0000006401000000090100000002')", 
+                  "pretty-print": "       , d     "
+                }
+              }, 
+              "groups": {}
+            }
+          }
+        }, 
         "plugin__rqt_plot__Plot__1": {
           "keys": {}, 
           "groups": {
@@ -37,7 +103,7 @@
                 }, 
                 "topics": {
                   "type": "repr", 
-                  "repr": "[u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/state/process_value', u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/state/set_point']"
+                  "repr": "[u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/state/process_value', u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data']"
                 }
               }, 
               "groups": {}
@@ -72,7 +138,7 @@
                 }, 
                 "topics": {
                   "type": "repr", 
-                  "repr": "u''"
+                  "repr": "u'/lbr_iiwa/lbr_iiwa_joint_3_position_controller/state/command'"
                 }
               }, 
               "groups": {}
@@ -99,40 +165,7 @@
               "keys": {
                 "publishers": {
                   "type": "repr", 
-                  "repr": "u\"[{'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command', 'type_name': 'std_msgs/Float64', 'enabled': False, 'rate': 100.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command/data': 'sin(i/100*6*0.5)*2'}, 'publisher_id': 0, 'counter': 8857}]\""
-                }
-              }, 
-              "groups": {}
-            }
-          }
-        }, 
-        "plugin__rqt_reconfigure__Param__1": {
-          "keys": {}, 
-          "groups": {
-            "dock_widget___plugincontainer_top_widget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr", 
-                  "repr": "False"
-                }, 
-                "parent": {
-                  "type": "repr", 
-                  "repr": "None"
-                }
-              }, 
-              "groups": {}
-            }, 
-            "plugin": {
-              "keys": {
-                "splitter": {
-                  "type": "repr(QByteArray.hex)", 
-                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff0000000000000002000000ae0000005a01000000060100000001')", 
-                  "pretty-print": "         Z     "
-                }, 
-                "_splitter": {
-                  "type": "repr(QByteArray.hex)", 
-                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000000000020000012c0000006401000000090100000002')", 
-                  "pretty-print": "       , d     "
+                  "repr": "u\"[{'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command/data': '-2'}, 'publisher_id': 0, 'counter': 46702}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data': 'sin(i/1000/6*500)*1.5'}, 'publisher_id': 1, 'counter': 46710}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_3_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 2, 'counter': 46745}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_4_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 3, 'counter': 46761}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_5_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 4, 'counter': 46833}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command/data': '0.1'}, 'publisher_id': 5, 'counter': 46890}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command/data': '0.0'}, 'publisher_id': 6, 'counter': 46989}]\""
                 }
               }, 
               "groups": {}
@@ -160,13 +193,13 @@
       "keys": {
         "geometry": {
           "type": "repr(QByteArray.hex)", 
-          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb0001000000000037fffffff2000006990000042300000041000000180000068f00000419000000000000')", 
-          "pretty-print": "     7     # A         "
+          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb00010000000000c1000000bc000006a2000002bd000000cb000000e200000698000002b3000000000000')", 
+          "pretty-print": "                       "
         }, 
         "state": {
           "type": "repr(QByteArray.hex)", 
-          "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd00000002000000020000064f000001e7fc0100000001fb00000058007200710074005f007000750062006c00690073006800650072005f005f005000750062006c00690073006800650072005f005f0031005f005f005000750062006c0069007300680065007200570069006400670065007401000000000000064f0000026600ffffff000000030000064f000001e6fc0100000005fb00000062007200710074005f0063006f006e00740072006f006c006c00650072005f006d0061006e0061006700650072005f005f0043006f006e00740072006f006c006c00650072004d0061006e0061006700650072004700550049005f005f0031005f005f0100000000000002580000000000000000fb0000006c007200710074005f007200650063006f006e006600690067007500720065005f005f0050006100720061006d005f005f0031005f005f005f0070006c007500670069006e0063006f006e007400610069006e00650072005f0074006f0070005f00770069006400670065007403000004090000007b0000028b0000016afc000000000000064f0000017700fffffffa000000000200000001fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0031005f005f00440061007400610050006c006f00740057006900640067006500740100000019000003d30000008c00fffffffb00000062007200710074005f0072006f0062006f0074005f006d006f006e00690074006f0072005f005f0052006f0062006f0074004d006f006e00690074006f0072005f005f0031005f005f0052006f0062006f00740020004d006f006e00690074006f007201000004f2000000dc0000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f0074005700690064006700650074010000032d000002a100000000000000000000064f0000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')", 
-          "pretty-print": "                 Xrqt_publisher__Publisher__1__PublisherWidget                   brqt_controller_manager__ControllerManagerGUI__1__          lrqt_reconfigure__Param__1___plugincontainer_top_widget            O w                                                                                                                                                    -       O                                                      "
+          "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd0000000100000003000005ce0000017bfc0100000006fb00000062007200710074005f0063006f006e00740072006f006c006c00650072005f006d0061006e0061006700650072005f005f0043006f006e00740072006f006c006c00650072004d0061006e0061006700650072004700550049005f005f0031005f005f0100000000000002580000000000000000fb00000058007200710074005f007000750062006c00690073006800650072005f005f005000750062006c00690073006800650072005f005f0031005f005f005000750062006c006900730068006500720057006900640067006500740100000000000003610000026600fffffffc00000367000002670000017700fffffffa000000010200000002fb0000006c007200710074005f007200650063006f006e006600690067007500720065005f005f0050006100720061006d005f005f0031005f005f005f0070006c007500670069006e0063006f006e007400610069006e00650072005f0074006f0070005f0077006900640067006500740200000068000000180000028b00000214fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0031005f005f00440061007400610050006c006f00740057006900640067006500740100000019000003d30000008c00fffffffb00000062007200710074005f0072006f0062006f0074005f006d006f006e00690074006f0072005f005f0052006f0062006f0074004d006f006e00690074006f0072005f005f0031005f005f0052006f0062006f00740020004d006f006e00690074006f007201000004f2000000dc0000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f0074005700690064006700650074030000041f0000006b0000026e00000178fb0000006c007200710074005f007200650063006f006e006600690067007500720065005f005f0050006100720061006d005f005f0032005f005f005f0070006c007500670069006e0063006f006e007400610069006e00650072005f0074006f0070005f007700690064006700650074030000004100000048000001f9000001dd000005ce0000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720100000000ffffffff0000000000000000')", 
+          "pretty-print": "                 brqt_controller_manager__ControllerManagerGUI__1__          Xrqt_publisher__Publisher__1__PublisherWidget          g g w                                                                 h                                                                                                                                                     k n x                                                          A H                                                            "
         }
       }, 
       "groups": {
