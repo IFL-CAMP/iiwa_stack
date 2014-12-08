@@ -1,7 +1,0 @@
-<launch>
-
-  <!-- Load RQT with a pre-setup GUI for lbr_iiwa controls from a perspective file  -->
-  <node name="lbr_iiwa_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
-	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa.perspective"/>
-  
-</launch>

@@ -103,7 +103,7 @@
                 }, 
                 "topics": {
                   "type": "repr", 
-                  "repr": "[u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/state/process_value', u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data']"
+                  "repr": "u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data'"
                 }
               }, 
               "groups": {}
@@ -165,7 +165,7 @@
               "keys": {
                 "publishers": {
                   "type": "repr", 
-                  "repr": "u\"[{'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command/data': '-2'}, 'publisher_id': 0, 'counter': 46702}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data': 'sin(i/1000/6*500)*1.5'}, 'publisher_id': 1, 'counter': 46710}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_3_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 2, 'counter': 46745}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_4_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 3, 'counter': 46761}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_5_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 4, 'counter': 46833}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command/data': '0.1'}, 'publisher_id': 5, 'counter': 46890}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command/data': '0.0'}, 'publisher_id': 6, 'counter': 46989}]\""
+                  "repr": "u\"[{'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command/data': '-2'}, 'publisher_id': 0, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_2_position_controller/command/data': 'sin(i/1000/6*500)*1.5'}, 'publisher_id': 1, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_3_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 2, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_4_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 3, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_5_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 4, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_6_position_controller/command/data': '0.1'}, 'publisher_id': 5, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_7_position_controller/command/data': '0.0'}, 'publisher_id': 6, 'counter': 0}, {'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command', 'type_name': 'std_msgs/Float64', 'enabled': False, 'rate': 1000.0, 'expressions': {u'/lbr_iiwa/lbr_iiwa_joint_1_position_controller/command/data': '-2'}, 'publisher_id': 21, 'counter': 0}]\""
                 }
               }, 
               "groups": {}
@@ -193,8 +193,8 @@
       "keys": {
         "geometry": {
           "type": "repr(QByteArray.hex)", 
-          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb00010000000000c1000000bc000006a2000002bd000000cb000000e200000698000002b3000000000000')", 
-          "pretty-print": "                       "
+          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb0001000000000136000000b500000717000002b600000140000000db0000070d000002ac000000000000')", 
+          "pretty-print": "     6       @         "
         }, 
         "state": {
           "type": "repr(QByteArray.hex)", 

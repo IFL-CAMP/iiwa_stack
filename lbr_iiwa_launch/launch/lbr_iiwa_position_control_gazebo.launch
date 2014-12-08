@@ -1,0 +1,11 @@
+<launch>
+
+<!--Convenience launch file to start gazebo + position control -->
+<include file="$(find lbr_iiwa_gazebo)/launch/lbr_iiwa_world.launch"/>
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_position_control.launch"/>
+
+<!-- Launch RQT for control tuning -->
+ <node name="rrbot_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
+	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa_position_control.perspective"/>
+
+</launch>

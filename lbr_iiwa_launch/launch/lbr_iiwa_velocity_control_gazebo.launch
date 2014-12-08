@@ -1,0 +1,7 @@
+<launch>
+
+<!--Convenience launch file to start gazebo + velocity_control -->
+<include file="$(find lbr_iiwa_gazebo)/launch/lbr_iiwa_world.launch"/>
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_velocity_control.launch"/>
+
+</launch>
