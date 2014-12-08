@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <robot name="lbr_iiwa" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <!-- Import all Gazebo-customization elements, including Gazebo colors -->
@@ -225,9 +224,9 @@
 
     <link name="${name}_link_5">
       <inertial>
-        <origin xyz="0 -0.02 0.104" rpy="0 0 0"/>
-        <mass value="2"/>
-        <inertia ixx="0.01"  ixy="0"  ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+        <origin xyz="0 -0.02 0.08" rpy="0 0 0"/>
+        <mass value="1.7"/>
+        <inertia ixx="0.02"  ixy="0"  ixz="0" iyy="0.02" iyz="0" izz="0.01" />
       </inertial>
 
       <visual>
@@ -265,8 +264,8 @@
     <link name="${name}_link_6">
       <inertial>
         <origin xyz="0 0.06 0" rpy="0 0 0"/>
-        <mass value="2"/>
-        <inertia ixx="0.01"  ixy="0"  ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+        <mass value="1.8"/>
+        <inertia ixx="0.01"  ixy="0"  ixz="0" iyy="0.001" iyz="0" izz="0.01" />
       </inertial>
 
       <visual>
@@ -304,8 +303,8 @@
     <link name="${name}_link_7">
       <inertial>
         <origin xyz="0 0 0.02" rpy="0 0 0"/>
-        <mass value="0.5"/>
-        <inertia ixx="0.01"  ixy="0"  ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+        <mass value="0.3"/>
+        <inertia ixx="0.001"  ixy="0"  ixz="0" iyy="0.001" iyz="0" izz="0.001" />
       </inertial>
 
       <visual>
