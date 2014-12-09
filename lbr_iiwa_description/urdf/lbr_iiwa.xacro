@@ -44,7 +44,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_0.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_0.stl"/>
         </geometry>
         <material name="Grey"/>
       </collision>
@@ -83,7 +83,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_1.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_1.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -122,7 +122,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_2.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_2.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -161,7 +161,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_3.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_3.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -200,7 +200,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_4.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_4.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -239,7 +239,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_5.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_5.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -278,7 +278,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_6.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_6.stl"/>
         </geometry>
         <material name="Orange"/>
       </collision>
@@ -317,7 +317,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://lbr_iiwa_description/meshes/link_7.stl"/>
+          <mesh filename="package://lbr_iiwa_description/meshes/coarse/link_7.stl"/>
         </geometry>
         <material name="Grey"/>
       </collision>
