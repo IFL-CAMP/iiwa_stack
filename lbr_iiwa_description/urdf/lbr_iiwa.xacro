@@ -17,8 +17,7 @@
   <xacro:property name="max_effort" value="300"/>
   <xacro:property name="max_velocity" value="10"/>
 
-  <!-- right is either 1 (for right arm) or -1 (for left arm) -->
-  <xacro:macro name="lbr_iiwa" params="parent name right *origin">
+  <xacro:macro name="lbr_iiwa" params="parent name hardware_interface *origin">
 
     <!--joint between {parent} and link_0-->
     <joint name="${parent}_joint" type="fixed">
@@ -326,7 +325,7 @@
 
     <!--Extensions -->
     <xacro:lbr_iiwa_gazebo name="${name}" />
-    <xacro:lbr_iiwa_transmission name="${name}" />
+    <xacro:lbr_iiwa_transmission name="${name}" hardware_interface="${hardware_interface}"/>
 
   </xacro:macro>
 

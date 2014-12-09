@@ -5,76 +5,41 @@ lbr_iiwa:
     publish_rate: 50  
   
   # Position Controllers ---------------------------------------
-  lbr_iiwa_joint_1_position_controller:
+  lbr_iiwa_joint_1_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_1
     pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_2_position_controller:
+  lbr_iiwa_joint_2_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_2
     pid: {p: 800.0, i: 100, d: 100.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_3_position_controller:
+  lbr_iiwa_joint_3_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_3
     pid: {p: 800.0, i: 10, d: 5.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_4_position_controller:
+  lbr_iiwa_joint_4_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_4
     pid: {p: 800.0, i: 10, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_5_position_controller:
+  lbr_iiwa_joint_5_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_5
     pid: {p: 300.0, i: 5, d: 10.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_6_position_controller:
+  lbr_iiwa_joint_6_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_6
     pid: {p: 50.0, i: 1, d: 1.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
-  lbr_iiwa_joint_7_position_controller:
+  lbr_iiwa_joint_7_effort_pos_controller:
     type: effort_controllers/JointPositionController
     joint: lbr_iiwa_joint_7
     pid: {p: 10.0, i: 0.1, d: 1.0, i_clamp_min: -10000, i_clamp_max: 10000}
 
 
-  # Velocity Controllers ---------------------------------------
-  lbr_iiwa_joint_1_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_1
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_2_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_2
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_3_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_3
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_4_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_4
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_5_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_5
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_6_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_6
-    pid: {p: 800.0, i: 100, d: 80.0, i_clamp_min: -10000, i_clamp_max: 10000}
-
-  lbr_iiwa_joint_7_velocity_controller:
-    type: effort_controllers/JointVelocityController
-    joint: lbr_iiwa_joint_7
-    pid: {p: 10.0, i: 0.0, d: 0.0, i_clamp_min: 0, i_clamp_max: 0}
 
 

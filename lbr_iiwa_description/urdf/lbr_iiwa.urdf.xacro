@@ -3,43 +3,11 @@
 
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.xacro"/>
 
-  <!--  <joint name="fixed" type="fixed">
-       <parent link="world"/>
-       <child link="arm_link_0"/>
-       </joint> -->
-
-  <!-- Define a base link properly -->
-  <!--  <link name="base_link">
-       <collision>
-       <origin xyz="0 0 0.5" rpy="0 0 0"/>
-       <geometry>
-       <box size="1 1 1"/>
-       </geometry>
-       </collision>
-
-<visual>
-<origin xyz="0 0 0.5" rpy="0 0 0"/>
-<geometry>
-<box size="1 1 1"/>
-</geometry>
-<material name="orange"/>
-</visual>
-
-<inertial>
-<origin xyz="0 0 1" rpy="0 0 0"/>
-<mass value="1"/>
-<inertia
-ixx="1" ixy="0.0" ixz="0.0"
-iyy="1" iyz="0.0"
-izz="1"/>
-</inertial>
-</link> -->
-
   <!-- Fix to world just for testing -->
   <link name="world"/>
 
   <!--lbr-->
-  <xacro:lbr_iiwa name="lbr_iiwa" right="1" parent="world">
+  <xacro:lbr_iiwa name="lbr_iiwa" hardware_interface="$(arg prefix)" parent="world">
     <origin xyz="0 0 0.0" rpy="0 0 0" />
   </xacro:lbr_iiwa>
 
