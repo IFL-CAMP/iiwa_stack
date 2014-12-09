@@ -20,6 +20,6 @@
 
 <!-- Launch RQT for control tuning -->
  <node name="rrbot_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
-	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa_position_control.perspective"/>
+	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa_effort_pos_control.perspective"/>
 
 </launch>

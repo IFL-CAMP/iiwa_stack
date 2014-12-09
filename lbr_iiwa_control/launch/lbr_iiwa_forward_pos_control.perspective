@@ -1,0 +1,102 @@
+{
+  "keys": {}, 
+  "groups": {
+    "pluginmanager": {
+      "keys": {
+        "running-plugins": {
+          "type": "repr", 
+          "repr": "{u'rqt_plot/Plot': [1], u'rqt_publisher/Publisher': [1]}"
+        }
+      }, 
+      "groups": {
+        "plugin__rqt_plot__Plot__1": {
+          "keys": {}, 
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dockable": {
+                  "type": "repr", 
+                  "repr": "True"
+                }, 
+                "parent": {
+                  "type": "repr", 
+                  "repr": "None"
+                }
+              }, 
+              "groups": {}
+            }, 
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "type": "repr", 
+                  "repr": "True"
+                }, 
+                "plot_type": {
+                  "type": "repr", 
+                  "repr": "1"
+                }, 
+                "topics": {
+                  "type": "repr", 
+                  "repr": "[u'/lbr_iiwa/lbr_iiwa_joint_2_forward_pos_controller/command/data', u'/lbr_iiwa/joint_states/position[1]']"
+                }
+              }, 
+              "groups": {}
+            }
+          }
+        }, 
+        "plugin__rqt_publisher__Publisher__1": {
+          "keys": {}, 
+          "groups": {
+            "dock_widget__PublisherWidget": {
+              "keys": {
+                "dockable": {
+                  "type": "repr", 
+                  "repr": "True"
+                }, 
+                "parent": {
+                  "type": "repr", 
+                  "repr": "None"
+                }
+              }, 
+              "groups": {}
+            }, 
+            "plugin": {
+              "keys": {
+                "publishers": {
+                  "type": "repr", 
+                  "repr": "u\"[{'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_1_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 5, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_2_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 6, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_3_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 7, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_4_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 8, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_5_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 9, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_6_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 10, 'counter': 0}, {'type_name': 'std_msgs/Float64', 'topic_name': '/lbr_iiwa/lbr_iiwa_joint_7_forward_pos_controller/command', 'enabled': False, 'rate': 1000.0, 'expressions': {}, 'publisher_id': 11, 'counter': 0}]\""
+                }
+              }, 
+              "groups": {}
+            }
+          }
+        }
+      }
+    }, 
+    "mainwindow": {
+      "keys": {
+        "geometry": {
+          "type": "repr(QByteArray.hex)", 
+          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb00010000000000e7000000d10000078e000002ec000000f1000000f700000784000002e2000000000000')", 
+          "pretty-print": "                       "
+        }, 
+        "state": {
+          "type": "repr(QByteArray.hex)", 
+          "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd000000010000000300000694000001bdfc0100000006fb00000062007200710074005f0063006f006e00740072006f006c006c00650072005f006d0061006e0061006700650072005f005f0043006f006e00740072006f006c006c00650072004d0061006e0061006700650072004700550049005f005f0031005f005f0100000000000002580000000000000000fb00000058007200710074005f007000750062006c00690073006800650072005f005f005000750062006c00690073006800650072005f005f0031005f005f005000750062006c006900730068006500720057006900640067006500740100000000000003470000026600fffffffc0000034d000003470000017700fffffffa000000010200000002fb0000006c007200710074005f007200650063006f006e006600690067007500720065005f005f0050006100720061006d005f005f0031005f005f005f0070006c007500670069006e0063006f006e007400610069006e00650072005f0074006f0070005f0077006900640067006500740200000068000000180000028b00000214fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0031005f005f00440061007400610050006c006f00740057006900640067006500740100000019000003d30000008c00fffffffb00000062007200710074005f0072006f0062006f0074005f006d006f006e00690074006f0072005f005f0052006f0062006f0074004d006f006e00690074006f0072005f005f0031005f005f0052006f0062006f00740020004d006f006e00690074006f007201000004f2000000dc0000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f0074005700690064006700650074030000041f0000006b0000026e00000178fb0000006c007200710074005f007200650063006f006e006600690067007500720065005f005f0050006100720061006d005f005f0032005f005f005f0070006c007500670069006e0063006f006e007400610069006e00650072005f0074006f0070005f007700690064006700650074030000004100000048000001f9000001dd000006940000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')", 
+          "pretty-print": "                 brqt_controller_manager__ControllerManagerGUI__1__          Xrqt_publisher__Publisher__1__PublisherWidget          M G w                                                                 h                                                                                                                                                     k n x                                                          A H                                                            "
+        }
+      }, 
+      "groups": {
+        "toolbar_areas": {
+          "keys": {
+            "MinimizedDockWidgetsToolbar": {
+              "type": "repr", 
+              "repr": "8"
+            }
+          }, 
+          "groups": {}
+        }
+      }
+    }
+  }
+}
