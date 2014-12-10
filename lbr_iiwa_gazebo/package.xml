@@ -2,7 +2,7 @@
 <package>
   <name>lbr_iiwa_gazebo</name>
   <version>0.0.0</version>
-  <description>The kuka_lbr_iiwa_gazebo package</description>
+  <description>The lbr_iiwa_gazebo package</description>
 
   <maintainer email="robert.krug@oru.se">Robert Krug</maintainer>
 
@@ -13,7 +13,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>kuka_lbr_iiwa_description</run_depend>
+  <run_depend>lbr_iiwa_description</run_depend>
   <run_depend>gazebo_ros</run_depend> 
 
   <export>

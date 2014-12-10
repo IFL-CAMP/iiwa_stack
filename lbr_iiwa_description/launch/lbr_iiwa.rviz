@@ -110,7 +110,7 @@ Visualization Manager:
       Visual Enabled: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 200; 200; 200
     Fixed Frame: world
     Frame Rate: 30
   Name: root

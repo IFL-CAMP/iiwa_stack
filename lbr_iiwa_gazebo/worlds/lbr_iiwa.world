@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
-  <!-- We use a custom world for the kuka_lbr_iiwa so that the camera angle is launched correctly -->
+  <!-- We use a custom world for the lbr_iiwa so that the camera angle is launched correctly -->
 
   <world name="default">
     <include>

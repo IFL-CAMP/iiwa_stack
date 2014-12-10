@@ -77,7 +77,7 @@ find_package(catkin REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES kuka_lbr_iiwa_description
+#  LIBRARIES lbr_iiwa_description
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -91,19 +91,19 @@ catkin_package(
 # include_directories(include)
 
 ## Declare a cpp library
-# add_library(kuka_lbr_iiwa_description
-#   src/${PROJECT_NAME}/kuka_lbr_iiwa_description.cpp
+# add_library(lbr_iiwa_description
+#   src/${PROJECT_NAME}/lbr_iiwa_description.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(kuka_lbr_iiwa_description_node src/kuka_lbr_iiwa_description_node.cpp)
+# add_executable(lbr_iiwa_description_node src/lbr_iiwa_description_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(kuka_lbr_iiwa_description_node kuka_lbr_iiwa_description_generate_messages_cpp)
+# add_dependencies(lbr_iiwa_description_node lbr_iiwa_description_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(kuka_lbr_iiwa_description_node
+# target_link_libraries(lbr_iiwa_description_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -122,7 +122,7 @@ catkin_package(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS kuka_lbr_iiwa_description kuka_lbr_iiwa_description_node
+# install(TARGETS lbr_iiwa_description lbr_iiwa_description_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -147,7 +147,7 @@ catkin_package(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_kuka_lbr_iiwa_description.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_lbr_iiwa_description.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

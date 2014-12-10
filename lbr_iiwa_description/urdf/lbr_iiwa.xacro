@@ -3,8 +3,6 @@
 
   <!-- Import all Gazebo-customization elements, including Gazebo colors -->
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.gazebo.xacro" />
-  <!-- Import Rviz colors -->
-  <xacro:include filename="$(find lbr_iiwa_description)/urdf/materials.xacro" />
   <!-- Import Transmissions -->
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.transmission.xacro" />
   <!-- Include Utilities -->

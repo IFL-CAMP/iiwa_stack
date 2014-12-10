@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <robot name="lbr_iiwa" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find lbr_iiwa_description)/urdf/materials.xacro" />
+  <!--Import the lbr iiwa macro -->
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.xacro"/>
 
   <!-- Fix to world just for testing -->
