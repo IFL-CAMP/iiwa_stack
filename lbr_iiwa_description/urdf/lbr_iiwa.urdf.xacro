@@ -4,6 +4,8 @@
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/materials.xacro" />
   <!--Import the lbr iiwa macro -->
   <xacro:include filename="$(find lbr_iiwa_description)/urdf/lbr_iiwa.xacro"/>
+ <!-- Import Gazebo plugins -->
+  <xacro:include filename="$(find lbr_iiwa_description)/gazebo/gazebo.urdf.xacro"/>
 
   <!-- Fix to world just for testing -->
   <link name="world"/>

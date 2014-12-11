@@ -4,13 +4,6 @@
 
   <xacro:macro name="lbr_iiwa_gazebo" params="name">
 
-    <!-- ros_control plugin -->
-    <gazebo>
-      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-	<robotNamespace>/lbr_iiwa</robotNamespace>
-      </plugin>
-    </gazebo>
-
     <!-- Link0 -->
     <gazebo reference="${name}_link_0">
       <material>Gazebo/Grey</material>
