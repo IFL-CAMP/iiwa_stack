@@ -8,6 +8,8 @@ void IIWAFRIClient::onStateChange(ESessionState oldState, ESessionState newState
    {
       case MONITORING_READY:
       {
+	 //set targets to current joints
+	 memcpy(joint_targets, robotState().getMeasuredJointPosition(), 7 * sizeof(double));
          break;
       }
       default:
@@ -33,6 +35,17 @@ void IIWAFRIClient::getJointMsg(sensor_msgs::JointState &msg) {
     msg.effort = torques;
     msg.name = joint_names;
 }
+   
+//******************************************************************************
+void IIWAFRIClient::getJointsRaw(double (&pos)[7], double (&vel)[7], double (&eff)[7]) {
+    memcpy(pos, joint_pos, 7 * sizeof(double));
+    memcpy(eff, joint_torques, 7 * sizeof(double));
+}
+   
+void IIWAFRIClient::setJointTargets(const double (&com)[7]) {
+    memcpy(joint_targets, com, 7 * sizeof(double));
+}
+
 //******************************************************************************
 void IIWAFRIClient::command()
 {
@@ -40,12 +53,5 @@ void IIWAFRIClient::command()
     LBRState current_state = robotState();
     memcpy(joint_pos, current_state.getIpoJointPosition(), 7 * sizeof(double));
     memcpy(joint_torques, current_state.getMeasuredTorque(), 7 * sizeof(double));
-   //jointPos[0] = -M_PI/4;
-
-   //for (int i=0; i<7; i++)
-   //{
-       //here set the offset from current joint value
-       //jointPos[i] += _offset;
-   //}
-   robotCommand().setJointPosition(joint_pos);
+    robotCommand().setJointPosition(joint_targets);
 }

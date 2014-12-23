@@ -43,11 +43,15 @@
   <!-- Dependencies needed to compile this package. -->
   <build_depend>sensor_msgs</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>controller_manager</build_depend>
 
   <!-- Dependencies needed after this package is compiled. -->
   <run_depend>sensor_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>hardware_interface</run_depend>
+  <run_depend>controller_manager</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -4,7 +4,7 @@ project(lbr_fri)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp)
+find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp hardware_interface controller_manager)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -78,7 +78,7 @@ find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp)
 catkin_package(
   INCLUDE_DIRS include fri/include
 #  LIBRARIES lbr_fri
-  CATKIN_DEPENDS sensor_msgs message_runtime roscpp
+  CATKIN_DEPENDS sensor_msgs message_runtime roscpp hardware_interface controller_manager
 #  DEPENDS system_lib
 )
 
@@ -109,6 +109,15 @@ target_link_libraries(iiwa_node
    ${catkin_LIBRARIES} FRIClient
 )
 
+add_executable(iiwa_hw_interface src/iiwa_hw_interface.cpp src/iiwa_fri_client.cpp)
+## Add cmake target dependencies of the executable/library
+## as an example, message headers may need to be generated before nodes
+# add_dependencies(lbr_fri_node lbr_fri_generate_messages_cpp)
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(iiwa_hw_interface
+   ${catkin_LIBRARIES} FRIClient
+)
 #############
 ## Install ##
 #############

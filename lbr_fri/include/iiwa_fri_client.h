@@ -23,6 +23,7 @@ public:
 	joint_names.push_back("lbr_iiwa_joint_5");
 	joint_names.push_back("lbr_iiwa_joint_6");
 	joint_names.push_back("lbr_iiwa_joint_7");
+	for(int i=0; i<7; ++i) joint_targets[i] = 0;
     }; 
     ~IIWAFRIClient () { };   
    
@@ -45,10 +46,21 @@ public:
    virtual void monitor();
 
    void getJointMsg(sensor_msgs::JointState &msg);
+   void getJointsRaw(double (&pos)[7], double (&vel)[7], double (&eff)[7]);
    
+   void setJointTargets(const double (&com)[7]);
+   
+   ros::Time getTime(){
+       ros::Time t (robotState().getTimestampSec(), robotState().getTimestampNanoSec());
+       return t;
+   };
+   ros::Duration getPeriod() {
+	return ros::Duration(robotState().getSampleTime());
+   }
 private:
    double joint_pos[7];
    double joint_torques[7];
+   double joint_targets[7];
    std::vector<std::string> joint_names;
 };
 

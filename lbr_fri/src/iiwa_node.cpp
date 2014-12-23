@@ -39,7 +39,6 @@ class IIWANode {
 	// Constructor
 	IIWANode(ros::NodeHandle param_nh): client(),connection(),app(connection,client) 
 	{
-	    ///if we want to build map reading scans directly from bagfile
 	    param_nh.param<std::string>("hostname",hostname,"192.170.10.2");
 	    param_nh.param<int>("port",port,DEFAULT_PORTID);
 	    param_nh.param<double>("loop_rate",loop_rate,0.001);
