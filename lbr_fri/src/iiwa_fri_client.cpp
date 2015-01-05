@@ -44,6 +44,7 @@ void IIWAFRIClient::getJointsRaw(double (&pos)[7], double (&vel)[7], double (&ef
    
 void IIWAFRIClient::setJointTargets(const double (&com)[7]) {
     memcpy(joint_targets, com, 7 * sizeof(double));
+    std::cerr<<"com[6]"<<com[6]<<std::endl;
 }
 
 //******************************************************************************
@@ -51,7 +52,10 @@ void IIWAFRIClient::command()
 {
    // add offset to ipo joint position for all masked joints
     LBRState current_state = robotState();
-    memcpy(joint_pos, current_state.getIpoJointPosition(), 7 * sizeof(double));
+    //memcpy(joint_pos, current_state.getIpoJointPosition(), 7 * sizeof(double));
+    memcpy(joint_pos, current_state.getMeasuredJointPosition(), 7 * sizeof(double));
     memcpy(joint_torques, current_state.getMeasuredTorque(), 7 * sizeof(double));
+    //std::cerr<<"joint_targets[6]"<<joint_targets[6]<<std::endl;
     robotCommand().setJointPosition(joint_targets);
+    //robotCommand().setJointPosition(joint_pos);
 }

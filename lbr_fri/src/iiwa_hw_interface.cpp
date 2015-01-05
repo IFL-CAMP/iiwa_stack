@@ -28,49 +28,49 @@ class IIWARobot : public hardware_interface::RobotHW
 	    app.connect(port, hostname.c_str());
 	    
 	    // connect and register the joint state interface
-	    hardware_interface::JointStateHandle state_handle_1("lwr_joint_1", &pos[0], &vel[0], &eff[0]);
+	    hardware_interface::JointStateHandle state_handle_1("lbr_iiwa_joint_1", &pos[0], &vel[0], &eff[0]);
 	    jnt_state_interface.registerHandle(state_handle_1);
 
-	    hardware_interface::JointStateHandle state_handle_2("lwr_joint_2", &pos[1], &vel[1], &eff[1]);
+	    hardware_interface::JointStateHandle state_handle_2("lbr_iiwa_joint_2", &pos[1], &vel[1], &eff[1]);
 	    jnt_state_interface.registerHandle(state_handle_2);
 
-	    hardware_interface::JointStateHandle state_handle_3("lwr_joint_3", &pos[2], &vel[2], &eff[2]);
+	    hardware_interface::JointStateHandle state_handle_3("lbr_iiwa_joint_3", &pos[2], &vel[2], &eff[2]);
 	    jnt_state_interface.registerHandle(state_handle_3);
 
-	    hardware_interface::JointStateHandle state_handle_4("lwr_joint_4", &pos[3], &vel[3], &eff[3]);
+	    hardware_interface::JointStateHandle state_handle_4("lbr_iiwa_joint_4", &pos[3], &vel[3], &eff[3]);
 	    jnt_state_interface.registerHandle(state_handle_4);
 
-	    hardware_interface::JointStateHandle state_handle_5("lwr_joint_5", &pos[4], &vel[4], &eff[4]);
+	    hardware_interface::JointStateHandle state_handle_5("lbr_iiwa_joint_5", &pos[4], &vel[4], &eff[4]);
 	    jnt_state_interface.registerHandle(state_handle_5);
 
-	    hardware_interface::JointStateHandle state_handle_6("lwr_joint_6", &pos[5], &vel[5], &eff[5]);
+	    hardware_interface::JointStateHandle state_handle_6("lbr_iiwa_joint_6", &pos[5], &vel[5], &eff[5]);
 	    jnt_state_interface.registerHandle(state_handle_6);
 
-	    hardware_interface::JointStateHandle state_handle_7("lwr_joint_7", &pos[6], &vel[6], &eff[6]);
+	    hardware_interface::JointStateHandle state_handle_7("lbr_iiwa_joint_7", &pos[6], &vel[6], &eff[6]);
 	    jnt_state_interface.registerHandle(state_handle_7);
 
 	    registerInterface(&jnt_state_interface);
 
 	    // connect and register the joint position interface
-	    hardware_interface::JointHandle pos_handle_1(jnt_state_interface.getHandle("lwr_joint_1"), &cmd[0]);
+	    hardware_interface::JointHandle pos_handle_1(jnt_state_interface.getHandle("lbr_iiwa_joint_1"), &cmd[0]);
 	    jnt_pos_interface.registerHandle(pos_handle_1);
 
-	    hardware_interface::JointHandle pos_handle_2(jnt_state_interface.getHandle("lwr_joint_2"), &cmd[2]);
+	    hardware_interface::JointHandle pos_handle_2(jnt_state_interface.getHandle("lbr_iiwa_joint_2"), &cmd[1]);
 	    jnt_pos_interface.registerHandle(pos_handle_2);
 
-	    hardware_interface::JointHandle pos_handle_3(jnt_state_interface.getHandle("lwr_joint_3"), &cmd[3]);
-	    jnt_pos_interface.registerHandle(pos_handle_3);
-
-	    hardware_interface::JointHandle pos_handle_4(jnt_state_interface.getHandle("lwr_joint_4"), &cmd[4]);
-	    jnt_pos_interface.registerHandle(pos_handle_4);
-
-	    hardware_interface::JointHandle pos_handle_5(jnt_state_interface.getHandle("lwr_joint_5"), &cmd[5]);
-	    jnt_pos_interface.registerHandle(pos_handle_5);
-
-	    hardware_interface::JointHandle pos_handle_6(jnt_state_interface.getHandle("lwr_joint_6"), &cmd[6]);
-	    jnt_pos_interface.registerHandle(pos_handle_6);
-
-	    hardware_interface::JointHandle pos_handle_7(jnt_state_interface.getHandle("lwr_joint_7"), &cmd[7]);
+	    hardware_interface::JointHandle pos_handle_3(jnt_state_interface.getHandle("lbr_iiwa_joint_3"), &cmd[2]);
+	    jnt_pos_interface.registerHandle(pos_handle_3);                                                       
+                                                                                                                  
+	    hardware_interface::JointHandle pos_handle_4(jnt_state_interface.getHandle("lbr_iiwa_joint_4"), &cmd[3]);
+	    jnt_pos_interface.registerHandle(pos_handle_4);                                                       
+                                                                                                                  
+	    hardware_interface::JointHandle pos_handle_5(jnt_state_interface.getHandle("lbr_iiwa_joint_5"), &cmd[4]);
+	    jnt_pos_interface.registerHandle(pos_handle_5);                                                       
+                                                                                                                  
+	    hardware_interface::JointHandle pos_handle_6(jnt_state_interface.getHandle("lbr_iiwa_joint_6"), &cmd[5]);
+	    jnt_pos_interface.registerHandle(pos_handle_6);                                                       
+                                                                                                                  
+	    hardware_interface::JointHandle pos_handle_7(jnt_state_interface.getHandle("lbr_iiwa_joint_7"), &cmd[6]);
 	    jnt_pos_interface.registerHandle(pos_handle_7);
 
 	    registerInterface(&jnt_pos_interface);
@@ -84,11 +84,13 @@ class IIWARobot : public hardware_interface::RobotHW
 	{
 	    bool success = app.step();
 	    client.getJointsRaw(pos,vel,eff);
+	    //std::cerr<<"read joints: "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<" "<<pos[3]<<" "<<pos[4]<<" "<<pos[5]<<" "<<pos[6]<<"\n";
 	}
 	void write() 
 	{
-	    //bool success = app.step();
+	    std::cerr<<"send joints: "<<cmd[0]<<" "<<cmd[1]<<" "<<cmd[2]<<" "<<cmd[3]<<" "<<cmd[4]<<" "<<cmd[5]<<" "<<cmd[6]<<"\n";
 	    client.setJointTargets(cmd);
+	    bool success = app.step();
 	}
 	
 	//should return current time
@@ -112,12 +114,17 @@ int main(int argc, char **argv)
     ros::NodeHandle param("~");
     IIWARobot robot(param);
 
-    controller_manager::ControllerManager cm(&robot);
-
+    ros::NodeHandle nh;
+    controller_manager::ControllerManager cm(&robot,nh);
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    
     while (true)
     {
 	robot.read();
 	cm.update(robot.get_time(), robot.get_period());
 	robot.write();
     }
+
+    spinner.stop();
 }
