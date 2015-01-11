@@ -12,6 +12,10 @@ x
 x?
 r?
 
+#Misc
+
+lbr_fri/fri
+
 # patch results
 *.rej
 
