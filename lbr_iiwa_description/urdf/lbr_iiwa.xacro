@@ -99,8 +99,8 @@
     <joint name="${name}_joint_2" type="revolute">
       <parent link="${name}_link_1"/>
       <child link="${name}_link_2"/>
-      <origin xyz="0 0 0.2025" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
+      <origin xyz="0 0 0.2025" rpy="${PI / 2}   0 ${PI}"/>
+      <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
       <!-- <safety_controller soft_lower_limit="${-118 * PI / 180}"
@@ -112,9 +112,9 @@
 
     <link name="${name}_link_2">
       <inertial>
-        <origin xyz="0 0.04 0.06" rpy="0 0 0"/>
+        <origin xyz="0.0003 0.059 0.042" rpy="0 0 0"/>
         <mass value="4"/>
-        <inertia ixx="0.05"  ixy="0"  ixz="0" iyy="0.04" iyz="0" izz="0.02" />
+        <inertia ixx="0.05"  ixy="0"  ixz="0" iyy="0.018" iyz="0" izz="0.044" />
       </inertial>
 
       <visual>
@@ -138,7 +138,7 @@
     <joint name="${name}_joint_3" type="revolute">
       <parent link="${name}_link_2"/>
       <child link="${name}_link_3"/>
-      <origin xyz="0 0 0.2045" rpy="0 0 0"/>
+      <origin xyz="0 0.2045 0" rpy="${PI / 2} 0 ${PI}"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-170 * PI / 180}" upper="${170 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
@@ -153,7 +153,7 @@
       <inertial>
         <origin xyz="0 0.03 0.13" rpy="0 0 0"/>
         <mass value="3"/>
-        <inertia ixx="0.08"  ixy="0"  ixz="0" iyy="0.07" iyz="0" izz="0.01" />
+        <inertia ixx="0.08"  ixy="0"  ixz="0" iyy="0.075" iyz="0" izz="0.01" />
       </inertial>
 
       <visual>
@@ -177,8 +177,8 @@
     <joint name="${name}_joint_4" type="revolute">
       <parent link="${name}_link_3"/>
       <child link="${name}_link_4"/>
-      <origin xyz="0 0 0.2155" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
+      <origin xyz="0 0 0.2155" rpy="${PI / 2} 0 0"/>
+      <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
       <!-- <safety_controller soft_lower_limit="${-118 * PI / 180}"
@@ -190,9 +190,9 @@
 
     <link name="${name}_link_4">
       <inertial>
-        <origin xyz="0 -0.03 0.07" rpy="0 0 0"/>
-        <mass value="2.5"/>
-        <inertia ixx="0.03"  ixy="0"  ixz="0" iyy="0.03" iyz="0" izz="0.01" />
+        <origin xyz="0 0.067 0.034" rpy="0 0 0"/>
+        <mass value="2.7"/>
+        <inertia ixx="0.03"  ixy="0"  ixz="0" iyy="0.01" iyz="0" izz="0.029" />
       </inertial>
 
       <visual>
@@ -216,7 +216,7 @@
     <joint name="${name}_joint_5" type="revolute">
       <parent link="${name}_link_4"/>
       <child link="${name}_link_5"/>
-      <origin xyz="0 0 0.1845" rpy="0 0 0"/>
+      <origin xyz="0 0.1845 0" rpy="${-PI / 2} 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-170 * PI / 180}" upper="${170 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
@@ -229,9 +229,9 @@
 
     <link name="${name}_link_5">
       <inertial>
-        <origin xyz="0 -0.02 0.08" rpy="0 0 0"/>
+        <origin xyz="0.0001 0.021 0.076" rpy="0 0 0"/>
         <mass value="1.7"/>
-        <inertia ixx="0.02"  ixy="0"  ixz="0" iyy="0.02" iyz="0" izz="0.01" />
+        <inertia ixx="0.02"  ixy="0"  ixz="0" iyy="0.018" iyz="0" izz="0.005" />
       </inertial>
 
       <visual>
@@ -255,8 +255,8 @@
     <joint name="${name}_joint_6" type="revolute">
       <parent link="${name}_link_5"/>
       <child link="${name}_link_6"/>
-      <origin xyz="0 -0.0607 0.2155" rpy="0 0 0"/>
-      <axis xyz="0 1 0"/>
+      <origin xyz="0 0 0.2155" rpy="${PI / 2} 0 0"/>
+      <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
       <!-- <safety_controller soft_lower_limit="${-118 * PI / 180}"
@@ -268,9 +268,9 @@
 
     <link name="${name}_link_6">
       <inertial>
-        <origin xyz="0 0.06 0" rpy="0 0 0"/>
+        <origin xyz="0 0.0006 0.0004" rpy="0 0 0"/>
         <mass value="1.8"/>
-        <inertia ixx="0.01"  ixy="0"  ixz="0" iyy="0.001" iyz="0" izz="0.01" />
+        <inertia ixx="0.005"  ixy="0"  ixz="0" iyy="0.0036" iyz="0" izz="0.0047" />
       </inertial>
 
       <visual>
@@ -294,7 +294,7 @@
     <joint name="${name}_joint_7" type="revolute">
       <parent link="${name}_link_6"/>
       <child link="${name}_link_7"/>
-      <origin xyz="0 0.0607 0.0809" rpy="0 0 0"/>
+      <origin xyz="0 0.081 0" rpy="${- PI / 2} ${PI} 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-175 * PI / 180}" upper="${175 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
