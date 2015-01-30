@@ -19,6 +19,7 @@ class IIWANode {
     protected:
 	// Our NodeHandle
 	ros::NodeHandle nh_;
+	ros::NodeHandle n_;
         ros::Timer heartbeat_;
 
 	ros::Publisher joints_pub_;
@@ -39,12 +40,13 @@ class IIWANode {
 	// Constructor
 	IIWANode(ros::NodeHandle param_nh): client(),connection(),app(connection,client) 
 	{
+	    n_ = ros::NodeHandle("");
 	    param_nh.param<std::string>("hostname",hostname,"192.170.10.2");
 	    param_nh.param<int>("port",port,DEFAULT_PORTID);
 	    param_nh.param<double>("loop_rate",loop_rate,0.001);
 	    
 	    app.connect(port, hostname.c_str());
-	    joints_pub_=nh_.advertise<sensor_msgs::JointState>("joint_state",1000);
+	    joints_pub_=n_.advertise<sensor_msgs::JointState>("/joint_states",1000);
 
 	    heartbeat_ = nh_.createTimer(ros::Duration(loop_rate),&IIWANode::do_step,this);
 	    publish_ctr = 0;
@@ -63,6 +65,7 @@ class IIWANode {
 		publish_ctr = 0;
 		sensor_msgs::JointState js;
 		client.getJointMsg(js);
+		js.header.stamp = ros::Time::now();
 		joints_pub_.publish(js);
 	    }
 	}
