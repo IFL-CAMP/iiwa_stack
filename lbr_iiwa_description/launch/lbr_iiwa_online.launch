@@ -1,0 +1,16 @@
+<launch>
+
+  <!-- this argument you can pass this launch file-->
+  <arg name="hardware_interface" default="EffortJointInterface"/>
+
+ <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
+  <param name="robot_description"
+	 command="$(find xacro)/xacro.py '$(find lbr_iiwa_description)/urdf/lbr_iiwa.urdf.xacro' prefix:=$(arg hardware_interface)" />
+
+  <!-- Combine joint values -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+  <!-- Show in Rviz   -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lbr_iiwa_description)/launch/lbr_iiwa.rviz"/>
+
+</launch>
