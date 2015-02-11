@@ -2,7 +2,7 @@
 #include "Server.h"
 
 #define BACKLOG 10      // How many pending connections queue will hold 
-#define VERBOSE 1       // Turn on or off debugging output
+#define VERBOSE 0       // Turn on or off debugging output
 
 Server::Server(int iPort, int iPortDatagram, bool* pResult)
 {

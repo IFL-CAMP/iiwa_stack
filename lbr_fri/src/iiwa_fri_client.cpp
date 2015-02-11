@@ -44,7 +44,7 @@ void IIWAFRIClient::getJointsRaw(double (&pos)[7], double (&vel)[7], double (&ef
    
 void IIWAFRIClient::setJointTargets(const double (&com)[7]) {
     memcpy(joint_targets, com, 7 * sizeof(double));
-    std::cerr<<"com[6]"<<com[6]<<std::endl;
+    //std::cerr<<"com[6]"<<com[6]<<std::endl;
 }
 
 //******************************************************************************
@@ -58,4 +58,130 @@ void IIWAFRIClient::command()
     //std::cerr<<"joint_targets[6]"<<joint_targets[6]<<std::endl;
     robotCommand().setJointPosition(joint_targets);
     //robotCommand().setJointPosition(joint_pos);
+}
+   
+/**
+ * thread that sends joint commands 
+ */
+void IIWAFRIClientNative::commandThread()  {
+
+    int port = 5011;
+    int dataport =-1;
+    bool bResult = false;
+
+    command_send = new Server(port, dataport, &bResult);
+    if (!bResult)
+    {
+	printf("Failed to create Server object!\n");
+	return;
+    }
+
+    fflush(NULL);
+    command_send->Connect();
+    {
+	boost::mutex::scoped_lock lock(session_m);
+	send_established = true;
+	session_cond_.notify_one();
+    }
+    printf("SEND Server, got a connection...\n");
+    fflush(NULL);
+
+    while(true)
+    {
+	{
+	    boost::mutex::scoped_lock lock(socket_m);
+	    while(!doStep) {
+		socket_cond_.wait(lock);
+	    }
+	    break;
+	}
+    }
+
+    //cleanup
+    command_send->Close();
+    delete command_send;
+    command_send=NULL;
+
+}
+
+/**
+ * thread that reads joint values 
+ */
+void IIWAFRIClientNative::monitorThread() {
+    int port = 5010;
+    int dataport =-1;
+    bool bResult = false;
+
+    joints_recv = new Server(port, dataport, &bResult);
+    if (!bResult)
+    {
+	printf("Failed to create Server object!\n");
+	return;
+    }
+    
+    fflush(NULL);
+    joints_recv->Connect();
+    {
+	boost::mutex::scoped_lock lock(session_m);
+	recv_established = true;
+	session_cond_.notify_one();
+    }
+    printf("RECV Server, got a connection...\n");
+    fflush(NULL);
+
+    while(true) {
+//	printf("receiving from  socket\n");
+	{
+	    boost::mutex::scoped_lock lock(socket_m);
+	    while(!doStep) {
+		socket_cond_.wait(lock);
+	    }
+	    break;
+	    //doStep=false;
+	}
+	
+    }
+    //cleanup
+    joints_recv->Close();
+    delete joints_recv;
+    joints_recv=NULL;
+}
+   
+void IIWAFRIClientNative::getJointMsg(sensor_msgs::JointState &msg) {
+    double jp[7], vel[7], eff[7];
+    this->getJointsRaw(jp,vel,eff);
+    std::vector<double> pos (jp, jp+sizeof(jp)/sizeof(double));
+    msg.position = pos;
+    msg.name = joint_names;
+
+}
+
+void IIWAFRIClientNative::getJointsRaw(double (&pos)[7], double (&vel)[7], double (&eff)[7]) {
+    printf("getting joints\n");
+    js_m.lock();
+    printf("got mutex\n");
+    fflush(NULL);
+    joints_recv->RecvDoubles(joint_pos, SIZE);
+    js_m.unlock();
+    memcpy(pos, joint_pos, SIZE * sizeof(double));
+    
+    
+    t_m.lock();
+    double now = getDoubleTime();
+    period = now-last_read_time;
+    if(last_read_time == 0) period = 0;
+    last_read_time = now;
+    printf("time : %lf, period %lf\n", now,period);
+    t_m.unlock();
+    printf("got joints\n");
+}
+
+void IIWAFRIClientNative::setJointTargets(double (&com)[7]) {
+    printf("setting targets\n");
+    jt_m.lock();
+    printf("got target mutex\n");
+    fflush(NULL);
+    command_send->SendDoubles(com, SIZE);
+    jt_m.unlock();
+    printf("released target mutex\n");
 }

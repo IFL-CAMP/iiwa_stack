@@ -7,7 +7,7 @@ project(lbr_fri)
 find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp hardware_interface controller_manager std_srvs)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -106,17 +106,17 @@ add_executable(iiwa_node src/Server.cpp src/iiwa_node.cpp src/iiwa_fri_client.cp
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(iiwa_node
-   ${catkin_LIBRARIES} FRIClient
+   ${catkin_LIBRARIES} ${Boost_LIBRARIES} FRIClient
 )
 
-add_executable(iiwa_hw_interface src/iiwa_hw_interface.cpp src/iiwa_fri_client.cpp)
+add_executable(iiwa_hw_interface src/Server.cpp src/iiwa_hw_interface.cpp src/iiwa_fri_client.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(lbr_fri_node lbr_fri_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(iiwa_hw_interface
-   ${catkin_LIBRARIES} FRIClient
+   ${catkin_LIBRARIES}  ${Boost_LIBRARIES} FRIClient
 )
 #############
 ## Install ##

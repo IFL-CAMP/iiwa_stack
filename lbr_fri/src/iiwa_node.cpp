@@ -59,7 +59,7 @@ class IIWANode {
 
 	    heartbeat_ = nh_.createTimer(ros::Duration(loop_rate),&IIWANode::do_step,this);
 	    publish_ctr = 0;
-	    n_publish_skip = 10;
+	    n_publish_skip = 5;
 	    connected = false;
 
 	    if(run_streamer) {
