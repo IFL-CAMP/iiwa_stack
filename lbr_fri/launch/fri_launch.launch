@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-<node pkg="lbr_fri" type="iiwa_hw_interface" name="iiwa_hw_interface" ns="lbr_iiwa" output="screen"/>
+<node pkg="lbr_fri" type="iiwa_hw_interface" name="iiwa_hw_interface" ns="apple" output="screen"/>
 
 </launch>

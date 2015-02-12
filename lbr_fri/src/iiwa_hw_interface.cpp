@@ -11,6 +11,11 @@
 #include "sensor_msgs/JointState.h"
 #include <signal.h>
 
+#include <velvet_msgs/VNodeState.h>
+#include <velvet_msgs/VNodeTarget.h>
+
+#include <boost/thread/mutex.hpp>
+
 #define DEFAULT_PORTID 30200
 //#define bFRI
 
@@ -26,6 +31,12 @@ class IIWARobot : public hardware_interface::RobotHW
 #endif
 	std::string hostname;
 	int port;
+	ros::NodeHandle n_;
+	ros::Subscriber velvet_state;
+	ros::Publisher velvet_targ;
+
+	//boost::mutex velvet_m;
+	std::string velvet_state_topic, velvet_target_topic;
     public:
 	IIWARobot(ros::NodeHandle param_nh): client()
 #ifdef bFRI
@@ -34,6 +45,9 @@ class IIWARobot : public hardware_interface::RobotHW
 	{ 
 	    param_nh.param<std::string>("hostname",hostname,"192.170.10.2");
 	    param_nh.param<int>("port",port,DEFAULT_PORTID);
+	    param_nh.param<std::string>("velvet_topic_name", velvet_state_topic,"/velvet_node/vnode_state");
+	    param_nh.param<std::string>("velvet_target_topic_name", velvet_target_topic,"/velvet_node/vnode_target");
+
 #ifdef bFRI	    
 	    app.connect(port, hostname.c_str());
 #else
@@ -61,6 +75,9 @@ class IIWARobot : public hardware_interface::RobotHW
 
 	    hardware_interface::JointStateHandle state_handle_7("lbr_iiwa_joint_7", &pos[6], &vel[6], &eff[6]);
 	    jnt_state_interface.registerHandle(state_handle_7);
+	    
+	    hardware_interface::JointStateHandle state_handle_v("velvet_fingers_joint_1", &velvet_pos, &velvet_vel, &velvet_eff);
+	    jnt_state_interface.registerHandle(state_handle_v);
 
 	    registerInterface(&jnt_state_interface);
 
@@ -86,8 +103,18 @@ class IIWARobot : public hardware_interface::RobotHW
 	    hardware_interface::JointHandle vel_handle_7(jnt_state_interface.getHandle("lbr_iiwa_joint_7"), &cmd[6]);
 	    jnt_vel_interface.registerHandle(vel_handle_7);
 
+	    hardware_interface::JointHandle vel_handle_v(jnt_state_interface.getHandle("velvet_fingers_joint_1"), &velvet_cmd);
+	    jnt_vel_interface.registerHandle(vel_handle_v);
+	    
 	    registerInterface(&jnt_vel_interface);
 	    first_vals = true;
+
+	    velvet_pos =0;
+	    velvet_vel =0;
+	    velvet_eff =0;
+	    n_ = ros::NodeHandle();
+	    velvet_state = n_.subscribe(velvet_state_topic, 1, &IIWARobot::updateVelvetState, this);
+	    velvet_targ = param_nh.advertise<velvet_msgs::VNodeTarget>(velvet_target_topic,10);
 
 #ifndef bFRI
 	    bool success = client.waitForSession();
@@ -100,6 +127,15 @@ class IIWARobot : public hardware_interface::RobotHW
 #else
 	    client.step();
 #endif
+	}
+
+	void updateVelvetState(const velvet_msgs::VNodeStatePtr msg) {
+	    //lock mutex and update variables
+	    //velvet_m.lock();
+	    velvet_pos = msg->joint_pos;
+	    velvet_vel = msg->joint_vel;
+	    velvet_eff = msg->joint_eff;
+	    //velvet_m.unlock();
 	}
 
 	void read() 
@@ -123,6 +159,10 @@ class IIWARobot : public hardware_interface::RobotHW
 	{
 	    //std::cerr<<"send joints: "<<cmd[0]<<" "<<cmd[1]<<" "<<cmd[2]<<" "<<cmd[3]<<" "<<cmd[4]<<" "<<cmd[5]<<" "<<cmd[6]<<"\n";
 	    client.setJointTargets(cmd);
+	    /*
+	    velvet_msgs::VNodeTarget vtarg;
+	    vtarg.target_vel = velvet_cmd;
+	    velvet_targ.publish(vtarg);*/
 #ifdef bFRI
 	    bool success = app.step();
 #endif
@@ -141,6 +181,7 @@ class IIWARobot : public hardware_interface::RobotHW
 	double prev_pos[7];
 	double vel[7];
 	double eff[7];
+	double velvet_pos, velvet_vel, velvet_cmd, velvet_eff;
 	bool first_vals;
 };
 static IIWARobot *robot;
