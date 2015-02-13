@@ -32,8 +32,8 @@ class IIWARobot : public hardware_interface::RobotHW
 	std::string hostname;
 	int port;
 	ros::NodeHandle n_;
-	ros::Subscriber velvet_state;
-	ros::Publisher velvet_targ;
+	//ros::Subscriber velvet_state;
+	//ros::Publisher velvet_targ;
 
 	//boost::mutex velvet_m;
 	std::string velvet_state_topic, velvet_target_topic;
@@ -76,8 +76,8 @@ class IIWARobot : public hardware_interface::RobotHW
 	    hardware_interface::JointStateHandle state_handle_7("lbr_iiwa_joint_7", &pos[6], &vel[6], &eff[6]);
 	    jnt_state_interface.registerHandle(state_handle_7);
 	    
-	    hardware_interface::JointStateHandle state_handle_v("velvet_fingers_joint_1", &velvet_pos, &velvet_vel, &velvet_eff);
-	    jnt_state_interface.registerHandle(state_handle_v);
+	   // hardware_interface::JointStateHandle state_handle_v("velvet_fingers_joint_1", &velvet_pos, &velvet_vel, &velvet_eff);
+	   // jnt_state_interface.registerHandle(state_handle_v);
 
 	    registerInterface(&jnt_state_interface);
 
@@ -103,8 +103,8 @@ class IIWARobot : public hardware_interface::RobotHW
 	    hardware_interface::JointHandle vel_handle_7(jnt_state_interface.getHandle("lbr_iiwa_joint_7"), &cmd[6]);
 	    jnt_vel_interface.registerHandle(vel_handle_7);
 
-	    hardware_interface::JointHandle vel_handle_v(jnt_state_interface.getHandle("velvet_fingers_joint_1"), &velvet_cmd);
-	    jnt_vel_interface.registerHandle(vel_handle_v);
+	    //hardware_interface::JointHandle vel_handle_v(jnt_state_interface.getHandle("velvet_fingers_joint_1"), &velvet_cmd);
+	    //jnt_vel_interface.registerHandle(vel_handle_v);
 	    
 	    registerInterface(&jnt_vel_interface);
 	    first_vals = true;
@@ -113,8 +113,8 @@ class IIWARobot : public hardware_interface::RobotHW
 	    velvet_vel =0;
 	    velvet_eff =0;
 	    n_ = ros::NodeHandle();
-	    velvet_state = n_.subscribe(velvet_state_topic, 1, &IIWARobot::updateVelvetState, this);
-	    velvet_targ = param_nh.advertise<velvet_msgs::VNodeTarget>(velvet_target_topic,10);
+	    //velvet_state = n_.subscribe(velvet_state_topic, 1, &IIWARobot::updateVelvetState, this);
+	    //velvet_targ = param_nh.advertise<velvet_msgs::VNodeTarget>(velvet_target_topic,10);
 
 #ifndef bFRI
 	    bool success = client.waitForSession();
