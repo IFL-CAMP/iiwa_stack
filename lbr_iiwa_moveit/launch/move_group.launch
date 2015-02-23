@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 
   <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch" />

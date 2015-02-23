@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <launch>
 
   <!-- By default, we do not start a database (it can be large) -->
@@ -6,13 +5,10 @@
 
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
-  
+
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
-<!--     <arg name="hardware_interface" value="EffortJointInterface" /> -->
-    <arg name="hardware_interface" value="PositionJointInterface" />
-<!--     <arg name="hardware_interface" value="VelocityJointInterface" /> -->
   </include>
 
   <!-- If needed, broadcast static tf for robot root -->
