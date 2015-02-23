@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+<!--Convenience launch file to start gazebo + control--> 
+
+<!--The hardware_interface parameter determines which hardware inteface is used-->
+<include file="$(find lbr_iiwa_gazebo)/launch/lbr_iiwa_world.launch">
+  <arg name="hardware_interface" value="EffortJointInterface" />
+</include>
+
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_control.launch">
+  <arg name="hardware_interface" value="EffortJointInterface" />
+  <arg name="controllers" value="joint_state_controller
+			         effort_pos_joint_trajectory_controller" />
+</include>
+
+<!-- Launch RQT for control tuning -->
+ <node name="rrbot_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
+	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa_effort_pos_control.perspective"/>
+
+</launch>

@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
 <launch>
+  
+  <arg name="hardware_interface" default="EffortJointInterface"/> 
 
-  <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch" />
+  <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+  </include>
 
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />

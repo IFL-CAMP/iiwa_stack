@@ -15,18 +15,22 @@
   <arg name="sim" default="true" doc="If true, the robot will be simulated in Gazebo" />
   <arg name="robot_ip" default="192.168.0.20" unless="$(arg sim)" doc="The IP address of the robot" />
   <arg name="robot_port" default="49939" unless="$(arg sim)" doc="The listening port of the FRI interface" />
-  <arg name="mode" default="EffortJointInterface"/>
-
+<!--  <arg name="mode" default="EffortJointInterface"/>-->
+<!--   <arg name="mode" default="PositionJointInterface"/> -->
+   <arg name="hardware_interface" default="VelocityJointInterface"/> 
+  
   <!-- load the robot_description parameter before launching ROS-I nodes -->
   <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
-    <arg name="hardware_interface" value="$(arg mode)"/>
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
   </include>
 
 
 	<!-- run the robot simulator -->
 	<group if="$(arg sim)">
-		<include file="$(find lbr_iiwa_launch)/launch/lbr_iiwa_gazebo_effort_traj_control.launch"/>
+<!-- 		<include file="$(find lbr_iiwa_launch)/launch/lbr_iiwa_gazebo_effort_pos_traj_control.launch"/> -->
+<!-- 		<include file="$(find lbr_iiwa_launch)/launch/lbr_iiwa_gazebo_forward_pos_traj_control.launch"/> -->
+		<include file="$(find lbr_iiwa_launch)/launch/lbr_iiwa_gazebo_forward_vel_traj_control.launch"/>
 	</group>
 	
 	<!-- work on the real robot - WORKING ON  -->
@@ -36,7 +40,7 @@
 	   
 	   <!-- load the controllers -->
 	   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	   output="screen" ns="/lbr_iiwa" args="joint_state_controller joint_trajectory_controller" />
+	   output="screen" ns="/lbr_iiwa" args="joint_state_controller effort_pos_joint_trajectory_controller" />
 	   
 	   <!-- missing robot interface -->
 	  
@@ -44,6 +48,7 @@
 
   <include file="$(find lbr_iiwa_moveit)/launch/move_group.launch">
     <arg name="publish_monitored_planning_scene" value="true" />
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
   </include>
 
   <include file="$(find lbr_iiwa_moveit)/launch/moveit_rviz.launch">
