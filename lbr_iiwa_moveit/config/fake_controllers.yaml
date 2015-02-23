@@ -1,0 +1,10 @@
+controller_list:
+  - name: fake_arm_controller
+    joints:
+      - lbr_iiwa_joint_1
+      - lbr_iiwa_joint_2
+      - lbr_iiwa_joint_3
+      - lbr_iiwa_joint_4
+      - lbr_iiwa_joint_5
+      - lbr_iiwa_joint_6
+      - lbr_iiwa_joint_7

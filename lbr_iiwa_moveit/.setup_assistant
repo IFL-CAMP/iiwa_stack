@@ -1,0 +1,8 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: lbr_iiwa_description
+    relative_path: urdf/lbr_iiwa_effort.urdf
+  SRDF:
+    relative_path: config/lbr_iiwa.srdf
+  CONFIG:
+    generated_timestamp: 1424694753
