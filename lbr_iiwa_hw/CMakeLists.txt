@@ -96,19 +96,20 @@ include_directories(include
 )
 
 ## Declare a cpp library
-add_library(friremote
+# add_library(friremote
+# 
+# )
+
+add_library(${PROJECT_NAME}
     src/friremote.cpp
     src/friudp.cpp
-)
-
-add_library(IIWARobot
     src/IIWARobot.cpp
     include/IIWARobot.h
 )
 
 ## Declare a cpp executable
-add_executable(${PROJECT_NAME}
-    src/lwr_hw.cpp
+add_executable(${PROJECT_NAME}-bin
+    src/lbr_iiwa_hw.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
@@ -116,9 +117,8 @@ add_executable(${PROJECT_NAME}
 # add_dependencies(lwr_hw_node lwr_hw_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
-    friremote
-    IIWARobot
+target_link_libraries(${PROJECT_NAME}-bin
+    ${PROJECT_NAME}
     ${catkin_LIBRARIES}
 )
 
