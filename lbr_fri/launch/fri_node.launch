@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-<node pkg="lbr_fri" type="iiwa_node" name="iiwa_node" ns="lbr_iiwa" output="screen"/>
-
-</launch>

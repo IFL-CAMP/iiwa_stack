@@ -1,0 +1,10 @@
+bool isJointControl
+float64[] cartPosition
+float64[] cartForces
+float64[] cartPositionStiffness
+float64[] cartOrientation
+float64[] cartMoments
+float64[] cartOrientationStiffness
+float64[] jointAngles
+float64[] jointTorques
+float64[] jointStiffness

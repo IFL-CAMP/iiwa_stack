@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- LAUNCH INTERFACE -->
+	<arg name="port" default="49939"/>
+	<arg name="ip" default="192.168.0.20"/>
+
+	<!-- LAUNCH IMPLEMENTATION -->
+
+	<group ns="lbr_iiwa">
+		<rosparam command="load" file="$(find lbr_iiwa_hw)/config/joint_names.yaml" />
+		<!-- addresses /-->
+		<param name="port" value="$(arg port)"/>
+		<param name="ip" value="$(arg ip)"/>
+		<!-- the real hardware interface /-->
+		<node name="lbr_iiwa_hw" pkg="lbr_iiwa_hw" type="lbr_iiwa_hw" respawn="false" output="screen"/>
+	</group>
+
+</launch>

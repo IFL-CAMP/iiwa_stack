@@ -1,50 +1,43 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(lbr_fri)
+project(lbr_iiwa_hw)
+
+
+## TODO: need cleanup!!
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp hardware_interface controller_manager std_srvs)
+find_package(catkin REQUIRED COMPONENTS
+  control_toolbox
+  controller_interface
+  controller_manager
+  hardware_interface
+  realtime_tools
+  joint_limits_interface
+  roscpp
+  message_generation
+  tf
+  urdf
+  cmake_modules
+)
 
-## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS thread)
-
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+add_definitions (-fpermissive)
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
 
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependencies might have been
-##     pulled in transitively but can be declared for certainty nonetheless:
-##     * add a build_depend tag for "message_generation"
-##     * add a run_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
+# Declare the message files to be built
+add_message_files(FILES IIWAMsg.msg)
+
+# Actually generate the language-specific message and service files
+generate_messages(DEPENDENCIES std_msgs)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
+#add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+#   IIWAMsg.msg
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -75,11 +68,20 @@ find_package(Boost REQUIRED COMPONENTS thread)
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-  INCLUDE_DIRS include fri/include
-#  LIBRARIES lbr_fri
-  CATKIN_DEPENDS sensor_msgs message_runtime roscpp hardware_interface controller_manager std_srvs
+#  catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES lwr_hw
+#  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
+#)
+
+catkin_package(
+	INCLUDE_DIRS include
+	LIBRARIES	 ${PROJECT_NAME}
+	CATKIN_DEPENDS 	message_runtime
+			controller_interface
+			hardware_interface
+			control_toolbox
 )
 
 ###########
@@ -88,36 +90,44 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include fri/include)
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(include
+  ${Boost_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a cpp library
-# add_library(lbr_fri
-#   src/${PROJECT_NAME}/lbr_fri.cpp
-# )
+add_library(friremote
+    src/friremote.cpp
+    src/friudp.cpp
+)
+
+add_library(IIWARobot
+    src/IIWARobot.cpp
+    include/IIWARobot.h
+)
 
 ## Declare a cpp executable
-link_directories(fri/lib)
-
-add_executable(iiwa_node src/Server.cpp src/iiwa_node.cpp src/iiwa_fri_client.cpp)
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(lbr_fri_node lbr_fri_generate_messages_cpp)
-
-## Specify libraries to link a library or executable target against
-target_link_libraries(iiwa_node
-   ${catkin_LIBRARIES} ${Boost_LIBRARIES} FRIClient
+add_executable(${PROJECT_NAME}
+    src/lwr_hw.cpp
 )
 
-add_executable(iiwa_hw_interface src/Server.cpp src/iiwa_hw_interface.cpp src/iiwa_fri_client.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(lbr_fri_node lbr_fri_generate_messages_cpp)
+# add_dependencies(lwr_hw_node lwr_hw_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(iiwa_hw_interface
-   ${catkin_LIBRARIES}  ${Boost_LIBRARIES} FRIClient
+target_link_libraries(${PROJECT_NAME}
+    friremote
+    IIWARobot
+    ${catkin_LIBRARIES}
 )
+
+FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
+SET(QT_USE_QTOPENGL true)
+INCLUDE(${QT_USE_FILE})
+INCLUDE_DIRECTORIES(${QT_INCLUDES})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -133,7 +143,7 @@ target_link_libraries(iiwa_hw_interface
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS lbr_fri lbr_fri_node
+# install(TARGETS lwr_hw lwr_hw_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -158,7 +168,7 @@ target_link_libraries(iiwa_hw_interface
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_lbr_fri.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_lwr_hw.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
