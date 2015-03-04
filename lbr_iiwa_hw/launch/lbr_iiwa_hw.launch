@@ -13,7 +13,7 @@
 		<param name="port" value="$(arg port)"/>
 		<param name="ip" value="$(arg ip)"/>
 		<!-- the real hardware interface /-->
-		<node name="lbr_iiwa_hw" pkg="lbr_iiwa_hw" type="lbr_iiwa_hw" respawn="false" output="screen"/>
+		<node name="lbr_iiwa_hw" pkg="lbr_iiwa_hw" type="lbr_iiwa_hw-bin" respawn="false" output="screen"/>
 	</group>
 
 </launch>

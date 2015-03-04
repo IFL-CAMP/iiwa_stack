@@ -35,14 +35,17 @@
 	
 	<!-- work on the real robot - WORKING ON  -->
 	<group unless="$(arg sim)">
-	  <!-- Load joint controller configurations from YAML file to parameter server -->
+	   <!-- Load joint controller configurations from YAML file to parameter server -->
 	   <rosparam file="$(find lbr_iiwa_control)/config/lbr_iiwa_control.yaml" command="load" ns="lbr_iiwa"/>
 	   
 	   <!-- load the controllers -->
 	   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
 	   output="screen" ns="/lbr_iiwa" args="joint_state_controller effort_pos_joint_trajectory_controller" />
 	   
-	   <!-- missing robot interface -->
+	   <!-- robot interface -->
+	   
+	   <include file="$(find lbr_iiwa_hw)/launch/lwr_hw.launch" >
+	   </include>
 	  
 	</group>
 

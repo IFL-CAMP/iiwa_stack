@@ -165,8 +165,8 @@ namespace lwr_ros_control
     this->device_.reset( new LWRHW::LWRDevice7() );
 
     // get params or give default values
-    nh_.param("port", port_, 49939);
-    nh_.param("ip", hintToRemoteHost_, std::string("192.168.0.10") );
+    //nh_.param("port", port_, 49939);
+    //nh_.param("ip", hintToRemoteHost_, std::string("192.168.0.10") );
 
     // TODO: use transmission configuration to get names directly from the URDF model
     if( ros::param::get("joints", this->device_->joint_names) )
