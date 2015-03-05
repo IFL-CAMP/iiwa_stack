@@ -17,14 +17,6 @@
 #include <control_toolbox/filters.h>
 #include <urdf/model.h>
 
-// fri remote 
-#include <iostream>
-#include <cstdlib>
-#include <math.h>
-#include <limits.h>
-#include "friudp.h"
-#include "friremote.h"
-
 #include <QThread>
 #include "IIWARobot.h"
 
@@ -57,15 +49,11 @@ namespace lwr_ros_control
                            const urdf::Model *const urdf_model,
                            double *const lower_limit, double *const upper_limit, 
                            double *const effort_limit);
-    void Controller(const IIWA::IIWAMsg &currentState, IIWA::IIWAMsg &commandState);
+    void Controller(const IIWA::IIWAMsg &currentState, IIWA::IIWAMsg &commandState, ros::Duration period);
 
     // structure for a lwr, joint handles, low lever interface, etc
     struct LWRDevice7
     {
-      // low-level interface
-      boost::shared_ptr<friRemote> interface;
-      //boost::shared_ptr<IIWARobot> interface;
-
       // configuration
       std::vector<std::string> joint_names;
 
@@ -86,30 +74,26 @@ namespace lwr_ros_control
         joint_damping_command,
         joint_effort_command;
 
-      // FRI values
-      FRI_QUALITY lastQuality;
-      FRI_CTRL lastCtrlScheme;
-
       void init()
       {
-        joint_position.resize(LBR_MNJ);
-        joint_position_prev.resize(LBR_MNJ);
-        joint_velocity.resize(LBR_MNJ);
-        joint_effort.resize(LBR_MNJ);
-        joint_position_command.resize(LBR_MNJ);
-        joint_effort_command.resize(LBR_MNJ);
-        joint_stiffness_command.resize(LBR_MNJ);
-        joint_damping_command.resize(LBR_MNJ);
+        joint_position.resize(joint_number);
+        joint_position_prev.resize(joint_number);
+        joint_velocity.resize(joint_number);
+        joint_effort.resize(joint_number);
+        joint_position_command.resize(joint_number);
+        joint_effort_command.resize(joint_number);
+        joint_stiffness_command.resize(joint_number);
+        joint_damping_command.resize(joint_number);
 
-        joint_lower_limits.resize(LBR_MNJ);
-        joint_upper_limits.resize(LBR_MNJ);
-        joint_effort_limits.resize(LBR_MNJ);
+        joint_lower_limits.resize(joint_number);
+        joint_upper_limits.resize(joint_number);
+        joint_effort_limits.resize(joint_number);
       }
 
       // reset values
       void reset() 
       {
-        for (int j = 0; j < LBR_MNJ; ++j)
+        for (int j = 0; j < joint_number; ++j)
         {
           joint_position[j] = 0.0;
           joint_position_prev[j] = 0.0;
@@ -123,9 +107,6 @@ namespace lwr_ros_control
           joint_damping_command[j] = 0.0;
         }
       }
-
-
-
     };
 
     boost::shared_ptr<LWRHW::LWRDevice7> device_;
@@ -150,6 +131,7 @@ namespace lwr_ros_control
     joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
     joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
 
+    const static size_t joint_number = 7;
   protected:
 
   };
@@ -164,14 +146,10 @@ namespace lwr_ros_control
     // construct a new lwr device (interface and state storage)
     this->device_.reset( new LWRHW::LWRDevice7() );
 
-    // get params or give default values
-    //nh_.param("port", port_, 49939);
-    //nh_.param("ip", hintToRemoteHost_, std::string("192.168.0.10") );
-
     // TODO: use transmission configuration to get names directly from the URDF model
     if( ros::param::get("joints", this->device_->joint_names) )
     {
-      if( !(this->device_->joint_names.size()==LBR_MNJ) )
+      if( !(this->device_->joint_names.size()==joint_number) )
       {
         ROS_ERROR("This robot has 7 joints, you must specify 7 names for each one");
       } 
@@ -187,14 +165,6 @@ namespace lwr_ros_control
       throw std::runtime_error("No URDF model available");
     }
 
-    // construct a low-level lwr
-    this->device_->interface.reset( new friRemote( port_, hintToRemoteHost_.c_str() ) );
-    //this->device_->interface.reset( new IIWARobot());
-
-    // initialize FRI values
-    this->device_->lastQuality = FRI_QUALITY_BAD;
-    this->device_->lastCtrlScheme = FRI_CTRL_OTHER;
-
     // initialize and set to zero the state and command values
     this->device_->init();
     this->device_->reset();
@@ -203,7 +173,7 @@ namespace lwr_ros_control
     boost::shared_ptr<const urdf::Joint> joint;
 
     // create joint handles given the list
-    for(int i = 0; i < LBR_MNJ; ++i)
+    for(int i = 0; i < joint_number; ++i)
     {
       ROS_INFO_STREAM("Handling joint: " << this->device_->joint_names[i]);
 
@@ -252,56 +222,11 @@ namespace lwr_ros_control
     this->registerInterface(&effort_interface_);
     this->registerInterface(&position_interface_);
 
-    /*
-    
-    std::cout << "Opening FRI Version " 
-      << FRI_MAJOR_VERSION << "." << FRI_SUB_VERSION << "." <<FRI_DATAGRAM_ID_CMD << "." <<FRI_DATAGRAM_ID_MSR 
-      << " Interface for LWR ROS server" << std::endl;
-
-    ROS_INFO("Performing handshake to KRL");
-
-    // perform some arbitrary handshake to KRL -- possible in monitor mode already
-    // send to krl int a value
-    this->device_->interface->setToKRLInt(0,1);
-    if ( this->device_->interface->getQuality() >= FRI_QUALITY_OK)
-    {
-        // send a second marker
-        this->device_->interface->setToKRLInt(0,10);
-    }
-
-    //
-    // just mirror the real value..
-    //
-    this->device_->interface->setToKRLReal(0,this->device_->interface->getFrmKRLReal(1));
-
-    ROS_INFO_STREAM("LWR Status:\n" << this->device_->interface->getMsrBuf().intf);
-
-    this->device_->interface->doDataExchange();
-    ROS_INFO("Done handshake !");
-    
-    */
-
     return true;
   }
-
-  bool LWRHW::read(ros::Time time, ros::Duration period)
-    {
-      // update the robot positions
-      for (int j = 0; j < LBR_MNJ; j++)
-      {
-      	this->device_->joint_position_prev[j] = this->device_->joint_position[j];
-        this->device_->joint_position[j] = this->device_->interface->getMsrMsrJntPosition()[j];
-        this->device_->joint_effort[j] = this->device_->interface->getMsrJntTrq()[j];
-        this->device_->joint_velocity[j] = filters::exponentialSmoothing((this->device_->joint_position[j]-this->device_->joint_position_prev[j])/period.toSec(), this->device_->joint_velocity[j], 0.2);
-      }
-      
-      //this->device_->interface->doDataExchange();
-
-      return true;
-    }
-
-  void LWRHW::write(ros::Time time, ros::Duration period)
-    {
+    
+void LWRHW::Controller(const IIWA::IIWAMsg& currentState, IIWA::IIWAMsg& commandState, ros::Duration period)
+{  
       static int warning = 0;
 
       // enforce limits
@@ -311,86 +236,19 @@ namespace lwr_ros_control
       pj_limits_interface_.enforceLimits(period);
 
       // write to real robot
-      float newJntPosition[LBR_MNJ];
-      float newJntStiff[LBR_MNJ];
-      float newJntDamp[LBR_MNJ];
-      float newJntAddTorque[LBR_MNJ];
-
-      if ( this->device_->interface->isPowerOn() )
-      { 
-        // check control mode
-        //if ( this->device_->interface->getState() == FRI_STATE_CMD )
-        //{
-          // check control scheme
-          if( this->device_->interface->getCurrentControlScheme() == FRI_CTRL_POSITION )
-          {
-            for (int i = 0; i < LBR_MNJ; i++)
-            {
-                newJntPosition[i] = this->device_->joint_position_command[i];
-            }
-
-            // only joint impedance control is performed, since it is the only one that provide access to the joint torque directly
-            // note that stiffness and damping are 0, as well as the position, since only effort is allowed to be sent
-            // the KRC adds the dynamic terms, such that if zero torque is sent, the robot apply torques necessary to mantain the robot in the current position
-            // the only interface is effort, thus any other action you want to do, you have to compute the added torque and send it through a controller
-            this->device_->interface->doPositionControl(newJntPosition, true);
-          }
-          // check control scheme
-          if( this->device_->interface->getCurrentControlScheme() == FRI_CTRL_JNT_IMP )
-          {
-            for (int i = 0; i < LBR_MNJ; i++)
-            {
-                newJntPosition[i] = this->device_->joint_position[i];
-// 		        std::cout << "joint_effort_command " << i << " " << this->device_->joint_effort_command[i] << std::endl;
-                newJntAddTorque[i] = this->device_->joint_effort_command[i]; // comes from the controllers
-                newJntStiff[i] = this->device_->joint_stiffness_command[i]; // default values for now
-                newJntDamp[i] = this->device_->joint_damping_command[i]; // default values for now
-            }
-
-            // only joint impedance control is performed, since it is the only one that provide access to the joint torque directly
-            // note that stiffness and damping are 0, as well as the position, since only effort is allowed to be sent
-            // the KRC adds the dynamic terms, such that if zero torque is sent, the robot apply torques necessary to mantain the robot in the current position
-            // the only interface is effort, thus any other action you want to do, you have to compute the added torque and send it through a controller
-            this->device_->interface->doJntImpedanceControl(newJntPosition, newJntStiff, newJntDamp, newJntAddTorque, true);
-          }
-          if( this->device_->interface->getCurrentControlScheme() == FRI_CTRL_OTHER ) // Gravity compensation: just read status, but we have to keep FRI alive
-          {
-            this->device_->interface->doJntImpedanceControl(NULL, NULL, NULL, NULL, true);
-          }
-        //}
+      float newJntPosition[joint_number];
+      float newJntStiff[joint_number];
+      float newJntDamp[joint_number];
+      float newJntAddTorque[joint_number];
+  
+  
+        for (int j = 0; j < joint_number; j++)
+      {
+      	this->device_->joint_position_prev[j] = this->device_->joint_position[j];
+        this->device_->joint_position[j] = currentState.jointAngles[j];
+        this->device_->joint_effort[j] = currentState.jointTorques[j];
+        this->device_->joint_velocity[j] = filters::exponentialSmoothing((this->device_->joint_position[j]-this->device_->joint_position_prev[j])/period.toSec(), this->device_->joint_velocity[j], 0.2);
       }
-
-      // Stop request is issued from the other side
-      /*
-      if ( this->device_->interface->getFrmKRLInt(0) == -1)
-      {
-          ROS_INFO(" Stop request issued from the other side");
-          this->stop();
-      }*/
-
-      // Quality change leads to output of statistics
-      // for informational reasons
-      //
-      /*if ( this->device_->interface->getQuality() != this->device_->lastQuality )
-      {
-          ROS_INFO_STREAM("Quality change detected "<< this->device_->interface->getQuality()<< " \n");
-          ROS_INFO_STREAM("" << this->device_->interface->getMsrBuf().intf);
-          this->device_->lastQuality = this->device_->interface->getQuality();
-      }*/
-
-      // this is already done in the doJntImpedance Control setting to true the last flag
-      // this->device_->interface->doDataExchange();
-
-      return;
-    }
-
-    
-void LWRHW::Controller(const IIWA::IIWAMsg& currentState, IIWA::IIWAMsg& commandState)
-{
-  //write your controller here
-    cout << currentState.cartPosition[0] << " "
-         << currentState.cartPosition[1] << " "
-         << currentState.cartPosition[2] << endl;
 
     //write your desired command in the variable commandState.
     //You do not need to fill all the variables, just set the ones that you want to change now.
@@ -413,17 +271,54 @@ void LWRHW::Controller(const IIWA::IIWAMsg& currentState, IIWA::IIWAMsg& command
     }
 
     //You need to set this flag to define the control type
-    commandState.isJointControl = false;
+    commandState.isJointControl = true;
 
     //The following is a basic gravity compensation controller
-    commandState.cartPosition.resize(3);
-    commandState.cartPosition = goalState.cartPosition;
+//     commandState.cartPosition.resize(3);
+//     commandState.cartPosition = goalState.cartPosition;
+// 
+//     commandState.cartOrientation.resize(9);
+//     commandState.cartOrientation = goalState.cartOrientation;
+// 
+//     commandState.cartPositionStiffness.resize(3);
+//     commandState.cartPositionStiffness = goalState.cartPositionStiffness;
+    
+    for (int i = 0; i < joint_number; i++)
+    {
+	commandState.jointAngles.resize(joint_number);
+	commandState.jointAngles[i] = this->device_->joint_position_command[i];
+    }
+    
+    
+    /* JOINT IMPEDANCE CONTROL FROM THE 4+
+    
+    
+    // only joint impedance control is performed, since it is the only one that provide access to the joint torque directly
+    // note that stiffness and damping are 0, as well as the position, since only effort is allowed to be sent
+    // the KRC adds the dynamic terms, such that if zero torque is sent, the robot apply torques necessary to mantain the robot in the current position
+    // the only interface is effort, thus any other action you want to do, you have to compute the added torque and send it through a controller
+	  
+    // check control scheme
+    if( this->device_->interface->getCurrentControlScheme() == FRI_CTRL_JNT_IMP )
+    {
+      for (int i = 0; i < joint_number; i++)
+      {
+	  newJntPosition[i] = this->device_->joint_position[i];
+// 		        std::cout << "joint_effort_command " << i << " " << this->device_->joint_effort_command[i] << std::endl;
+	  newJntAddTorque[i] = this->device_->joint_effort_command[i]; // comes from the controllers
+	  newJntStiff[i] = this->device_->joint_stiffness_command[i]; // default values for now
+	  newJntDamp[i] = this->device_->joint_damping_command[i]; // default values for now
+      }
 
-    commandState.cartOrientation.resize(9);
-    commandState.cartOrientation = goalState.cartOrientation;
-
-    commandState.cartPositionStiffness.resize(3);
-    commandState.cartPositionStiffness = goalState.cartPositionStiffness;
+      // only joint impedance control is performed, since it is the only one that provide access to the joint torque directly
+      // note that stiffness and damping are 0, as well as the position, since only effort is allowed to be sent
+      // the KRC adds the dynamic terms, such that if zero torque is sent, the robot apply torques necessary to mantain the robot in the current position
+      // the only interface is effort, thus any other action you want to do, you have to compute the added torque and send it through a controller
+      this->device_->interface->doJntImpedanceControl(newJntPosition, newJntStiff, newJntDamp, newJntAddTorque, true);
+    }
+    
+    */
+    
 }
 
     
@@ -519,12 +414,9 @@ int main( int argc, char** argv )
   ros::Time last(ts.tv_sec, ts.tv_nsec), now(ts.tv_sec, ts.tv_nsec);
   ros::Duration period(1.0);
 
-  //realtime_tools::RealtimePublisher<std_msgs::Duration> publisher(lwr_nh, "loop_rate", 2);
-
   //the controller manager
   controller_manager::ControllerManager manager(&lwr_robot, lwr_nh);
 
-  //uint32_t count = 0;
 
   // run as fast as possible
   while( !g_quit ) 
@@ -544,34 +436,12 @@ int main( int argc, char** argv )
     } 
     
     
-    lwr_robot.RobotUpdate();
-
-    /*
-    // read the state from the lwr
-    if(!lwr_robot.read(now, period))
-    {
-      g_quit = true;
-      break;
-    }
+    lwr_robot.RobotUpdate(period);
 
     // update the controllers
     manager.update(now, period);
 
-    // write the command to the lwr
-    lwr_robot.write(now, period);
-    */
-    // if(count++ > 1000)
-    // {
-    //   if(publisher.trylock())
-    //   {
-    //     count = 0;
-    //     publisher.msg_.data = period;
-    //     publisher.unlockAndPublish();
-    //   }
-    // }
   }
-
-  //publisher.stop();
 
   std::cerr<<"Stopping spinner..."<<std::endl;
   spinner.stop();

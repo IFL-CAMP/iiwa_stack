@@ -68,9 +68,9 @@ class IIWARobot
 public:
     IIWARobot();
    ~IIWARobot();
-    virtual void    Controller(const IIWA::IIWAMsg &currentState, IIWA::IIWAMsg &desiredState) = 0;
+    virtual void    Controller(const IIWA::IIWAMsg &currentState, IIWA::IIWAMsg &desiredState, ros::Duration period) = 0;
 
-    bool            RobotUpdate();
+    bool            RobotUpdate(ros::Duration period);
 
     void            ResizeIIWAMessage(IIWA::IIWAMsg &msg);
 

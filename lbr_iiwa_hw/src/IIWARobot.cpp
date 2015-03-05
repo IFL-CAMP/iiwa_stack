@@ -72,7 +72,7 @@ void IIWARobot::ResizeIIWAMessage(IIWA::IIWAMsg &msg){
 
 long int cnt = 0;
 
-bool IIWARobot::RobotUpdate(){
+bool IIWARobot::RobotUpdate(ros::Duration period){
 
     // Calculate loop time;
     controlFrequency = 1000000000.0/myClock.nsecsElapsed();
@@ -87,7 +87,7 @@ bool IIWARobot::RobotUpdate(){
         IIWA::IIWAMsg  sendMessage;
 
         //doing your stuff
-        Controller(currentIIWAStateMessage, sendMessage);
+        Controller(currentIIWAStateMessage, sendMessage, period);
 
         iiwa_pub.publish(sendMessage);
     }else{
