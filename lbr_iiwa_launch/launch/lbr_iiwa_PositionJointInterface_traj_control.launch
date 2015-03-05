@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+<!--Convenience launch file to start IIWA control--> 
+
+<include file="$(find lbr_iiwa_control)/launch/lbr_iiwa_control.launch">
+  <arg name="hardware_interface" value="PositionJointInterface" />
+  <arg name="controllers" value="joint_state_controller
+			         forward_pos_joint_trajectory_controller" />
+</include>
+
+<!-- Launch RQT for control tuning -->
+ <node name="rrbot_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
+	output="screen" args="--perspective-file $(find lbr_iiwa_control)/launch/lbr_iiwa_forward_pos_control.perspective"/>
+
+</launch>

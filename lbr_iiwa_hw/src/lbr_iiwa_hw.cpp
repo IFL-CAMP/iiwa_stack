@@ -41,7 +41,6 @@ namespace lwr_ros_control
     bool start();
     bool read(ros::Time time, ros::Duration period);
     void write(ros::Time time, ros::Duration period);
-    void stop();
     void set_mode();
     void reset();
     void registerJointLimits(const std::string& joint_name,
@@ -117,8 +116,7 @@ namespace lwr_ros_control
     ros::NodeHandle nh_;
 
     // Parameters
-    int port_;
-    std::string hintToRemoteHost_;
+    std::string interface_;
     urdf::Model urdf_model_;
 
     // interfaces
@@ -145,6 +143,9 @@ namespace lwr_ros_control
 
     // construct a new lwr device (interface and state storage)
     this->device_.reset( new LWRHW::LWRDevice7() );
+    
+    // get params or give default values
+    nh_.param("interface", interface_, std::string("PositionJointInterface") );
 
     // TODO: use transmission configuration to get names directly from the URDF model
     if( ros::param::get("joints", this->device_->joint_names) )
@@ -321,12 +322,6 @@ void LWRHW::Controller(const IIWA::IIWAMsg& currentState, IIWA::IIWAMsg& command
     
 }
 
-    
-  void LWRHW::stop()
-  {
-    // TODO: decide whether to stop the FRI or just put to idle
-  }
-
   void LWRHW::set_mode()
   {
     // ToDo: just switch between monitor and command mode, no control strategies switch
@@ -445,9 +440,6 @@ int main( int argc, char** argv )
 
   std::cerr<<"Stopping spinner..."<<std::endl;
   spinner.stop();
-
-  std::cerr<<"Stopping LWR..."<<std::endl;
-  lwr_robot.stop();
 
   std::cerr<<"Bye!"<<std::endl;
 

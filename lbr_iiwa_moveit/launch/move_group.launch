@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   
-  <arg name="hardware_interface" default="EffortJointInterface"/> 
+  <arg name="hardware_interface" default="PositionJointInterface"/> 
 
   <include file="$(find lbr_iiwa_moveit)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
@@ -36,6 +36,7 @@
     <arg name="moveit_manage_controllers" value="true" />
     <arg name="moveit_controller_manager" value="lbr_iiwa" unless="$(arg fake_execution)"/>
     <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
   </include>
 
   <!-- Sensors Functionality -->

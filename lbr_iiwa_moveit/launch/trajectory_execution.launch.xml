@@ -2,6 +2,7 @@
 
   <!-- This file makes it easy to include the settings for trajectory execution  -->  
 
+  <arg name="hardware_interface" default="PositionJointInterface"/> 
   <!-- Flag indicating whether MoveIt! is allowed to load/unload  or switch controllers -->
   <arg name="moveit_manage_controllers" default="true"/>
   <param name="moveit_manage_controllers" value="$(arg moveit_manage_controllers)"/>
@@ -13,6 +14,8 @@
   
   <!-- Load the robot specific controller manager; this sets the moveit_controller_manager ROS parameter -->
   <arg name="moveit_controller_manager" default="lbr_iiwa" />
-  <include file="$(find lbr_iiwa_moveit)/launch/$(arg moveit_controller_manager)_moveit_controller_manager.launch.xml" />
+  <include file="$(find lbr_iiwa_moveit)/launch/$(arg moveit_controller_manager)_moveit_controller_manager.launch.xml" >
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+  </include>
   
 </launch>
