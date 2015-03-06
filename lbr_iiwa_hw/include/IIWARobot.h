@@ -36,7 +36,6 @@
 #define IIWAROBOT_H_
 
 #include <QElapsedTimer>
-#include "IIWARobot.h"
 
 #include "boost/thread.hpp"
 #include "time.h"

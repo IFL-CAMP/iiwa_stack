@@ -8,8 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   hardware_interface
   realtime_tools
   joint_limits_interface
-  roscpp
-  message_generation
   tf
   urdf
   cmake_modules
@@ -17,17 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_definitions (-fpermissive)
 
-# Declare the message files to be built
-add_message_files(FILES IIWAMsg.msg)
-
-# Actually generate the language-specific message and service files
-generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS 	message_runtime
-			controller_interface
+	CATKIN_DEPENDS  controller_interface
 			hardware_interface
 			control_toolbox
 )
