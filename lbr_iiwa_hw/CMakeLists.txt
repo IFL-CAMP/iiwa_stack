@@ -32,13 +32,13 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-    src/IIWARobot.cpp
-    include/IIWARobot.h
+    src/lbr_iiwa_hw.cpp
+    include/lbr_iiwa_hw.h
 )
 
 ## Declare a cpp executable
 add_executable(${PROJECT_NAME}-bin
-    src/lbr_iiwa_hw.cpp
+    src/main.cpp
 )
 
 ## Specify libraries to link a library or executable target against
