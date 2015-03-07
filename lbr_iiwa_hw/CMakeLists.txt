@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(lbr_iiwa_hw)
 
 find_package(catkin REQUIRED COMPONENTS
+  IIWA
   control_toolbox
   controller_interface
   controller_manager
@@ -12,9 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   cmake_modules
 )
-
-add_definitions (-fpermissive)
-
 
 catkin_package(
 	INCLUDE_DIRS include
@@ -40,6 +38,10 @@ add_library(${PROJECT_NAME}
 add_executable(${PROJECT_NAME}-bin
     src/main.cpp
 )
+
+## Add dependence to the lbr_iiwa_msg module
+add_dependencies(${PROJECT_NAME}-bin IIWA_generate_messages_cpp)
+
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}-bin
