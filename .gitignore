@@ -69,3 +69,5 @@ Status API Training Shop Blog About
 
 /CMakeLists.txt
 *.kdev4
+*.project
+*.cproject

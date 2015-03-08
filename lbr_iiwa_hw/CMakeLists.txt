@@ -30,8 +30,10 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
+	include/IIWARos.h
+	include/lbr_iiwa_hw.h
+    src/IIWARos.cpp
     src/lbr_iiwa_hw.cpp
-    include/lbr_iiwa_hw.h
 )
 
 ## Declare a cpp executable

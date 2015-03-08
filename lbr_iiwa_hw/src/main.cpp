@@ -59,11 +59,16 @@ int main( int argc, char** argv )
       break;
     } 
     
+    // read current robot position
     iiwa_robot.read(period);
     
     // update the controllers
     manager.update(now, period);
     
+    // send command position to the robot
+    iiwa_robot.write(period);
+
+    // wait for some milliseconds defined in controlFrequency
     iiwa_robot.getRate()->sleep();
 
   }
