@@ -36,20 +36,18 @@
 
 using namespace std;
 
-IIWA::IIWAMsg robotIIWAMessage;
-bool IIWARos::robotIsConnected;
+bool IIWARos::robot_is_connected_ = false;
+IIWA::IIWAMsg IIWARos::from_robot_IIWA_message_;
 
 IIWARos::IIWARos(){
 	ros::NodeHandle nh;
 
-	robotIsConnected = false;
-
 	// resize aspects of currentJointState
-	resizeIIWAMessage(robotIIWAMessage);
-	resizeIIWAMessage(currentIIWAStateMessage);
+	resizeIIWAMessage(from_robot_IIWA_message_);
+	resizeIIWAMessage(current_IIWA_state_message_);
 
-	iiwa_pub = nh.advertise<IIWA::IIWAMsg>(IIWA_LISTEN, 1);
-	iiwa_sub = nh.subscribe(IIWA_TALK, 1, IIWARos::iiwaSubscriberCallback);
+	iiwa_pub_ = nh.advertise<IIWA::IIWAMsg>(IIWA_LISTEN, 1);
+	iiwa_sub_ = nh.subscribe(IIWA_TALK, 1, IIWARos::iiwaSubscriberCallback);
 }
 
 IIWARos::~IIWARos()
@@ -72,11 +70,11 @@ void IIWARos::resizeIIWAMessage(IIWA::IIWAMsg& msg){
 // Subscriber callback function that updates the current joint state
 void IIWARos::iiwaSubscriberCallback(const IIWA::IIWAMsg& msg)
 {
-	copyIIWAMessage(msg, robotIIWAMessage);
+	copyIIWAMessage(msg, from_robot_IIWA_message_);
 
-	if (!robotIsConnected){
+	if (!robot_is_connected_){
 		cout << "IIWA robot is connected." << endl;
-		robotIsConnected = true;
+		robot_is_connected_ = true;
 	}
 }
 
@@ -116,24 +114,24 @@ void IIWARos::copyIIWAMessage(const IIWA::IIWAMsg& msg_copy, IIWA::IIWAMsg& msg_
 }
 
 bool IIWARos::getRobotIsConnected() {
-	return robotIsConnected;
+	return robot_is_connected_;
 }
 
-bool IIWARos::read(IIWA::IIWAMsg& receiveMessage) {
-	if (robotIsConnected) {
+bool IIWARos::read(IIWA::IIWAMsg& incoming_message) {
+	if (robot_is_connected_) {
 		// FIXME : the copyIIWAMessage is not necessary, \
-		but it looks nice to send the curretIIWAState...
-		copyIIWAMessage(robotIIWAMessage, receiveMessage);
+		but it looks nice to save and send the curretIIWAState...
+		copyIIWAMessage(from_robot_IIWA_message_, incoming_message);
 		return 1;
 	}
 	return 0;
 }
 
-bool IIWARos::write(IIWA::IIWAMsg sendMessage) {
-	if (robotIsConnected)
-		{
-			iiwa_pub.publish(sendMessage);
-			return 1;
-		}
+bool IIWARos::write(IIWA::IIWAMsg send_message) {
+	if (robot_is_connected_)
+	{
+		iiwa_pub_.publish(send_message);
+		return 1;
+	}
 	return 0;
 }

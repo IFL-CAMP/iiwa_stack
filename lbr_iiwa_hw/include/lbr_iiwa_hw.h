@@ -1,6 +1,8 @@
 #ifndef LBR_IIWA_HW_H_
 #define LBR_IIWA_HW_H_
 
+#include <vector>
+
 // ROS headers
 #include <ros/ros.h>
 #include <controller_manager/controller_manager.h>
@@ -105,32 +107,34 @@ public:
 private:
 
 	// Node handle
-	ros::NodeHandle _nh;
+	ros::NodeHandle nh_;
 
 	// Parameters
-	std::string _interface;
-	urdf::Model _urdf_model;
+	std::string interface_;
+	urdf::Model urdf_model_;
 
 	// Interfaces
-	hardware_interface::JointStateInterface _state_interface;
-	hardware_interface::EffortJointInterface _effort_interface;
-	hardware_interface::PositionJointInterface _position_interface;
+	hardware_interface::JointStateInterface state_interface_;
+	hardware_interface::EffortJointInterface effort_interface_;
+	hardware_interface::PositionJointInterface position_interface_;
 
 	// Interfaces for limits
-	joint_limits_interface::EffortJointSaturationInterface   _ej_sat_interface;
-	joint_limits_interface::EffortJointSoftLimitsInterface   _ej_limits_interface;
-	joint_limits_interface::PositionJointSaturationInterface _pj_sat_interface;
-	joint_limits_interface::PositionJointSoftLimitsInterface _pj_limits_interface;
+	joint_limits_interface::EffortJointSaturationInterface   ej_sat_interface_;
+	joint_limits_interface::EffortJointSoftLimitsInterface   ej_limits_interface_;
+	joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
+	joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
 
 	// IIWA_device
-	boost::shared_ptr<IIWA_HW::IIWA_device> _device;
+	boost::shared_ptr<IIWA_HW::IIWA_device> device_;
 
-	ros::Time timer;
-	ros::Rate* loop_rate;
-	double controlFrequency;
+	ros::Time timer_;
+	ros::Rate* loop_rate_;
+	double control_frequency_;
 
 	IIWARos iiwaRos;
-	IIWA::IIWAMsg currentIIWAStateMessage;
+	IIWA::IIWAMsg current_IIWA_state_message_;
+
+	std::vector<std::string> interface_type_;
 };
 
 #endif //LBR_IIWA_HW_H_

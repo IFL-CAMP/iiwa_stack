@@ -50,6 +50,8 @@
 #define IIWA_LISTEN "/iiwa/command"
 #define IIWA_TALK   "/iiwa/state"
 
+// TODO : add comments and documentation
+
 class IIWARos
 {
 public:
@@ -65,11 +67,12 @@ public:
 	static bool getRobotIsConnected();
 
 private:
-	ros::Publisher iiwa_pub;
-	ros::Subscriber iiwa_sub;
+	ros::Publisher iiwa_pub_;
+	ros::Subscriber iiwa_sub_;
 
-	IIWA::IIWAMsg currentIIWAStateMessage;
-	static bool robotIsConnected;
+	IIWA::IIWAMsg current_IIWA_state_message_;
+	static IIWA::IIWAMsg from_robot_IIWA_message_;
+	static bool robot_is_connected_;
 };
 
 #endif //IIWAROS_H_
