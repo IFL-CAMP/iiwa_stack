@@ -52,9 +52,3 @@ target_link_libraries(${PROJECT_NAME}-bin
     ${PROJECT_NAME}
     ${catkin_LIBRARIES}
 )
-
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
-SET(QT_USE_QTOPENGL true)
-INCLUDE(${QT_USE_FILE})
-INCLUDE_DIRECTORIES(${QT_INCLUDES})
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
