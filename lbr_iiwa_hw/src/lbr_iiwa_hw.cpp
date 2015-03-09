@@ -8,6 +8,8 @@ IIWA_HW::IIWA_HW(ros::NodeHandle nh)
 {
 	nh_ = nh;
 
+	iiwa_ros_.resizeIIWAMessage(current_IIWA_state_message_);
+
 	timer_ = ros::Time::now();
 	control_frequency_ = DEFAULTCONTROLFREQUENCY;
 	loop_rate_ = new ros::Rate(control_frequency_);
@@ -181,7 +183,7 @@ bool IIWA_HW::read(ros::Duration period)
 {
 	ros::Duration delta = ros::Time::now() - timer_;
 
-	if (iiwaRos.read(current_IIWA_state_message_))
+	if (iiwa_ros_.read(current_IIWA_state_message_))
 	{
 		for (int j = 0; j < IIWA_DOF_JOINTS; j++)
 		{
@@ -247,7 +249,7 @@ bool IIWA_HW::write(ros::Duration period)
 			//	TODO
 		}
 
-		iiwaRos.write(goalState);
+		iiwa_ros_.write(goalState);
 	}
 	else if (delta.toSec() >= 10) {
 		cout << "No LBR IIWA is connected. Waiting for the robot to connect ..." << endl;

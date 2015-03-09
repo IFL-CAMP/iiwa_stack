@@ -131,7 +131,7 @@ private:
 	ros::Rate* loop_rate_;
 	double control_frequency_;
 
-	IIWARos iiwaRos;
+	IIWARos iiwa_ros_;
 	IIWA::IIWAMsg current_IIWA_state_message_;
 
 	std::vector<std::string> interface_type_;
