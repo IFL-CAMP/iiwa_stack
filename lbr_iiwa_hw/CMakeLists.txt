@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(lbr_iiwa_hw)
 
 find_package(catkin REQUIRED COMPONENTS
-  IIWA
   control_toolbox
   controller_interface
   controller_manager
@@ -12,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   urdf
   cmake_modules
+  IIWA
+  lbr_iiwa_ros
 )
 
 catkin_package(
@@ -30,10 +31,8 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-	include/IIWARos.h
-	include/lbr_iiwa_hw.h
-    src/IIWARos.cpp
-    src/lbr_iiwa_hw.cpp
+  include/lbr_iiwa_hw.h
+  src/lbr_iiwa_hw.cpp
 )
 
 ## Declare a cpp executable

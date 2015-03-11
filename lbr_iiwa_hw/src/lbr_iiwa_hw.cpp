@@ -227,8 +227,12 @@ bool IIWA_HW::write(ros::Duration period)
 			goalState.cartPositionStiffness.at(1) = 50.0;
 			goalState.cartPositionStiffness.at(2) = 500.0;
 
+			goalState.jointAngles.resize(IIWA_DOF_JOINTS);
+			goalState.jointAngles = current_IIWA_state_message_.jointAngles;
+
 			first_run = false;
 		}
+
 
 		// Joint Position Control
 		if (interface_ == interface_type_.at(0)) {
@@ -242,10 +246,12 @@ bool IIWA_HW::write(ros::Duration period)
 		}
 		// Joint Impedance Control
 		else if (interface_ == interface_type_.at(1)){
+			goalState.isJointControl = true;
 			// TODO
 		}
 		// Joint Velocity Control
 		else if (interface_ == interface_type_.at(2)){
+			goalState.isJointControl = true;
 			//	TODO
 		}
 
