@@ -1,3 +1,16 @@
+/** (c) 2015 Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ *
+ * This code is a porting of the work from the Centro E. Piaggio 
+ * in Pisa : https://github.com/CentroEPiaggio/kuka-lwr, for the LBR IIWA.
+ * 
+ * \author Salvatore Virga
+ * \version 1.0.0
+ * \date 13/03/2015
+ */
+
 #include "lbr_iiwa_hw.h"
 
 #include <sys/mman.h>

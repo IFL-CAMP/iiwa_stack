@@ -1,3 +1,24 @@
+/** (c) 2015 Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ *
+ * This class implements a communication with a KUKA LBR IIWA Robot via ROS.
+ * The communication is performed on the topics :
+ *	/iiwa/command 	- to control the robot position,
+ *	/iiwa/state	- to monitor the robot position,
+ * and is based on the ROS message created by the module lbr_iiwa_msg.
+ * In order for the communication to be functional, the robot has to
+ * communicate over the same topics with the same message type.
+ * 
+ * \author Salvatore Virga
+ * \version 1.0.0
+ * \date 13/03/2015
+ * 
+ * This class is based on an implementation by Mohammad Khansari 
+ * from Stanford University. Although the code base has been refactored, 
+ * the code code is subject to the following copyright statement:
+ * 
 /**************************************************************************
  ***   Copyright (c) 2014 S. Mohammad Khansari, Stanford Robotics Lab,   ***
  ***                      Stanford University, USA                       ***
@@ -42,10 +63,10 @@ IIWA::IIWAMsg IIWARos::from_robot_IIWA_message_;
 IIWARos::IIWARos(){
 	ros::NodeHandle nh;
 
-	// resize aspects of currentJointState
+	// Initialize/Resize the IIWAMsg that will be used
 	resizeIIWAMessage(from_robot_IIWA_message_);
-	resizeIIWAMessage(current_IIWA_state_message_);
 
+	// Starts publisher and subscriber
 	iiwa_pub_ = nh.advertise<IIWA::IIWAMsg>(IIWA_LISTEN, 1);
 	iiwa_sub_ = nh.subscribe(IIWA_TALK, 1, IIWARos::iiwaSubscriberCallback);
 }
@@ -119,8 +140,6 @@ bool IIWARos::getRobotIsConnected() {
 
 bool IIWARos::read(IIWA::IIWAMsg& incoming_message) {
 	if (robot_is_connected_) {
-		// FIXME : the copyIIWAMessage is not necessary, \
-		but it looks nice to save and send the curretIIWAState...
 		copyIIWAMessage(from_robot_IIWA_message_, incoming_message);
 		return 1;
 	}

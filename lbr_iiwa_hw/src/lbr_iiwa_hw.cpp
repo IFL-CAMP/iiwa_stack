@@ -1,3 +1,18 @@
+/** (c) 2015 Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ *
+ * This class implements a bridge between ROS hardware interfaces and a KUKA LBR IIWA Robot,
+ * using an IIWARos communication described in the lbr_iiwa_ros package.
+ * It is a porting of the work from the Centro E. Piaggio in Pisa : https://github.com/CentroEPiaggio/kuka-lwr
+ * for the LBR IIWA.
+ * 
+ * \author Salvatore Virga
+ * \version 1.0.0
+ * \date 13/03/2015
+ */
+
 #include "lbr_iiwa_hw.h"
 
 bool first_run = true;
@@ -38,11 +53,12 @@ void IIWA_HW::setFrequency(double frequency)
 }
 
 bool IIWA_HW::start() {
+  
 	// construct a new IIWA device (interface and state storage)
 	device_.reset( new IIWA_HW::IIWA_device() );
 
 	// TODO : make use of this
-	// get params or give default values
+	// get inteface param or give default values
 	nh_.param("interface", interface_, std::string("PositionJointInterface") );
 
 	// TODO: use transmission configuration to get names directly from the URDF model
@@ -125,9 +141,6 @@ bool IIWA_HW::start() {
 	return true;
 }
 
-// Register the limits of the joint specified by joint_name and joint_handle. The limits are
-// retrieved from the urdf_model.
-// Return the joint's type, lower position limit, upper position limit, and effort limit.
 void IIWA_HW::registerJointLimits(const std::string& joint_name,
 		const hardware_interface::JointHandle& joint_handle,
 		const urdf::Model *const urdf_model,

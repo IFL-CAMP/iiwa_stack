@@ -1,3 +1,13 @@
+/** (c) 2015 Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ * 
+ * \author Salvatore Virga
+ * \version 1.0.0
+ * \date 13/03/2015
+ */
+
 #include "IIWARos.h"
 
 #include <sys/mman.h>
@@ -6,6 +16,7 @@
 #include <signal.h>
 #include <stdexcept>
 
+// Handles quit commands
 bool g_quit = false;
 
 void quitRequested(int sig) 
@@ -15,14 +26,14 @@ void quitRequested(int sig)
 
 int main( int argc, char** argv )
 {
-  // initialize ROS
+  // Initialize ROS
   ros::init(argc, argv, "lbr_iiwa_ros_example", ros::init_options::NoSigintHandler);
   
-  // ros spinner
+  // ROS pinner
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // custom signal handlers
+  // Custom signal handlers
   signal(SIGTERM, quitRequested);
   signal(SIGINT, quitRequested);
   signal(SIGHUP, quitRequested);
@@ -33,7 +44,7 @@ int main( int argc, char** argv )
   // The IIWA - ROS interface
   IIWARos iiwa_ros;
   
-  
+  // Rate at which you want to send and receive messages
   ros::Rate* loop_rate_ = new ros::Rate(1000);
   
   // BUILD YOUR MESSAGE TO SEND OR GET IT FROM SOMEWHERE ELSE

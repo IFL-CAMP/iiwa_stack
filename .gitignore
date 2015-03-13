@@ -71,3 +71,4 @@ Status API Training Shop Blog About
 *.kdev4
 *.project
 *.cproject
+/config
