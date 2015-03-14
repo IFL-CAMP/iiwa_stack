@@ -40,12 +40,16 @@ add_executable(${PROJECT_NAME}-bin
     src/main.cpp
 )
 
-## Add dependence to the lbr_iiwa_msg module
-add_dependencies(${PROJECT_NAME}-bin 
-				IIWA_generate_messages
+## Add dependence to the lbr_iiwa_msg module for the executable
+add_dependencies(${PROJECT_NAME}-bin
+				IIWA_generate_messages_cpp)
+				
+## Add dependence to the lbr_iiwa_msg module for the library
+add_dependencies(${PROJECT_NAME}
 				IIWA_generate_messages_cpp)
 
-
+				
+				
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}-bin
     ${PROJECT_NAME}

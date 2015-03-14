@@ -12,7 +12,7 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend> roscpp </build_depend>
+  <build_depend>roscpp</build_depend>
   <build_depend>IIWA</build_depend>
   <run_depend>IIWA</run_depend>
   
