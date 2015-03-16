@@ -19,9 +19,9 @@ This packages contained in this repository are :
 
 ### Dependencies
 
-`sudo apt-get install ros-indigo-moveit-full libgazebo5 libgazebo5-dev gazebo5 
-ros-indigo-gazebo5-ros-pkgs ros-indigo-gazebo5-ros-control ros-indigo-ros-control ros-indigo-effort-controllers 
-ros-indigo-joint-state-controller ros-indigo-joint-trajectory-controller ros-indigo-joint-trajectory-action`
+The dependencies of each package in a catkin workspace can be installed by typing 
+into a shell in the workspace directory:  
+`rosdep install --from-paths src --ignore-src -r -y`
 
 ### Usage
 You can either use a simulated robot with Gazebo or a real robot connected to the machine that runs ROS via its KONI Ethernet port.
