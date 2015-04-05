@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(lbr_iiwa_ros)
 
 find_package(catkin REQUIRED COMPONENTS
-  IIWA
+  iiwa_msgs
   tf
   cmake_modules
 )
@@ -20,8 +20,8 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-	include/IIWARos.h
-	src/IIWARos.cpp
+	include/iiwaRosConn.h
+	src/iiwaRosConn.cpp
 )
 
 ## Declare a cpp executable
@@ -31,11 +31,11 @@ add_executable(${PROJECT_NAME}-example
 
 ## Add dependence to the lbr_iiwa_msg module for the executable
 add_dependencies(${PROJECT_NAME}-example
-				IIWA_generate_messages_cpp)
+				iiwa_msgs_generate_messages_cpp)
 				
 ## Add dependence to the lbr_iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME}
-				IIWA_generate_messages_cpp)
+				iiwa_msgs_generate_messages_cpp)
 				
 				
 ## Specify libraries to link a library or executable target against

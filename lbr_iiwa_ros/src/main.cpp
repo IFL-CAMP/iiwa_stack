@@ -8,7 +8,7 @@
  * \date 13/03/2015
  */
 
-#include "IIWARos.h"
+#include "iiwaRosConn.h"
 
 #include <sys/mman.h>
 #include <cmath>
@@ -38,42 +38,44 @@ int main( int argc, char** argv )
   signal(SIGINT, quitRequested);
   signal(SIGHUP, quitRequested);
 
-  // The IIWAMsg to send and receive states of the robot
-  IIWA::IIWAMsg receiveMessage, sendMessage;
+  // The iiwa_msgs to send and receive joint position of the robot
+  iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
   // The IIWA - ROS interface
-  IIWARos iiwa_ros;
+  iiwaRosConn iiwa_ros;
   
   // Rate at which you want to send and receive messages
   ros::Rate* loop_rate_ = new ros::Rate(1000);
   
   // BUILD YOUR MESSAGE TO SEND OR GET IT FROM SOMEWHERE ELSE
   // A GOOD IDEA IS TO HAVE ANOTHER FUNCTION THAT DOES THAT
-  sendMessage.isJointControl = true;
-  sendMessage.jointAngles.resize(7);
+  sendMessage.position.resize(IIWA_JOINTS);
+  receiveMessage.position.resize(IIWA_JOINTS);
   
-  sendMessage.jointAngles[0] = 0.0;
-  sendMessage.jointAngles[1] = 0.0;
-  sendMessage.jointAngles[2] = 0.0;
-  sendMessage.jointAngles[3] = 0.0;
-  sendMessage.jointAngles[4] = 0.0;
-  sendMessage.jointAngles[5] = 0.0;
-  sendMessage.jointAngles[6] = 0.0;
-
+  sendMessage.position[0] = 0.0;
+  sendMessage.position[1] = 0.0;
+  sendMessage.position[2] = 0.0;
+  sendMessage.position[3] = 0.0;
+  sendMessage.position[4] = 0.0;
+  sendMessage.position[5] = 0.0;
+  sendMessage.position[6] = 0.0;
+  
   while( !g_quit ) 
   {
     
-    if (iiwa_ros.read(receiveMessage)) {
+    if (iiwa_ros.getRobotIsConnected()) {
       
+      receiveMessage = iiwa_ros.getJointPosition();
       // You received a new IIWA state message, do something with it.
       
     }
     
     // send command position to the robot
-    if (iiwa_ros.write(sendMessage)) {
+    if (iiwa_ros.getRobotIsConnected()) {
       
+      iiwa_ros.setJointPosition(sendMessage);
+      iiwa_ros.publish();
       // Your messange was sent to the robot.
-      
     }
     
     // Wait for some milliseconds

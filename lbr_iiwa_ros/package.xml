@@ -14,6 +14,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>IIWA</build_depend>
+  <build_depend>iiwa_msgs</build_depend>
+  <run_depend>iiwa_msgs</run_depend>
   <run_depend>IIWA</run_depend>
   
   <export>
