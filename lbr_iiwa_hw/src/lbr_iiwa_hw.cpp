@@ -9,21 +9,24 @@
  * for the LBR IIWA.
  * 
  * \author Salvatore Virga
- * \version 1.0.0
- * \date 13/03/2015
+ * \version 2.0.0
+ * \date 05/04/2015
  */
 
 #include "lbr_iiwa_hw.h"
-
-bool first_run = true;
 
 using namespace std;
 
 IIWA_HW::IIWA_HW(ros::NodeHandle nh)
 {
 	nh_ = nh;
-
-	iiwa_ros_.resizeIIWAMessage(current_IIWA_state_message_);
+	
+	//iiwa_ros_conn_.init();
+	
+	joint_position_.position.resize(IIWA_JOINTS);
+	joint_torque_.torque.resize(IIWA_JOINTS);
+	command_joint_position_.position.resize(IIWA_JOINTS);
+	command_joint_torque_.torque.resize(IIWA_JOINTS);
 
 	timer_ = ros::Time::now();
 	control_frequency_ = DEFAULTCONTROLFREQUENCY;
@@ -64,7 +67,7 @@ bool IIWA_HW::start() {
 	// TODO: use transmission configuration to get names directly from the URDF model
 	if( ros::param::get("joints", device_->joint_names) )
 	{
-		if( !(device_->joint_names.size() == IIWA_DOF_JOINTS) )
+		if( !(device_->joint_names.size() == IIWA_JOINTS) )
 		{
 			ROS_ERROR("This robot has 7 joints, you must specify 7 names for each one");
 		}
@@ -88,7 +91,7 @@ bool IIWA_HW::start() {
 	boost::shared_ptr<const urdf::Joint> joint;
 
 	// create joint handles given the list
-	for(int i = 0; i < IIWA_DOF_JOINTS; ++i)
+	for(int i = 0; i < IIWA_JOINTS; ++i)
 	{
 		ROS_INFO_STREAM("Handling joint: " << device_->joint_names[i]);
 
@@ -196,13 +199,16 @@ bool IIWA_HW::read(ros::Duration period)
 {
 	ros::Duration delta = ros::Time::now() - timer_;
 
-	if (iiwa_ros_.read(current_IIWA_state_message_))
-	{
-		for (int j = 0; j < IIWA_DOF_JOINTS; j++)
+	if (iiwa_ros_conn_.getRobotIsConnected()) {
+	
+	joint_position_ = iiwa_ros_conn_.getJointPosition();
+	joint_torque_ = iiwa_ros_conn_.getJointTorque();
+	
+	for (int j = 0; j < IIWA_JOINTS; j++)
 		{
 			device_->joint_position_prev[j] = device_->joint_position[j];
-			device_->joint_position[j] = current_IIWA_state_message_.jointAngles[j];
-			device_->joint_effort[j] = current_IIWA_state_message_.jointTorques[j];
+			device_->joint_position[j] = joint_position_.position[j];
+			device_->joint_effort[j] = joint_torque_.torque[j];
 			device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), device_->joint_velocity[j], 0.2);
 		}
 		return 1;
@@ -211,6 +217,7 @@ bool IIWA_HW::read(ros::Duration period)
 		cout << "No LBR IIWA is connected. Waiting for the robot to connect ..." << endl;
 		timer_ = ros::Time::now();
 	}
+		
 	return 0;
 }
 
@@ -222,58 +229,35 @@ bool IIWA_HW::write(ros::Duration period)
 	pj_limits_interface_.enforceLimits(period);
 
 	ros::Duration delta = ros::Time::now() - timer_;
-
-	IIWA::IIWAMsg goalState;
+	
 	//reading the force/torque values
-	if (IIWARos::getRobotIsConnected())
+	if (iiwa_ros_conn_.getRobotIsConnected())
 	{
-		if (first_run)
-		{
-			goalState.cartPosition.resize(3);
-			goalState.cartPosition = current_IIWA_state_message_.cartPosition;
-
-			goalState.cartOrientation.resize(9);
-			goalState.cartOrientation = current_IIWA_state_message_.cartOrientation;
-
-			goalState.cartPositionStiffness.resize(3);
-			goalState.cartPositionStiffness.at(0) = 50.0;
-			goalState.cartPositionStiffness.at(1) = 50.0;
-			goalState.cartPositionStiffness.at(2) = 500.0;
-
-			goalState.jointAngles.resize(IIWA_DOF_JOINTS);
-			goalState.jointAngles = current_IIWA_state_message_.jointAngles;
-
-			first_run = false;
-		}
-
-
 		// Joint Position Control
 		if (interface_ == interface_type_.at(0)) {
 			// You need to set this flag to define the control type
-			goalState.isJointControl = true;
-			goalState.jointAngles.resize(IIWA_DOF_JOINTS);
-			for (int i = 0; i < IIWA_DOF_JOINTS; i++)
+			for (int i = 0; i < IIWA_JOINTS; i++)
 			{
-				goalState.jointAngles[i] = device_->joint_position_command[i];
+				command_joint_position_.position[i] = device_->joint_position_command[i];
+				iiwa_ros_conn_.setJointPosition(command_joint_position_);
 			}
 		}
 		// Joint Impedance Control
 		else if (interface_ == interface_type_.at(1)){
-			goalState.isJointControl = true;
 			// TODO
 		}
 		// Joint Velocity Control
 		else if (interface_ == interface_type_.at(2)){
-			goalState.isJointControl = true;
 			//	TODO
 		}
 
-		iiwa_ros_.write(goalState);
+		iiwa_ros_conn_.publish();
 	}
 	else if (delta.toSec() >= 10) {
 		cout << "No LBR IIWA is connected. Waiting for the robot to connect ..." << endl;
 		timer_ = ros::Time::now();
 	}
+
 	return 0;
 }
 

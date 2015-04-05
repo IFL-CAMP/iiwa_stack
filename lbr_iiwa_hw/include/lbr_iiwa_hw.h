@@ -9,8 +9,8 @@
  * for the LBR IIWA.
  * 
  * \author Salvatore Virga
- * \version 1.0.0
- * \date 13/03/2015
+ * \version 2.0.0
+ * \date 05/04/2015
  */
 
 #ifndef LBR_IIWA_HW_H_
@@ -31,9 +31,10 @@
 #include <control_toolbox/filters.h>
 #include <urdf/model.h>
 
-// IIWAMsg and ROS inteface includes
-#include "IIWA/IIWAMsg.h"
-#include "IIWARos.h"
+// iiwa_msgs and ROS inteface includes
+#include "iiwa_msgs/JointPosition.h"
+#include "iiwa_msgs/JointTorque.h"
+#include "iiwaRosConn.h"
 
 #define DEFAULTCONTROLFREQUENCY 1000 // Hz
 
@@ -101,7 +102,6 @@ public:
 		/** Vector containing the name of the joints - taken from yaml file */
 		std::vector<std::string> joint_names;
 
-		
 		std::vector<double>
 		joint_lower_limits, /**< Lower joint limits */
 		joint_upper_limits, /**< Upper joint limits */
@@ -123,18 +123,18 @@ public:
 		 */
 		void init()
 		{
-			joint_position.resize(IIWA_DOF_JOINTS);
-			joint_position_prev.resize(IIWA_DOF_JOINTS);
-			joint_velocity.resize(IIWA_DOF_JOINTS);
-			joint_effort.resize(IIWA_DOF_JOINTS);
-			joint_position_command.resize(IIWA_DOF_JOINTS);
-			joint_effort_command.resize(IIWA_DOF_JOINTS);
-			joint_stiffness_command.resize(IIWA_DOF_JOINTS);
-			joint_damping_command.resize(IIWA_DOF_JOINTS);
+			joint_position.resize(IIWA_JOINTS);
+			joint_position_prev.resize(IIWA_JOINTS);
+			joint_velocity.resize(IIWA_JOINTS);
+			joint_effort.resize(IIWA_JOINTS);
+			joint_position_command.resize(IIWA_JOINTS);
+			joint_effort_command.resize(IIWA_JOINTS);
+			joint_stiffness_command.resize(IIWA_JOINTS);
+			joint_damping_command.resize(IIWA_JOINTS);
 
-			joint_lower_limits.resize(IIWA_DOF_JOINTS);
-			joint_upper_limits.resize(IIWA_DOF_JOINTS);
-			joint_effort_limits.resize(IIWA_DOF_JOINTS);
+			joint_lower_limits.resize(IIWA_JOINTS);
+			joint_upper_limits.resize(IIWA_JOINTS);
+			joint_effort_limits.resize(IIWA_JOINTS);
 		}
 
 		/** 
@@ -142,7 +142,7 @@ public:
 		 */
 		void reset()
 		{
-			for (int j = 0; j < IIWA_DOF_JOINTS; ++j)
+			for (int j = 0; j < IIWA_JOINTS; ++j)
 			{
 				joint_position[j] = 0.0;
 				joint_position_prev[j] = 0.0;
@@ -184,10 +184,14 @@ private:
 	ros::Rate* loop_rate_;
 	double control_frequency_;
 
-	IIWARos iiwa_ros_; /**< The IIWARos inteface from lbr_iiwa_ros. */
 	
-	IIWA::IIWAMsg current_IIWA_state_message_; /**< Contains the current state of the IIWA robot connected. */
-
+	iiwaRosConn iiwa_ros_conn_;
+	iiwa_msgs::JointPosition joint_position_;
+	iiwa_msgs::JointTorque joint_torque_;
+	
+	iiwa_msgs::JointPosition command_joint_position_;
+	iiwa_msgs::JointTorque command_joint_torque_;
+	
 	std::vector<std::string> interface_type_; /**< Contains the strings defining the possible hardware interfaces. */
 };
 

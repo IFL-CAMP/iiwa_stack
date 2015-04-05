@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   urdf
   cmake_modules
-  IIWA
+  iiwa_msgs
   lbr_iiwa_ros
 )
 
@@ -42,11 +42,11 @@ add_executable(${PROJECT_NAME}-bin
 
 ## Add dependence to the lbr_iiwa_msg module for the executable
 add_dependencies(${PROJECT_NAME}-bin
-				IIWA_generate_messages_cpp)
+				iiwa_msgs_generate_messages_cpp)
 				
 ## Add dependence to the lbr_iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME}
-				IIWA_generate_messages_cpp)
+				iiwa_msgs_generate_messages_cpp)
 
 				
 				

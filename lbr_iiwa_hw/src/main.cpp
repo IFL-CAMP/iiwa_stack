@@ -7,8 +7,8 @@
  * in Pisa : https://github.com/CentroEPiaggio/kuka-lwr, for the LBR IIWA.
  * 
  * \author Salvatore Virga
- * \version 1.0.0
- * \date 13/03/2015
+ * \version 2.0.0
+ * \date 05/04/2015
  */
 
 #include "lbr_iiwa_hw.h"

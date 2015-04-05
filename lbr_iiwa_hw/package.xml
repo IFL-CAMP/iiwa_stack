@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>lbr_iiwa_hw</name>
-  <version>1.0.0</version>
+  <version>2.0.0</version>
   <description>The hardware interface to an KUKA LBR IIWA Robot</description>
   
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
@@ -20,22 +20,16 @@
   <build_depend>control_toolbox</build_depend>
   <build_depend>realtime_tools</build_depend>
   <build_depend> roscpp </build_depend>
-  <build_depend>IIWA</build_depend>
+  <build_depend>iiwa_msgs</build_depend>
   <build_depend>lbr_iiwa_ros</build_depend>
 
   <run_depend>controller_interface</run_depend>
   <run_depend>hardware_interface</run_depend>
   <run_depend>control_toolbox</run_depend>
   <run_depend>realtime_tools</run_depend>  
-  <run_depend>IIWA</run_depend>
+  <run_depend>iiwa_msgs</run_depend>
   <run_depend>lbr_iiwa_ros</run_depend>
   
-  <!-- The export tag contains other, unspecified, tags -->
-  <export>
-    <!-- You can specify that this package is a metapackage here: -->
-    <!-- <metapackage/> -->
-    
-    <!-- Other tools can request additional information be placed here -->
-    
+  <export>    
   </export>
 </package>
