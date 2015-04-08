@@ -26,7 +26,7 @@ class iiwaRosConn {
 	 */
 	iiwaRosConn();
 	
-	iiwaRosConn(string iiwaInitName);
+	iiwaRosConn(std::string iiwaName);
 	
 	/**
 	 * Class destructor
@@ -115,7 +115,7 @@ private:
 	iiwa_msgs::JointVelocity joint_velocity_;
 		
 	bool robot_is_connected_; /**< Stores the current connection state */
-	string iiwaName;
+	std::string iiwaName_;
 };
 
 #endif //IIWAROCONNS_H_

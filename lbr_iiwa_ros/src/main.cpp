@@ -42,7 +42,7 @@ int main( int argc, char** argv )
   iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
   // The IIWA - ROS interface
-  iiwaRosConn iiwa_ros;
+  iiwaRosConn iiwa_ros("my_iiwa");
   
   // Rate at which you want to send and receive messages
   ros::Rate* loop_rate_ = new ros::Rate(1000);
