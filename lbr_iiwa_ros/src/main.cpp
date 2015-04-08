@@ -32,12 +32,12 @@ int main( int argc, char** argv )
   // ROS pinner
   ros::AsyncSpinner spinner(1);
   spinner.start();
-
+  
   // Custom signal handlers
   signal(SIGTERM, quitRequested);
   signal(SIGINT, quitRequested);
   signal(SIGHUP, quitRequested);
-
+  
   // The iiwa_msgs to send and receive joint position of the robot
   iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
@@ -82,11 +82,11 @@ int main( int argc, char** argv )
     loop_rate_->sleep();
     
   }
-
+  
   std::cerr<<"Stopping spinner..."<<std::endl;
   spinner.stop();
-
+  
   std::cerr<<"Bye!"<<std::endl;
-
+  
   return 0;
 }

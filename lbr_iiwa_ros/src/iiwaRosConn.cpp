@@ -17,7 +17,7 @@ iiwaRosConn::iiwaRosConn(string iiwaInitName)
 void iiwaRosConn::init()
 {
   ros::NodeHandle node_handle;
-    
+  
   cartesian_rotation_.rotation.resize(9);
   cartesian_velocity_.velocity.resize(9);
   joint_position_.position.resize(IIWA_JOINTS);
@@ -49,7 +49,7 @@ void iiwaRosConn::init()
 
 iiwaRosConn::~iiwaRosConn()
 {
-
+  
 }
 
 bool iiwaRosConn::getRobotIsConnected() {
@@ -106,8 +106,8 @@ void iiwaRosConn::cartesianPositionCallback(const iiwa_msgs::CartesianPosition& 
   setCartesianPosition(position);
   
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 void iiwaRosConn::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
@@ -115,8 +115,8 @@ void iiwaRosConn::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& 
   setCartesianRotation(rotation);
   
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 void iiwaRosConn::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
@@ -124,26 +124,26 @@ void iiwaRosConn::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& 
   setCartesianVelocity(velocity);
   
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 void iiwaRosConn::cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench) {
   
   setCartesianWrench(wrench);
   
-  	if (!robot_is_connected_){
-		cout << "IIWA robot is connected." << endl;
-		robot_is_connected_ = true;
-	}
+  if (!robot_is_connected_){
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
+  }
 }
 void iiwaRosConn::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
   
   setJointPosition(position);
   
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 void iiwaRosConn::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
@@ -151,31 +151,31 @@ void iiwaRosConn::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
   setJointTorque(torque);
   
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 void iiwaRosConn::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
   
   setJointVelocity(velocity);
-   
+  
   if (!robot_is_connected_){
-	cout << "IIWA robot is connected." << endl;
-	robot_is_connected_ = true;
+    cout << "IIWA robot is connected." << endl;
+    robot_is_connected_ = true;
   }
 }
 
 bool iiwaRosConn::publish() {
   if (robot_is_connected_)
   {
-   publishIfSubscriber(cartesian_position_pub_, cartesian_position_);
-   publishIfSubscriber(cartesian_rotation_pub_, cartesian_rotation_);
-   publishIfSubscriber(cartesian_velocity_pub_, cartesian_velocity_);
-   publishIfSubscriber(cartesian_wrench_pub_, cartesian_wrench_);
-   
-   publishIfSubscriber(joint_position_pub_, joint_position_);
-   publishIfSubscriber(joint_torque_pub_, joint_torque_);
-   publishIfSubscriber(joint_velocity_pub_, joint_velocity_);
+    publishIfSubscriber(cartesian_position_pub_, cartesian_position_);
+    publishIfSubscriber(cartesian_rotation_pub_, cartesian_rotation_);
+    publishIfSubscriber(cartesian_velocity_pub_, cartesian_velocity_);
+    publishIfSubscriber(cartesian_wrench_pub_, cartesian_wrench_);
+    
+    publishIfSubscriber(joint_position_pub_, joint_position_);
+    publishIfSubscriber(joint_torque_pub_, joint_torque_);
+    publishIfSubscriber(joint_velocity_pub_, joint_velocity_);
     
     return 1;
   }

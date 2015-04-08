@@ -33,28 +33,28 @@ int main( int argc, char** argv )
   // ros spinner
   ros::AsyncSpinner spinner(1);
   spinner.start();
-
+  
   // custom signal handlers
   signal(SIGTERM, quitRequested);
   signal(SIGINT, quitRequested);
   signal(SIGHUP, quitRequested);
-
+  
   // construct the lbr iiwa
   ros::NodeHandle lwr_nh("");
   IIWA_HW iiwa_robot(lwr_nh);
-
+  
   // configuration routines
   iiwa_robot.start();
-
+  
   // timer variables
   struct timespec ts = {0, 0};
   ros::Time last(ts.tv_sec, ts.tv_nsec), now(ts.tv_sec, ts.tv_nsec);
   ros::Duration period(1.0);
-
+  
   //the controller manager
   controller_manager::ControllerManager manager(&iiwa_robot, lwr_nh);
-
-
+  
+  
   // run as fast as possible
   while( !g_quit ) 
   {
@@ -80,16 +80,16 @@ int main( int argc, char** argv )
     
     // send command position to the robot
     iiwa_robot.write(period);
-
+    
     // wait for some milliseconds defined in controlFrequency
     iiwa_robot.getRate()->sleep();
-
+    
   }
-
+  
   std::cerr<<"Stopping spinner..."<<std::endl;
   spinner.stop();
-
+  
   std::cerr<<"Bye!"<<std::endl;
-
+  
   return 0;
 }
