@@ -26,7 +26,7 @@ public:
    */
   iiwaRosConn();
   
-  iiwaRosConn(std::string iiwaName);
+  iiwaRosConn(const std::string& iiwaName);
   
   /**
    * Class destructor

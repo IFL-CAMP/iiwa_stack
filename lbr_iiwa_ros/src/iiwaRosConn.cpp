@@ -8,7 +8,7 @@ iiwaRosConn::iiwaRosConn()
   init();
 }
 
-iiwaRosConn::iiwaRosConn(string iiwaInitName)
+iiwaRosConn::iiwaRosConn(const string& iiwaInitName)
 {
   iiwaName_ = iiwaInitName;
   init();
