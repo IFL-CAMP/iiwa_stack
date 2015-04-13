@@ -6,10 +6,12 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   cmake_modules
   geometry_msgs
+  std_msgs
 )
 
 # Declare the message files to be built
-add_message_files(FILES 
+add_message_files(DIRECTORY msg
+		  FILES 
 		  CartesianPosition.msg
 		  CartesianRotation.msg
 		  CartesianVelocity.msg
@@ -23,5 +25,5 @@ add_message_files(FILES
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
-	CATKIN_DEPENDS 	message_runtime
-)
+	CATKIN_DEPENDS 	message_runtime std_msgs geometry_msgs
+) 
