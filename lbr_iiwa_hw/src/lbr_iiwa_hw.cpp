@@ -205,16 +205,16 @@ bool IIWA_HW::read(ros::Duration period)
   ros::Duration delta = ros::Time::now() - timer_;
   
   if (iiwa_ros_conn_.getRobotIsConnected()) {
-    
-    joint_position_ = iiwa_ros_conn_.getJointPosition();
-    joint_torque_ = iiwa_ros_conn_.getJointTorque();
-    
+        
+    joint_position_ = iiwa_ros_conn_.getReceivedJointPosition();
+    joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
+        
     device_->joint_position_prev = device_->joint_position;
     device_->joint_position = joint_position_.position;
     device_->joint_effort = joint_torque_.torque;
     
     for (int j = 0; j < IIWA_JOINTS; j++)
-      device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), device_->joint_velocity[j], 0.2);
+      device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), device_->joint_velocity[j], 0.2);    
     return 1;
   }
   else if (delta.toSec() >= 10) {
@@ -243,7 +243,7 @@ bool IIWA_HW::write(ros::Duration period)
       command_joint_position_.position = device_->joint_position_command;
       command_joint_position_.header.stamp = ros::Time::now();
       
-      iiwa_ros_conn_.setJointPosition(command_joint_position_);
+      iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);
     }
     // Joint Impedance Control
     else if (interface_ == interface_type_.at(1)){

@@ -65,7 +65,7 @@ int main( int argc, char** argv )
     
     if (iiwa_ros.getRobotIsConnected()) {
       
-      receiveMessage = iiwa_ros.getJointPosition();
+      receiveMessage = iiwa_ros.getReceivedJointPosition();
       // You received a new IIWA state message, do something with it.
       
     }
@@ -73,7 +73,7 @@ int main( int argc, char** argv )
     // send command position to the robot
     if (iiwa_ros.getRobotIsConnected()) {
       
-      iiwa_ros.setJointPosition(sendMessage);
+      iiwa_ros.setCommandJointPosition(sendMessage);
       iiwa_ros.publish();
       // Your messange was sent to the robot.
     }

@@ -36,26 +36,35 @@ public:
   /**
    * Getters
    */
-  iiwa_msgs::CartesianPosition getCartesianPosition();
-  iiwa_msgs::CartesianRotation getCartesianRotation();
-  iiwa_msgs::CartesianVelocity getCartesianVelocity();
-  iiwa_msgs::CartesianWrench getCartesianWrench();
+  iiwa_msgs::CartesianPosition getReceivedCartesianPosition();
+  iiwa_msgs::CartesianRotation getReceivedCartesianRotation();
+  iiwa_msgs::CartesianVelocity getReceivedCartesianVelocity();
+  iiwa_msgs::CartesianWrench getReceivedCartesianWrench();
   
-  iiwa_msgs::JointPosition getJointPosition();
-  iiwa_msgs::JointTorque getJointTorque();
-  iiwa_msgs::JointVelocity getJointVelocity();
+  iiwa_msgs::JointPosition getReceivedJointPosition();
+  iiwa_msgs::JointTorque getReceivedJointTorque();
+  iiwa_msgs::JointVelocity getReceivedJointVelocity();
   
-  /**
-   * Setters
+  iiwa_msgs::CartesianPosition getCommandCartesianPosition();
+  iiwa_msgs::CartesianRotation getCommandCartesianRotation();
+  iiwa_msgs::CartesianVelocity getCommandCartesianVelocity();
+  iiwa_msgs::CartesianWrench getCommandCartesianWrench();
+  
+  iiwa_msgs::JointPosition getCommandJointPosition();
+  iiwa_msgs::JointTorque getCommandJointTorque();
+  iiwa_msgs::JointVelocity getCommandJointVelocity();
+  
+  /*
+   * 
    */
-  void setCartesianPosition(const iiwa_msgs::CartesianPosition& position);
-  void setCartesianRotation(const iiwa_msgs::CartesianRotation& rotation);
-  void setCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
-  void setCartesianWrench(const iiwa_msgs::CartesianWrench& wrench);
+  void setCommandCartesianPosition(const iiwa_msgs::CartesianPosition& position);
+  void setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation);
+  void setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
+  void setCommandCartesianWrench(const iiwa_msgs::CartesianWrench& wrench);
   
-  void setJointPosition(const iiwa_msgs::JointPosition& position);
-  void setJointTorque(const iiwa_msgs::JointTorque& torque);
-  void setJointVelocity(const iiwa_msgs::JointVelocity& velocity);
+  void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
+  void setCommandJointTorque(const iiwa_msgs::JointTorque& torque);
+  void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
   
   /**
    * \brief Sends a control state to the connected IIWA robot 
@@ -84,6 +93,7 @@ private:
   bool publishIfSubscriber(const ros::Publisher& p, const T& message);
   
   void init();
+  void robotConnected();
   
   /**< ROS Publishers  */
   ros::Publisher cartesian_position_pub_;  
@@ -105,14 +115,27 @@ private:
   ros::Subscriber joint_torque_sub_;
   ros::Subscriber joint_velocity_sub_;
   
-  iiwa_msgs::CartesianPosition cartesian_position_;
-  iiwa_msgs::CartesianRotation cartesian_rotation_;
-  iiwa_msgs::CartesianVelocity cartesian_velocity_;
-  iiwa_msgs::CartesianWrench cartesian_wrench_;
+  /*
+   * Messages received from the robot
+   */
+  iiwa_msgs::CartesianPosition received_cartesian_position_;
+  iiwa_msgs::CartesianRotation received_cartesian_rotation_;
+  iiwa_msgs::CartesianVelocity received_cartesian_velocity_;
+  iiwa_msgs::CartesianWrench received_cartesian_wrench_;
+  iiwa_msgs::JointPosition received_joint_position_;
+  iiwa_msgs::JointTorque received_joint_torque_;
+  iiwa_msgs::JointVelocity received_joint_velocity_;
   
-  iiwa_msgs::JointPosition joint_position_;
-  iiwa_msgs::JointTorque joint_torque_;
-  iiwa_msgs::JointVelocity joint_velocity_;
+  /*
+   * Messages that will be send to the robot
+   */
+  iiwa_msgs::CartesianPosition command_cartesian_position_;
+  iiwa_msgs::CartesianRotation command_cartesian_rotation_;
+  iiwa_msgs::CartesianVelocity command_cartesian_velocity_;
+  iiwa_msgs::CartesianWrench command_cartesian_wrench_;
+  iiwa_msgs::JointPosition command_joint_position_;
+  iiwa_msgs::JointTorque command_joint_torque_;
+  iiwa_msgs::JointVelocity command_joint_velocity_;
   
   bool robot_is_connected_; /**< Stores the current connection state */
   std::string iiwaName_;
