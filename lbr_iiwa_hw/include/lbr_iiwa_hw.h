@@ -35,7 +35,7 @@
 // iiwa_msgs and ROS inteface includes
 #include "iiwa_msgs/JointPosition.h"
 #include "iiwa_msgs/JointTorque.h"
-#include "iiwaRosConn.h"
+#include "iiwaRos.h"
 
 #define DEFAULTCONTROLFREQUENCY 1000 // Hz
 
@@ -187,7 +187,7 @@ private:
   double control_frequency_;
   
   
-  iiwaRosConn iiwa_ros_conn_;
+  iiwaRos iiwa_ros_conn_;
   iiwa_msgs::JointPosition joint_position_;
   iiwa_msgs::JointTorque joint_torque_;
   

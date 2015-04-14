@@ -1,5 +1,5 @@
-#ifndef IIWAROSCONN_H_
-#define IIWAROSCONN_H_
+#ifndef IIWAROS_H_
+#define IIWAROS_H_
 
 #include "boost/thread.hpp"
 #include "time.h"
@@ -19,19 +19,19 @@
 
 #define IIWA_JOINTS 7
 
-class iiwaRosConn {
+class iiwaRos {
 public:
   /**
    * Class constructor
    */
-  iiwaRosConn();
+  iiwaRos();
   
-  iiwaRosConn(const std::string& iiwaName);
+  iiwaRos(const std::string& iiwaName);
   
   /**
    * Class destructor
    */
-  virtual ~iiwaRosConn();
+  virtual ~iiwaRos();
   
   /**
    * Getters

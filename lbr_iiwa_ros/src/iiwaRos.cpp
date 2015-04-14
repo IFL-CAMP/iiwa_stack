@@ -1,20 +1,20 @@
-#include "iiwaRosConn.h"
+#include "iiwaRos.h"
 
 using namespace std;
 
-iiwaRosConn::iiwaRosConn()
+iiwaRos::iiwaRos()
 {
   iiwaName_ = "iiwa";
   init();
 }
 
-iiwaRosConn::iiwaRosConn(const string& iiwaInitName)
+iiwaRos::iiwaRos(const string& iiwaInitName)
 {
   iiwaName_ = iiwaInitName;
   init();
 }
 
-void iiwaRosConn::init()
+void iiwaRos::init()
 {
   ros::NodeHandle node_handle;
   
@@ -42,17 +42,17 @@ void iiwaRosConn::init()
   joint_velocity_pub_ = node_handle.advertise<iiwa_msgs::JointVelocity>("/" + iiwaName_ +"/command/JointVelocity",1);
   
   
-  cartesian_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianPosition", 1, &iiwaRosConn::cartesianPositionCallback, this);
-  cartesian_rotation_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianRotation", 1, &iiwaRosConn::cartesianRotationCallback, this);
-  cartesian_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianVelocity", 1, &iiwaRosConn::cartesianVelocityCallback, this);
-  cartesian_wrench_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianWrench", 1, &iiwaRosConn::cartesianWrenchCallback, this);
+  cartesian_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianPosition", 1, &iiwaRos::cartesianPositionCallback, this);
+  cartesian_rotation_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianRotation", 1, &iiwaRos::cartesianRotationCallback, this);
+  cartesian_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianVelocity", 1, &iiwaRos::cartesianVelocityCallback, this);
+  cartesian_wrench_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianWrench", 1, &iiwaRos::cartesianWrenchCallback, this);
   
-  joint_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointPosition", 1, &iiwaRosConn::jointPositionCallback, this);
-  joint_torque_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointTorque", 1, &iiwaRosConn::jointTorqueCallback, this);
-  joint_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointVelocity", 1, &iiwaRosConn::jointVelocityCallback, this);
+  joint_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointPosition", 1, &iiwaRos::jointPositionCallback, this);
+  joint_torque_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointTorque", 1, &iiwaRos::jointTorqueCallback, this);
+  joint_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointVelocity", 1, &iiwaRos::jointVelocityCallback, this);
 }
 
-void iiwaRosConn::robotConnected()
+void iiwaRos::robotConnected()
 {
     if (!robot_is_connected_){
     cout << "IIWA robot is connected." << endl;
@@ -61,122 +61,122 @@ void iiwaRosConn::robotConnected()
 }
 
 
-iiwaRosConn::~iiwaRosConn()
+iiwaRos::~iiwaRos()
 {
   
 }
 
-bool iiwaRosConn::getRobotIsConnected() {
+bool iiwaRos::getRobotIsConnected() {
   return robot_is_connected_;
 }
 
-iiwa_msgs::CartesianPosition iiwaRosConn::getReceivedCartesianPosition() {
+iiwa_msgs::CartesianPosition iiwaRos::getReceivedCartesianPosition() {
   return received_cartesian_position_;
 }
-iiwa_msgs::CartesianRotation iiwaRosConn::getReceivedCartesianRotation(){
+iiwa_msgs::CartesianRotation iiwaRos::getReceivedCartesianRotation(){
   return received_cartesian_rotation_;
 }
-iiwa_msgs::CartesianVelocity iiwaRosConn::getReceivedCartesianVelocity(){
+iiwa_msgs::CartesianVelocity iiwaRos::getReceivedCartesianVelocity(){
   return received_cartesian_velocity_;
 }
-iiwa_msgs::CartesianWrench iiwaRosConn::getReceivedCartesianWrench(){
+iiwa_msgs::CartesianWrench iiwaRos::getReceivedCartesianWrench(){
   return received_cartesian_wrench_;
 }
-iiwa_msgs::JointPosition iiwaRosConn::getReceivedJointPosition(){
+iiwa_msgs::JointPosition iiwaRos::getReceivedJointPosition(){
   return received_joint_position_;
 }
-iiwa_msgs::JointTorque iiwaRosConn::getReceivedJointTorque(){
+iiwa_msgs::JointTorque iiwaRos::getReceivedJointTorque(){
   return received_joint_torque_;
 }
-iiwa_msgs::JointVelocity iiwaRosConn::getReceivedJointVelocity(){
+iiwa_msgs::JointVelocity iiwaRos::getReceivedJointVelocity(){
   return received_joint_velocity_;
 }
 
-iiwa_msgs::CartesianPosition iiwaRosConn::getCommandCartesianPosition() {
+iiwa_msgs::CartesianPosition iiwaRos::getCommandCartesianPosition() {
   return command_cartesian_position_;
 }
-iiwa_msgs::CartesianRotation iiwaRosConn::getCommandCartesianRotation(){
+iiwa_msgs::CartesianRotation iiwaRos::getCommandCartesianRotation(){
   return command_cartesian_rotation_;
 }
-iiwa_msgs::CartesianVelocity iiwaRosConn::getCommandCartesianVelocity(){
+iiwa_msgs::CartesianVelocity iiwaRos::getCommandCartesianVelocity(){
   return command_cartesian_velocity_;
 }
-iiwa_msgs::CartesianWrench iiwaRosConn::getCommandCartesianWrench(){
+iiwa_msgs::CartesianWrench iiwaRos::getCommandCartesianWrench(){
   return command_cartesian_wrench_;
 }
-iiwa_msgs::JointPosition iiwaRosConn::getCommandJointPosition(){
+iiwa_msgs::JointPosition iiwaRos::getCommandJointPosition(){
   return command_joint_position_;
 }
-iiwa_msgs::JointTorque iiwaRosConn::getCommandJointTorque(){
+iiwa_msgs::JointTorque iiwaRos::getCommandJointTorque(){
   return command_joint_torque_;
 }
-iiwa_msgs::JointVelocity iiwaRosConn::getCommandJointVelocity(){
+iiwa_msgs::JointVelocity iiwaRos::getCommandJointVelocity(){
   return command_joint_velocity_;
 }
 
 /*
  * Setters for command messages - set the message that you want to send
  */
-void iiwaRosConn::setCommandCartesianPosition(const iiwa_msgs::CartesianPosition& position) {
+void iiwaRos::setCommandCartesianPosition(const iiwa_msgs::CartesianPosition& position) {
   command_cartesian_position_ = position;
 }
-void iiwaRosConn::setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation) {
+void iiwaRos::setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation) {
   command_cartesian_rotation_ = rotation;
 }
-void iiwaRosConn::setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity) {
+void iiwaRos::setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity) {
   command_cartesian_velocity_ = velocity;
 }
-void iiwaRosConn::setCommandCartesianWrench(const iiwa_msgs::CartesianWrench& wrench) {
+void iiwaRos::setCommandCartesianWrench(const iiwa_msgs::CartesianWrench& wrench) {
   command_cartesian_wrench_ = wrench;
 }
-void iiwaRosConn::setCommandJointPosition(const iiwa_msgs::JointPosition& position)  {
+void iiwaRos::setCommandJointPosition(const iiwa_msgs::JointPosition& position)  {
   command_joint_position_ = position;  
 }
-void iiwaRosConn::setCommandJointTorque(const iiwa_msgs::JointTorque& torque)  {
+void iiwaRos::setCommandJointTorque(const iiwa_msgs::JointTorque& torque)  {
   command_joint_torque_ = torque;
 }
-void iiwaRosConn::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity)  {
+void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity)  {
   command_joint_velocity_ = velocity;
 }
 
 
-void iiwaRosConn::cartesianPositionCallback(const iiwa_msgs::CartesianPosition& position) {
+void iiwaRos::cartesianPositionCallback(const iiwa_msgs::CartesianPosition& position) {
  
   received_cartesian_position_ = position;
   robotConnected();
 }
-void iiwaRosConn::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
+void iiwaRos::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
   
   received_cartesian_rotation_ = rotation;
   robotConnected();
 }
-void iiwaRosConn::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
+void iiwaRos::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
   
   received_cartesian_velocity_ = velocity;
   robotConnected();
 }
-void iiwaRosConn::cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench) {
+void iiwaRos::cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench) {
   
   received_cartesian_wrench_ = wrench;
   robotConnected();
 }
-void iiwaRosConn::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
+void iiwaRos::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
   
   received_joint_position_ = position;
   robotConnected();
 }
-void iiwaRosConn::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
+void iiwaRos::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
   
   received_joint_torque_ = torque;
   robotConnected();
 }
-void iiwaRosConn::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
+void iiwaRos::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
   
   received_joint_velocity_ = velocity;
   robotConnected();
 }
 
-bool iiwaRosConn::publish() {
+bool iiwaRos::publish() {
   if (robot_is_connected_)
   {
     publishIfSubscriber(cartesian_position_pub_, command_cartesian_position_);
@@ -194,7 +194,7 @@ bool iiwaRosConn::publish() {
 }
 
 template <class T>
-bool iiwaRosConn::publishIfSubscriber(const ros::Publisher& p, const T& message) {
+bool iiwaRos::publishIfSubscriber(const ros::Publisher& p, const T& message) {
   if (p.getNumSubscribers())
     p.publish(message);
 }

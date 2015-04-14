@@ -8,7 +8,7 @@
  * \date 13/03/2015
  */
 
-#include "iiwaRosConn.h"
+#include "iiwaRos.h"
 
 #include <sys/mman.h>
 #include <cmath>
@@ -42,7 +42,7 @@ int main( int argc, char** argv )
   iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
   // The IIWA - ROS interface
-  iiwaRosConn iiwa_ros("my_iiwa");
+  iiwaRos iiwa_ros("my_iiwa");
   
   // Rate at which you want to send and receive messages
   ros::Rate* loop_rate_ = new ros::Rate(1000);

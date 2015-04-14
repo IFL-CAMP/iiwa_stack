@@ -20,8 +20,8 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-	include/iiwaRosConn.h
-	src/iiwaRosConn.cpp
+	include/iiwaRos.h
+	src/iiwaRos.cpp
 )
 
 ## Declare a cpp executable
