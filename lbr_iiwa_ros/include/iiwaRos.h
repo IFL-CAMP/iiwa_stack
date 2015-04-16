@@ -137,6 +137,13 @@ private:
   iiwa_msgs::JointTorque command_joint_torque_;
   iiwa_msgs::JointVelocity command_joint_velocity_;
   
+  bool received_cartesian_position_initialized_;
+  bool received_cartesian_rotation_initialized_;
+  bool received_cartesian_velocity_initialized_;
+  bool received_cartesian_wrench_initialized_;
+  bool received_joint_position_initialized_;
+  bool received_joint_torque_initialized_;
+  bool received_joint_velocity_initialized_;
   bool robot_is_connected_; /**< Stores the current connection state */
   std::string iiwaName_;
 };
