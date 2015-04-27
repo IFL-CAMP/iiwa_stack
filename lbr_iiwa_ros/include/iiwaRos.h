@@ -71,10 +71,26 @@ public:
    */
   bool publish();
   
+  
+  /**
+   * TODO
+   * \brief
+   */
+  bool isCartesianPositionAvailable();
+  bool isCartesianRotationAvailable();
+  bool isCartesianVelocityAvailable();
+  bool isCartesianWrenchAvailable();
+  bool isJointPositionAvailable();
+  bool isJointTorqueAvailable();
+  bool isJointVelocityAvailable();
+  
+  
   /**
    * \brief Returns the current connection status of an IIWA robot.
    */
   bool getRobotIsConnected();
+  
+  
   
 private:
   /**
@@ -137,13 +153,14 @@ private:
   iiwa_msgs::JointTorque command_joint_torque_;
   iiwa_msgs::JointVelocity command_joint_velocity_;
   
-  bool received_cartesian_position_initialized_;
-  bool received_cartesian_rotation_initialized_;
-  bool received_cartesian_velocity_initialized_;
-  bool received_cartesian_wrench_initialized_;
-  bool received_joint_position_initialized_;
-  bool received_joint_torque_initialized_;
-  bool received_joint_velocity_initialized_;
+  bool new_cartesian_position_;
+  bool new_cartesian_rotation_;
+  bool new_cartesian_velocity_;
+  bool new_cartesian_wrench_;
+  bool new_joint_position_;
+  bool new_joint_torque_;
+  bool new_joint_velocity_;
+  
   bool robot_is_connected_; /**< Stores the current connection state */
   std::string iiwaName_;
 };

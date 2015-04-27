@@ -5,7 +5,7 @@
  * 
  * \author Salvatore Virga
  * \version 1.0.0
- * \date 13/03/2015
+ * \date 27/04/2015
  */
 
 #include "iiwaRos.h"
@@ -16,7 +16,7 @@
 #include <signal.h>
 #include <stdexcept>
 
-// Handles quit commands
+// Handles quit commands.
 bool g_quit = false;
 
 void quitRequested(int sig) 
@@ -26,25 +26,25 @@ void quitRequested(int sig)
 
 int main( int argc, char** argv )
 {
-  // Initialize ROS
+  // Initialize ROS.
   ros::init(argc, argv, "lbr_iiwa_ros_example", ros::init_options::NoSigintHandler);
   
-  // ROS pinner
+  // ROS spinner.
   ros::AsyncSpinner spinner(1);
   spinner.start();
   
-  // Custom signal handlers
+  // Custom signal handlers.
   signal(SIGTERM, quitRequested);
   signal(SIGINT, quitRequested);
   signal(SIGHUP, quitRequested);
   
-  // The iiwa_msgs to send and receive joint position of the robot
+  // The iiwa_msgs to send and receive joint position of the robot.
   iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
-  // The IIWA - ROS interface
+  // The IIWA - ROS interface.
   iiwaRos iiwa_ros("my_iiwa");
   
-  // Rate at which you want to send and receive messages
+  // Rate at which you want to send and receive messages.
   ros::Rate* loop_rate_ = new ros::Rate(1000);
   
   // BUILD YOUR MESSAGE TO SEND OR GET IT FROM SOMEWHERE ELSE
@@ -62,15 +62,17 @@ int main( int argc, char** argv )
   
   while( !g_quit ) 
   {
-    
+    // Check if the iiwa Robot is connected and sending messages.
     if (iiwa_ros.getRobotIsConnected()) {
       
+      // Check if a new JointPosition message is available
+      if (iiwa_ros.isJointPositionAvailable())
       receiveMessage = iiwa_ros.getReceivedJointPosition();
       // You received a new IIWA state message, do something with it.
       
     }
     
-    // send command position to the robot
+    // Send command position to the robot.
     if (iiwa_ros.getRobotIsConnected()) {
       
       iiwa_ros.setCommandJointPosition(sendMessage);
@@ -78,7 +80,7 @@ int main( int argc, char** argv )
       // Your messange was sent to the robot.
     }
     
-    // Wait for some milliseconds
+    // Wait for some milliseconds.
     loop_rate_->sleep();
     
   }

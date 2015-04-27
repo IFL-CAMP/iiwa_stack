@@ -30,13 +30,13 @@ void iiwaRos::init()
   command_joint_torque_.torque.resize(IIWA_JOINTS);
   command_joint_velocity_.velocity.resize(IIWA_JOINTS);
   
-  received_cartesian_position_initialized_ = false;
-  received_cartesian_rotation_initialized_ = false;
-  received_cartesian_velocity_initialized_ = false;
-  received_cartesian_wrench_initialized_ = false;
-  received_joint_position_initialized_ = false;
-  received_joint_torque_initialized_ = false;
-  received_joint_velocity_initialized_ = false;
+  new_cartesian_position_ = false;
+  new_cartesian_rotation_  = false;
+  new_cartesian_velocity_  = false;
+  new_cartesian_wrench_  = false;
+  new_joint_position_  = false;
+  new_joint_torque_  = false;
+  new_joint_velocity_  = false;
   robot_is_connected_ = false;
   
   cartesian_position_pub_ = node_handle.advertise<iiwa_msgs::CartesianPosition>("/" + iiwaName_ +"/command/CartesianPosition",1);
@@ -62,13 +62,6 @@ void iiwaRos::init()
 void iiwaRos::robotConnected()
 {
     if (!robot_is_connected_) {
-      if (received_cartesian_position_initialized_
-	  && received_cartesian_rotation_initialized_
-	  && received_cartesian_velocity_initialized_
-	  && received_cartesian_wrench_initialized_
-	  && received_joint_position_initialized_
-	  && received_joint_torque_initialized_
-	  && received_joint_velocity_initialized_)
 	{
 	  cout << "IIWA robot is connected." << endl;
 	  robot_is_connected_ = true;
@@ -76,10 +69,31 @@ void iiwaRos::robotConnected()
     }
 }
 
-
 iiwaRos::~iiwaRos()
 {
   
+}
+
+bool iiwaRos::isCartesianPositionAvailable() {
+  return new_cartesian_position_;
+}
+bool iiwaRos::isCartesianRotationAvailable() {
+  return new_cartesian_rotation_;
+}
+bool iiwaRos::isCartesianVelocityAvailable() {
+  return new_cartesian_velocity_;
+}
+bool iiwaRos::isCartesianWrenchAvailable() {
+  return new_cartesian_wrench_;
+}
+bool iiwaRos::isJointPositionAvailable() {
+  return new_joint_position_;
+}
+bool iiwaRos::isJointTorqueAvailable() {
+  return new_joint_torque_;
+}
+bool iiwaRos::isJointVelocityAvailable() {
+  return new_joint_velocity_;
 }
 
 bool iiwaRos::getRobotIsConnected() {
@@ -87,24 +101,31 @@ bool iiwaRos::getRobotIsConnected() {
 }
 
 iiwa_msgs::CartesianPosition iiwaRos::getReceivedCartesianPosition() {
+  new_cartesian_position_ = false;
   return received_cartesian_position_;
 }
 iiwa_msgs::CartesianRotation iiwaRos::getReceivedCartesianRotation(){
+  new_cartesian_rotation_  = false;
   return received_cartesian_rotation_;
 }
 iiwa_msgs::CartesianVelocity iiwaRos::getReceivedCartesianVelocity(){
+  new_cartesian_velocity_  = false;
   return received_cartesian_velocity_;
 }
 iiwa_msgs::CartesianWrench iiwaRos::getReceivedCartesianWrench(){
+  new_cartesian_wrench_  = false;
   return received_cartesian_wrench_;
 }
 iiwa_msgs::JointPosition iiwaRos::getReceivedJointPosition(){
+  new_joint_position_  = false;
   return received_joint_position_;
 }
 iiwa_msgs::JointTorque iiwaRos::getReceivedJointTorque(){
+  new_joint_torque_  = false;
   return received_joint_torque_;
 }
 iiwa_msgs::JointVelocity iiwaRos::getReceivedJointVelocity(){
+  new_joint_velocity_  = false;
   return received_joint_velocity_;
 }
 
@@ -158,37 +179,37 @@ void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity) 
 
 void iiwaRos::cartesianPositionCallback(const iiwa_msgs::CartesianPosition& position) {
   received_cartesian_position_ = position;
-  received_cartesian_position_initialized_ = true;
+  new_cartesian_position_ = true;
   robotConnected();
 }
 void iiwaRos::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
-  received_cartesian_rotation_ = rotation;
-  received_cartesian_rotation_initialized_ = true;
+  received_cartesian_rotation_ = rotation;  
+  new_cartesian_rotation_  = true;
   robotConnected();
 }
 void iiwaRos::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
   received_cartesian_velocity_ = velocity;
-  received_cartesian_velocity_initialized_ = true;
+  new_cartesian_velocity_  = true;
   robotConnected();
 }
 void iiwaRos::cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench) {
   received_cartesian_wrench_ = wrench;
-  received_cartesian_wrench_initialized_ = true;
+  new_cartesian_wrench_  = true;
   robotConnected();
 }
 void iiwaRos::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
   received_joint_position_ = position;
-  received_joint_position_initialized_ = true;
+  new_joint_position_  = true;
   robotConnected();
 }
 void iiwaRos::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
   received_joint_torque_ = torque;
-  received_joint_torque_initialized_ = true;
+  new_joint_torque_  = true;
   robotConnected();
 }
 void iiwaRos::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
   received_joint_velocity_ = velocity;
-  received_joint_velocity_initialized_ = true;
+  new_joint_velocity_  = true;
   robotConnected();
 }
 
