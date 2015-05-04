@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+<!--Convenience launch file to start IIWA control--> 
+
+<include file="$(find iiwa_control)/launch/iiwa_control.launch">
+  <arg name="hardware_interface" value="EffortJointInterface" />
+  <arg name="controllers" value="joint_state_controller
+			         effort_pos_joint_trajectory_controller" />
+</include>
+
+</launch>

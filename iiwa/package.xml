@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <name>iiwa</name>
+  <version>1.0.0</version>
+  <description>
+    Collection of ROS packages for the KUKA LBR IIWA
+  </description>
+  
+  <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
+  
+  <license>TODO</license>
+  
+  <url type="repository">https://campgit.in.tum.de/ros/iiwa_WS.git</url>
+  <author email="salv.virga@tum.de">Salvo Virga</author>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <run_depend>iiwa_control</run_depend>
+  <run_depend>iiwa_description</run_depend>
+  <run_depend>iiwa_gazebo</run_depend>
+  <run_depend>iiwa_hw</run_depend>
+  <run_depend>iiwa_launch</run_depend>
+  <run_depend>iiwa_moveit</run_depend>
+  <run_depend>iiwa_msg</run_depend>
+  <run_depend>iiwa_ros</run_depend>
+  <export>
+    <metapackage/>
+  </export>
+</package>

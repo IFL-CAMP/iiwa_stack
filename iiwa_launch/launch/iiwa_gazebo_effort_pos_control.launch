@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+<!--Convenience launch file to start gazebo + control--> 
+
+<!--The hardware_interface parameter determines which hardware inteface is used-->
+<include file="$(find iiwa_gazebo)/launch/iiwa_world.launch">
+  <arg name="hardware_interface" value="EffortJointInterface" />
+</include>
+
+<include file="$(find iiwa_control)/launch/iiwa_control.launch">
+  <arg name="hardware_interface" value="EffortJointInterface" />
+  <arg name="controllers" value="joint_state_controller
+			         iiwa_joint_1_effort_pos_controller
+				 iiwa_joint_2_effort_pos_controller
+				 iiwa_joint_3_effort_pos_controller
+				 iiwa_joint_4_effort_pos_controller
+				 iiwa_joint_5_effort_pos_controller
+				 iiwa_joint_6_effort_pos_controller
+				 iiwa_joint_7_effort_pos_controller" />
+</include>
+
+<!-- Launch RQT for control tuning -->
+ <node name="rrbot_rqt" pkg="rqt_gui" type="rqt_gui" respawn="false"
+	output="screen" args="--perspective-file $(find iiwa_control)/launch/iiwa_effort_pos_control.perspective"/>
+
+</launch>

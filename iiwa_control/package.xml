@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>iiwa_control</name>
+  <version>0.0.0</version>
+  <description>The iiwa_control package</description>
+
+  <maintainer email="robert.krug@oru.se">Robert Krug</maintainer>
+
+  <license>BSD</license>
+
+  <author email="robert.krug@oru.se">Robert Krug</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>controller_manager</run_depend>
+
+  <export>
+  </export>
+
+</package>
