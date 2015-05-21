@@ -110,9 +110,9 @@ bool IIWA_HW::start() {
     
     // joint state handle
     hardware_interface::JointStateHandle state_handle(device_->joint_names[i],
-						      &device_->joint_position[i],
-						      &device_->joint_velocity[i],
-						      &device_->joint_effort[i]);
+						      &(device_->joint_position[i]),
+						      &(device_->joint_velocity[i]),
+						      &(device_->joint_effort[i]));
     
     state_interface_.registerHandle(state_handle);
     

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 
   <!-- This argument must specify the list of .cfg files to process for benchmarking -->
