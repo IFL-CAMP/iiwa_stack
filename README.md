@@ -8,14 +8,14 @@ This repository takes inspiration from the work of :
 
 ### Overview
 This packages contained in this repository are :
-- __lbr_iiwa_control__: contains the controllers used by MoveIt!
-- __lbr_iiwa_description__: URDF description of the KUKA LBR IIWA
-- __lbr_iiwa_gazebo__: launch files to run a Gazebo simulation
-- __lbr_iiwa_hw__: creates a bridge between the ROS hardware interfaces and the communication interfaces with the real robot (lbr_iiwa_ros).
-- __lbr_iiwa_launch__: all the launch files to use the selected controller
-- __lbr_iiwa_moveit__: a MoveIt! configuration for controlling the robot (either a Gazebo simulation or a real one)
-- __lbr_iiwa_msg__: creates a message of type IIWAMsg as defined by [Khansari][3], to be used for communication with a real robot. 
-- __lbr_iiwa_ros__: an interface to send and receive messages of type IIWAMsg to and from a real robot.
+- __iiwa_control__: contains the controllers used by MoveIt!
+- __iiwa_description__: URDF description of the KUKA LBR IIWA
+- __iiwa_gazebo__: launch files to run a Gazebo simulation
+- __iiwa_hw__: creates a bridge between the ROS hardware interfaces and the communication interfaces with the real robot (iiwa_ros).
+- __iiwa_launch__: all the launch files to use the selected controller
+- __iiwa_moveit__: a MoveIt! configuration for controlling the robot (either a Gazebo simulation or a real one)
+- __iiwa_msg__: creates a message of type IIWAMsg as defined by [Khansari][3], to be used for communication with a real robot. 
+- __iiwa_ros__: an interface to send and receive messages of type IIWAMsg to and from a real robot.
 
 ### Dependencies
 
@@ -28,7 +28,7 @@ You can either use a simulated robot with Gazebo or a real robot connected to th
 
 For the real robot you have to set up the cabinet as described in [Khansari's wiki page][4], and you need to have a robotic application
 that connects to your roscore and communicates over the topics _/iiwa/state_ and _/iiwa/command_ using messages of the type IIWAMsg. 
-More on [lbr_iiwa_ros README](lbr_iiwa_ros/README.md)
+More on [iiwa_ros README](iiwa_ros/README.md)
 
 You can either use the [Java code distributed by Khansari][5],
 or our [IIWA Shared Library][6] available on JHU's git. (You can contact c.m.graumann@jhu.edu to have access to that).
@@ -38,15 +38,15 @@ or our [IIWA Shared Library][6] available on JHU's git. (You can contact c.m.gra
 #### Demo
 This launch file loads a very simple fake controller that never fails (useful for evaulation of the inverse kinematics):  
 
-`roslaunch lbr_iiwa_moveit demo.launch`
+`roslaunch iiwa_moveit demo.launch`
 #### Gazebo Simulation
 This launch configuration starts a Gazebo simulation that is controlled by MoveIt!: 
 
-`roslaunch lbr_iiwa_moveit moveit_planning_execution.launch`
+`roslaunch iiwa_moveit moveit_planning_execution.launch`
 #### Real Robot
 This is how MoveIt! can be connected to a real robot:
 
-`roslaunch lbr_iiwa_moveit moveit_planning_execution.launch sim:=false`
+`roslaunch iiwa_moveit moveit_planning_execution.launch sim:=false`
 
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
 [2]: https://bitbucket.org/khansari/iiwa.git

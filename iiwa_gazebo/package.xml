@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>iiwa_gazebo</name>
+  <version>0.0.0</version>
+  <description>The iiwa_gazebo package</description>
+
+  <maintainer email="robert.krug@oru.se">Robert Krug</maintainer>
+
+  <author email="robert.krug@oru.se">Robert Krug</author>
+
+  <license>BSD</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>iiwa_description</run_depend>
+  <run_depend>gazebo_ros</run_depend> 
+
+  <export>
+  </export>
+</package>

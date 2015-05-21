@@ -1,0 +1,15 @@
+controller_list:
+  - name: /iiwa/forward_pos_joint_trajectory_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints: 
+      - iiwa_joint_1
+      - iiwa_joint_2
+      - iiwa_joint_3
+      - iiwa_joint_4
+      - iiwa_joint_5
+      - iiwa_joint_6
+      - iiwa_joint_7
+      
+      
