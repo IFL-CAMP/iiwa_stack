@@ -6,8 +6,8 @@ The stack allows one to :
 - command a KUKA IIWA LWR;
 - make use of the functionalities of Moveit! with a KUKA IIWA LWR. 
 
-__The features and usage of the stack are described in depth on its  [WIKI][8].__
-We strongly suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
+__The features and usage of the stack are described in depth on its  [WIKI][8].__  
+We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
 
 ___
 ### Acknowledgements
