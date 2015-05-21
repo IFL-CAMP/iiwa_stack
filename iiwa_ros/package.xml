@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>iiwa_ros</name>
-  <version>1.0.0</version>
+  <version>1.2.0</version>
   <description>The iiwa_ros package</description>
   
   <maintainer email="salvo.virga@tum.de">virga</maintainer>

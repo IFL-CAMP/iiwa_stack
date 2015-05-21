@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
   <name>iiwa_launch</name>
-  <version>0.0.0</version>
+  <version>1.2.0</version>
   <description>The iiwa_control package</description>
 
-  <maintainer email="robert.krug@oru.se">Robert Krug</maintainer>
+  <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
 
   <license>BSD</license>
 
