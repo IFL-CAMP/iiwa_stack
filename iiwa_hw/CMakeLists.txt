@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(iiwa_hw)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 find_package(catkin REQUIRED COMPONENTS
   control_toolbox
   controller_interface
