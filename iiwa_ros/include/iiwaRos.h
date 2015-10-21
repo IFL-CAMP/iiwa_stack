@@ -109,7 +109,7 @@ private:
   template <typename T> 
   bool publishIfSubscriber(const ros::Publisher& p, const T& message);
   
-  void init();
+  void init(bool initRos = false);
   void robotConnected();
   
   /**< ROS Publishers  */

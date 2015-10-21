@@ -14,12 +14,15 @@ iiwaRos::iiwaRos(const string& iiwaInitName)
   init();
 }
 
-void iiwaRos::init()
+void iiwaRos::init(bool initRos)
 {
-  int argc = 1;
-  char *argv[1];
-  argv[0] = "iiwaRos";
-  ros::init(argc, argv, "iiwaRos");
+  // hide ROS away for non-ROS applications
+  if (initRos) {
+    int argc = 1;
+    char *argv[1];
+    argv[0] = "iiwaRos";
+    ros::init(argc, argv, "iiwaRos");
+  }
   
   ros::NodeHandle node_handle;
   
