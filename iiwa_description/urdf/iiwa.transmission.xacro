@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="iiwa_transmission" params="name hardware_interface">
+  <xacro:macro name="iiwa_transmission" params="hardware_interface">
 
     <transmission name="iiwa_tran_1">
       <type>transmission_interface/SimpleTransmission</type>

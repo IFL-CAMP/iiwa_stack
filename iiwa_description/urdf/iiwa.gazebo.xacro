@@ -2,7 +2,7 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="iiwa_gazebo" params="name robot_name">
+  <xacro:macro name="iiwa_gazebo" params="robot_name">
     
     <!-- Load Gazebo lib and set the robot namespace -->
     <gazebo>

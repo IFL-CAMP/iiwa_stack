@@ -15,7 +15,7 @@
   <xacro:property name="max_effort" value="300"/>
   <xacro:property name="max_velocity" value="10"/>
 
-  <xacro:macro name="iiwa14" params="parent name hardware_interface robot_name *origin">
+  <xacro:macro name="iiwa14" params="parent hardware_interface robot_name *origin">
 
     <!--joint between {parent} and link_0-->
     <joint name="${parent}_joint" type="fixed">
@@ -341,8 +341,8 @@
     </link>
 
     <!--Extensions -->
-    <xacro:iiwa_gazebo name="${name}" robot_name="${robot_name}" />
-    <xacro:iiwa_transmission name="${name}" hardware_interface="${hardware_interface}"/>
+    <xacro:iiwa_gazebo robot_name="${robot_name}" />
+    <xacro:iiwa_transmission hardware_interface="${hardware_interface}"/>
 
   </xacro:macro>
 
