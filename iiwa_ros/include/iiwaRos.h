@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <string>
+#include <mutex>
 
 #define IIWA_JOINTS 7
 
@@ -108,7 +109,7 @@ private:
   template <typename T> 
   bool publishIfSubscriber(const ros::Publisher& p, const T& message);
   
-  void init();
+  void init(bool initRos = false);
   void robotConnected();
   
   /**< ROS Publishers  */
@@ -163,6 +164,14 @@ private:
   
   bool robot_is_connected_; /**< Stores the current connection state */
   std::string iiwaName_;
+  
+  std::mutex cp_mutex_;
+  std::mutex cr_mutex_;
+  std::mutex cv_mutex_;
+  std::mutex cw_mutex_;
+  std::mutex jp_mutex_;
+  std::mutex jt_mutex_;
+  std::mutex jv_mutex_;
 };
 
 #endif //IIWAROCONNS_H_
