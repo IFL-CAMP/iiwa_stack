@@ -12,18 +12,20 @@
 <!-- ===================================================================================== -->
   
   <arg name="robot_name" default="iiwa" />
+  <arg name="flange" default="basic" />
   <arg name="trajectory" default="true"/>
   
   <!-- Loads the Gazebo world. -->
-  <include file="$(find iiwa_gazebo)/launch/iiwa14_world.launch">
+  <include file="$(find iiwa_gazebo)/launch/iiwa7_world.launch">
     <arg name="hardware_interface" value="PositionJointInterface" />
     <arg name="robot_name" value="$(arg robot_name)" />
+    <arg name="flange" value="$(arg flange)" />
   </include>
   
   <!-- Spawn controllers - it uses a JointTrajectoryController -->
   <group if="$(arg trajectory)">
     
-    <include file="$(find iiwa_control)/launch/iiwa14_control.launch">
+    <include file="$(find iiwa_control)/launch/iiwa7_control.launch">
       <arg name="hardware_interface" value="PositionJointInterface" />
       <arg name="controllers" value="joint_state_controller
 	   pos_joint_trajectory_controller" />
@@ -35,7 +37,7 @@
   <!-- Spawn controllers - it uses a JointPositionController for each joint -->
   <group unless="$(arg trajectory)">
     
-    <include file="$(find iiwa_control)/launch/iiwa14_control.launch">
+    <include file="$(find iiwa_control)/launch/iiwa7_control.launch">
       <arg name="hardware_interface" value="PositionJointInterface" />
       <arg name="controllers" value="joint_state_controller
 	   iiwa_joint_1_forward_pos_controller
