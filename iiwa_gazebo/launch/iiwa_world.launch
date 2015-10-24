@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <launch>
+  
+  <!-- Loads thee iiwa.world environment in Gazebo. -->
 
-  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <!-- These are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
