@@ -4,24 +4,27 @@
   <!-- these arguments you can pass this launch file-->
   <arg name="hardware_interface" default="EffortJointInterface"/>
   <arg name="controllers" default="joint_state_controller 
-                                   iiwa_joint_1_effort_pos_controller
-				   iiwa_joint_2_effort_pos_controller
-				   iiwa_joint_3_effort_pos_controller
-				   iiwa_joint_4_effort_pos_controller
-				   iiwa_joint_5_effort_pos_controller
-				   iiwa_joint_6_effort_pos_controller
-				   iiwa_joint_7_effort_pos_controller"/>
+                                   iiwa14_joint_1_effort_pos_controller
+				   iiwa14_joint_2_effort_pos_controller
+				   iiwa14_joint_3_effort_pos_controller
+				   iiwa14_joint_4_effort_pos_controller
+				   iiwa14_joint_5_effort_pos_controller
+				   iiwa14_joint_6_effort_pos_controller
+				   iiwa14_joint_7_effort_pos_controller"/>
+  <arg name="robot_name" default="iiwa" />
 
- <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
-  <param name="robot_description"
-	 command="$(find xacro)/xacro.py '$(find iiwa_description)/urdf/iiwa.urdf.xacro' prefix:=$(arg hardware_interface)" />
+  <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
+  <include file="$(find iiwa_description)/launch/iiwa14_upload.launch">
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+    <arg name="robot_name" value="$(arg robot_name)" />
+  </include>
 
   <!-- Load joint controller configurations from YAML file to parameter server -->
-  <rosparam file="$(find iiwa_control)/config/iiwa_control.yaml" command="load" ns="iiwa"/>
+  <rosparam file="$(find iiwa_control)/config/iiwa_control.yaml" command="load" ns="$(arg robot_name)"/>
 
   <!-- load the controllers -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	output="screen" ns="/iiwa" args="$(arg controllers)" />
+	output="screen" ns="/$(arg robot_name)" args="$(arg controllers)" />
 
   <!-- convert joint states to TF transforms for rviz, etc -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"

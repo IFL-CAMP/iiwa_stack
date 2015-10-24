@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="iiwa" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:macro name="iiwa_transmission" params="name hardware_interface">
 

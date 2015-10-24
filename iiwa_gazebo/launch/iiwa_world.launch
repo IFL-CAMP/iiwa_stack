@@ -8,6 +8,7 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
   <arg name="hardware_interface" default="EffortJointInterface"/>
+  <arg name="robot_name" default="iiwa" />
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -20,8 +21,10 @@
   </include>
 
   <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
-  <param name="robot_description"
-	 command="$(find xacro)/xacro.py '$(find iiwa_description)/urdf/iiwa.urdf.xacro' prefix:=$(arg hardware_interface)" />
+  <include file="$(find iiwa_description)/launch/iiwa14_upload.launch">
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+    <arg name="robot_name" value="$(arg robot_name)" />
+  </include>
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
