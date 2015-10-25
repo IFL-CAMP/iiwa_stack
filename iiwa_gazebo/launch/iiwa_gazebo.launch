@@ -2,7 +2,7 @@
 <launch>
   
 <!-- ===================================================================================== -->
-<!-- |    Lauch file to start Gazebo with an IIWA 14 using position controllers.         | -->
+<!-- |    Lauch file to start Gazebo with an IIWA using various controllers.	         | -->
   
 <!-- |    It allows to customize the name of the robot, for each robot                   | -->
 <!-- |	  its topics will be under a nameespace with the same name as the robot's.       | -->
@@ -11,53 +11,49 @@
 <!-- |    controllers for the single joints, using the "trajectory" argument.            | -->
 <!-- ===================================================================================== -->
   
+  <arg name="hardware_interface" default="PositionJointInterface" />
   <arg name="robot_name" default="iiwa" />
-  <arg name="flange" default="basic" />
+  <arg name="model" default="iiwa14"/>
   <arg name="trajectory" default="true"/>
-  
-    <!--
-  One could also parametrize the model of the iiwa,
-  but this file is specifically for the iiwa7 model.
-  
-  <arg name="model" default="iiwa7"/> 
-  -->
+  <arg name="flange" default="basic" />
   
   <!-- Loads the Gazebo world. -->
   <include file="$(find iiwa_gazebo)/launch/iiwa_world.launch">
-    <arg name="hardware_interface" value="PositionJointInterface" />
+    <arg name="hardware_interface" value="$(arg hardware_interface)" />
     <arg name="robot_name" value="$(arg robot_name)" />
     <arg name="flange" value="$(arg flange)" />
-    <arg name="model" value="iiwa7" />
+    <arg name="model" value="$(arg model)" />
   </include>
   
   <!-- Spawn controllers - it uses a JointTrajectoryController -->
   <group if="$(arg trajectory)">
     
     <include file="$(find iiwa_control)/launch/iiwa_control.launch">
-      <arg name="hardware_interface" value="PositionJointInterface" />
+      <arg name="hardware_interface" value="$(arg hardware_interface)" />
       <arg name="controllers" value="joint_state_controller
-	   pos_joint_trajectory_controller" />
+	   $(arg hardware_interface)_trajectory_controller" />
       <arg name="robot_name" value="$(arg robot_name)" />
-      <arg name="model" value="iiwa7" />
+      <arg name="model" value="$(arg model)" />
+      <arg name="flange" value="$(arg flange)" />
     </include>
     
   </group>
   
-  <!-- Spawn controllers - it uses a JointPositionController for each joint -->
+  <!-- Spawn controllers - it uses an Effort Controller for each joint -->
   <group unless="$(arg trajectory)">
     
     <include file="$(find iiwa_control)/launch/iiwa_control.launch">
-      <arg name="hardware_interface" value="PositionJointInterface" />
+      <arg name="hardware_interface" value="$(arg hardware_interface)" />
       <arg name="controllers" value="joint_state_controller
-	   iiwa_joint_1_forward_pos_controller
-	   iiwa_joint_2_forward_pos_controller
-	   iiwa_joint_3_forward_pos_controller
-	   iiwa_joint_4_forward_pos_controller
-	   iiwa_joint_5_forward_pos_controller
-	   iiwa_joint_6_forward_pos_controller
-	   iiwa_joint_7_forward_pos_controller"/>
+	   $(arg hardware_interface)_J1_controller
+	   $(arg hardware_interface)_J2_controller
+	   $(arg hardware_interface)_J3_controller
+	   $(arg hardware_interface)_J4_controller
+	   $(arg hardware_interface)_J5_controller
+	   $(arg hardware_interface)_J6_controller
+	   $(arg hardware_interface)_J7_controller"/>
       <arg name="robot_name" value="$(arg robot_name)" />
-      <arg name="model" value="iiwa7" />
+      <arg name="model" value="$(arg model)" />
     </include>
     
   </group>

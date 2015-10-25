@@ -17,6 +17,7 @@
 #define IIWA_HW_H_
 
 #include <vector>
+#include <sstream>
 
 // ROS headers
 #include <ros/ros.h>
@@ -166,7 +167,7 @@ private:
   //move_group_interface::MoveGroup group;
   
   /* Parameters */
-  std::string interface_, movegroup_name_;
+  std::string interface_, movegroup_name_, robot_name_;
   urdf::Model urdf_model_;
   
   hardware_interface::JointStateInterface state_interface_; /**< Interface for joint state */

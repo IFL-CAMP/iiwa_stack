@@ -279,14 +279,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.053 -0.05 -0.005"/>
       <geometry>
-        <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_7_pneumatic.stl"/>
+        <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_7_basic.stl"/>
       </geometry>
       <material name="Grey"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.053 -0.05 -0.005"/>
       <geometry>
-        <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_7_pneumatic.stl"/>
+        <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_7_basic.stl"/>
       </geometry>
       <material name="Grey"/>
     </collision>
@@ -304,7 +304,7 @@
   <!-- Load Gazebo lib and set the robot namespace -->
   <gazebo>
     <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_controller">
-      <robotNamespace>/iiwa</robotNamespace>
+      <robotNamespace>/iiwa7</robotNamespace>
     </plugin>
   </gazebo>
   <!-- Link0 -->

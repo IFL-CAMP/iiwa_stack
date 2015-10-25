@@ -63,6 +63,7 @@ bool IIWA_HW::start() {
   // TODO : make use of this
   // get inteface param or give default values
   nh_.param("interface", interface_, std::string("PositionJointInterface"));
+  nh_.param("robot_name", robot_name_, std::string("iiwa"));
   
   /* TODO
    * nh_.param("move_group", movegroup_name_, "arm");
@@ -82,9 +83,15 @@ bool IIWA_HW::start() {
     ROS_ERROR("No joints to be handled, ensure you load a yaml file naming the joint names this hardware interface refers to.");
     throw std::runtime_error("No joint name specification");
   }
-  if( !(urdf_model_.initParam("/robot_description")) )
+  
+  std::stringstream ss;
+  ss << "/" << robot_name_ << "_description";
+  std::string robot_description = ss.str();
+  
+  if( !(urdf_model_.initParam(robot_description)))
   {
     ROS_ERROR("No URDF model in the robot_description parameter, this is required to define the joint limits.");
+    std::cout << robot_description << endl;
     throw std::runtime_error("No URDF model available");
   }
   

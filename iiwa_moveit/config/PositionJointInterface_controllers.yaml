@@ -1,5 +1,5 @@
 controller_list:
-  - name: /iiwa/forward_pos_joint_trajectory_controller
+  - name: PositionJointInterface_trajectory_controller
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
