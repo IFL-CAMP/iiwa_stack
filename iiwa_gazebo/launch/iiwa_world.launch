@@ -11,6 +11,7 @@
   <arg name="debug" default="false"/>
   <arg name="hardware_interface" default="EffortJointInterface"/>
   <arg name="robot_name" default="iiwa" />
+  <arg name="model" default="iiwa7"/>
   <arg name="flange" default="basic" />
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
@@ -24,7 +25,7 @@
   </include>
 
   <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
-  <include file="$(find iiwa_description)/launch/iiwa7_upload.launch">
+  <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)" />
     <arg name="flange" value="$(arg flange)" />
