@@ -1,12 +1,23 @@
-/** 
- * Technische Universitaet Muenchen
+/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * 
- * @author Salvatore Virga
+ * LICENSE :
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
- * TODO LICENSE
+ * @author Salvatore Virga
  * 
  */
 
@@ -159,7 +170,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	/**
 	 * Set the name to use to compose the ROS topics' names for the subscribers. <p>
-	 * e.g. setIIWAName("dummy"), the topics' names will be "dummy/command/...". <br>
+	 * e.g. setIIWAName("dummy"), the topics names will be "dummy/command/...". <br>
 	 * The creation of the nodes is performed when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.
 	 * @param newName : the new name to use for ROS topics.
 	 */
