@@ -4,17 +4,9 @@ using namespace std;
 
 iiwaRos::iiwaRos()
 {
-  iiwaName_ = "iiwa";
-  init();
 }
 
-iiwaRos::iiwaRos(const string& iiwaInitName)
-{
-  iiwaName_ = iiwaInitName;
-  init();
-}
-
-void iiwaRos::init(bool initRos)
+void iiwaRos::init(bool initRos, std::string iiwaName)
 {
   // hide ROS away for non-ROS applications
   if (initRos) {
@@ -47,24 +39,24 @@ void iiwaRos::init(bool initRos)
   new_joint_velocity_  = false;
   robot_is_connected_ = false;
   
-  cartesian_position_pub_ = node_handle.advertise<iiwa_msgs::CartesianPosition>("/" + iiwaName_ +"/command/CartesianPosition",1);
-  cartesian_rotation_pub_ = node_handle.advertise<iiwa_msgs::CartesianRotation>("/" + iiwaName_ +"/command/CartesianRotation",1);
-  cartesian_velocity_pub_ = node_handle.advertise<iiwa_msgs::CartesianVelocity>("/" + iiwaName_ +"/command/CartesianVelocity",1);
-  cartesian_wrench_pub_ = node_handle.advertise<iiwa_msgs::CartesianWrench>("/" + iiwaName_ +"/command/CartesianWrench",1);
+  cartesian_position_pub_ = node_handle.advertise<iiwa_msgs::CartesianPosition>("/" + iiwaName +"/command/CartesianPosition",1);
+  cartesian_rotation_pub_ = node_handle.advertise<iiwa_msgs::CartesianRotation>("/" + iiwaName +"/command/CartesianRotation",1);
+  cartesian_velocity_pub_ = node_handle.advertise<iiwa_msgs::CartesianVelocity>("/" + iiwaName +"/command/CartesianVelocity",1);
+  cartesian_wrench_pub_ = node_handle.advertise<iiwa_msgs::CartesianWrench>("/" + iiwaName +"/command/CartesianWrench",1);
   
-  joint_position_pub_ = node_handle.advertise<iiwa_msgs::JointPosition>("/" + iiwaName_ +"/command/JointPosition",1);
-  joint_torque_pub_ = node_handle.advertise<iiwa_msgs::JointTorque>("/" + iiwaName_ +"/command/JointTorque",1);
-  joint_velocity_pub_ = node_handle.advertise<iiwa_msgs::JointVelocity>("/" + iiwaName_ +"/command/JointVelocity",1);
+  joint_position_pub_ = node_handle.advertise<iiwa_msgs::JointPosition>("/" + iiwaName +"/command/JointPosition",1);
+  joint_torque_pub_ = node_handle.advertise<iiwa_msgs::JointTorque>("/" + iiwaName +"/command/JointTorque",1);
+  joint_velocity_pub_ = node_handle.advertise<iiwa_msgs::JointVelocity>("/" + iiwaName +"/command/JointVelocity",1);
   
   
-  cartesian_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianPosition", 1, &iiwaRos::cartesianPositionCallback, this);
-  cartesian_rotation_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianRotation", 1, &iiwaRos::cartesianRotationCallback, this);
-  cartesian_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianVelocity", 1, &iiwaRos::cartesianVelocityCallback, this);
-  cartesian_wrench_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/CartesianWrench", 1, &iiwaRos::cartesianWrenchCallback, this);
+  cartesian_position_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianPosition", 1, &iiwaRos::cartesianPositionCallback, this);
+  cartesian_rotation_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianRotation", 1, &iiwaRos::cartesianRotationCallback, this);
+  cartesian_velocity_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianVelocity", 1, &iiwaRos::cartesianVelocityCallback, this);
+  cartesian_wrench_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianWrench", 1, &iiwaRos::cartesianWrenchCallback, this);
   
-  joint_position_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointPosition", 1, &iiwaRos::jointPositionCallback, this);
-  joint_torque_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointTorque", 1, &iiwaRos::jointTorqueCallback, this);
-  joint_velocity_sub_ = node_handle.subscribe("/" + iiwaName_ +"/state/JointVelocity", 1, &iiwaRos::jointVelocityCallback, this);
+  joint_position_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointPosition", 1, &iiwaRos::jointPositionCallback, this);
+  joint_torque_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointTorque", 1, &iiwaRos::jointTorqueCallback, this);
+  joint_velocity_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointVelocity", 1, &iiwaRos::jointVelocityCallback, this);
 }
 
 void iiwaRos::robotConnected()

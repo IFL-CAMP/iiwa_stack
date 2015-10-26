@@ -27,12 +27,15 @@ public:
    */
   iiwaRos();
   
-  iiwaRos(const std::string& iiwaName);
-  
   /**
    * Class destructor
    */
   virtual ~iiwaRos();
+  
+  /** 
+   * Init
+   */
+  void init(bool initRos = false, std::string iiwaName = "iiwa");
   
   /**
    * Getters
@@ -91,8 +94,6 @@ public:
    */
   bool getRobotIsConnected();
   
-  
-  
 private:
   /**
    * Callback for the ROS Subscribers
@@ -109,7 +110,6 @@ private:
   template <typename T> 
   bool publishIfSubscriber(const ros::Publisher& p, const T& message);
   
-  void init(bool initRos = false);
   void robotConnected();
   
   /**< ROS Publishers  */
@@ -163,7 +163,6 @@ private:
   bool new_joint_velocity_;
   
   bool robot_is_connected_; /**< Stores the current connection state */
-  std::string iiwaName_;
   
   std::mutex cp_mutex_;
   std::mutex cr_mutex_;

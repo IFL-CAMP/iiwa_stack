@@ -10,7 +10,7 @@
  * 
  * \author Salvatore Virga
  * \version 2.0.0
- * \date 05/04/2015
+ * \date 26/10/2015
  */
 
 #include "iiwa_hw.h"
@@ -20,9 +20,7 @@ using namespace std;
 IIWA_HW::IIWA_HW(ros::NodeHandle nh)
 {
   nh_ = nh;
-  
-  //iiwa_ros_conn_.init();
-  
+    
   joint_position_.position.resize(IIWA_JOINTS);
   joint_torque_.torque.resize(IIWA_JOINTS);
   command_joint_position_.position.resize(IIWA_JOINTS);
@@ -64,7 +62,7 @@ bool IIWA_HW::start() {
   // get inteface param or give default values
   nh_.param("interface", interface_, std::string("PositionJointInterface"));
   nh_.param("robot_name", robot_name_, std::string("iiwa"));
-  
+    
   /* TODO
    * nh_.param("move_group", movegroup_name_, "arm");
    * group(movegroup_name_);
@@ -94,6 +92,8 @@ bool IIWA_HW::start() {
     std::cout << robot_description << endl;
     throw std::runtime_error("No URDF model available");
   }
+  
+  iiwa_ros_conn_.init(false, robot_name_);
   
   // initialize and set to zero the state and command values
   device_->init();

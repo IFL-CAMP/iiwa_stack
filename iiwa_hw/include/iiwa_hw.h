@@ -10,7 +10,7 @@
  * 
  * \author Salvatore Virga
  * \version 2.0.0
- * \date 05/04/2015
+ * \date 26/10/2015
  */
 
 #ifndef IIWA_HW_H_
