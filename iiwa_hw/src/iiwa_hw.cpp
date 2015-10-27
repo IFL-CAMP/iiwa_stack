@@ -103,7 +103,7 @@ bool IIWA_HW::start() {
   }
   
   std::stringstream ss;
-  ss << "/" << robot_name_ << "_description";
+  ss << "/" << robot_name_ << "/robot_description";
   std::string robot_description = ss.str();
   
   if( !(urdf_model_.initParam(robot_description)))

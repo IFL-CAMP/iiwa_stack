@@ -57,7 +57,7 @@
     <!-- Remapping to work with difference namespaces -->
     <remap from="/joint_states" to="/$(arg robot_name)/joint_states" />
     <remap from="/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" to="/$(arg robot_name)/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" />
-    <remap from="robot_description" to="/$(arg robot_name)_description" /> 
+    <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
 
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>

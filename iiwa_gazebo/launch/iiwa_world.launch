@@ -14,7 +14,7 @@
   <arg name="model" default="iiwa7"/>
   <arg name="flange" default="basic" />
   
-  <remap from="robot_description" to="/$(arg robot_name)_description" /> 
+  <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
   
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -35,7 +35,7 @@
   
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-	args="-urdf -model iiwa -param $(arg robot_name)_description"/>
+	args="-urdf -model iiwa -param $(arg robot_name)/robot_description"/>
   
   
   </launch>

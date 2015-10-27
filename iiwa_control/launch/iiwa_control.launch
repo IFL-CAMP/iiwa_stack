@@ -11,7 +11,7 @@
   <arg name="model" default="iiwa7" />
   <arg name="flange" default="basic" />
   
-  <remap from="robot_description" to="/$(arg robot_name)_description" /> 
+  <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
 
   <!-- Loads the URDF with the given hardware interface and robot name into the ROS Parameter Server -->
   <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
@@ -31,7 +31,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
 	respawn="false" output="screen">
     <remap from="joint_states" to="/$(arg robot_name)/joint_states" />
-    <remap from="robot_description" to="/$(arg robot_name)_description" /> 
+    <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
   </node>
 
 </launch>

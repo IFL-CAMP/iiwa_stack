@@ -9,7 +9,7 @@
   <arg name="flange" default="basic"/>
 
   <!-- The name of the parameter under which the URDF is loaded -->
-  <arg name="robot_description" default="$(arg robot_name)_description"/>
+  <arg name="robot_description" default="$(arg robot_name)/robot_description"/>
 
   <!-- Loads the URDF with the given hardware interface and robot name into the ROS Parameter Server -->
   <group if="$(arg load_robot_description)">
