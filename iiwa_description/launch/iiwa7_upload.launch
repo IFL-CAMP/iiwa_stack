@@ -6,5 +6,5 @@
   <arg name="robot_name" default="iiwa"/>
   <arg name="flange" default="basic"/>
 
-  <param name="$(arg robot_name)_description" command="$(find xacro)/xacro.py '$(find iiwa_description)/urdf/iiwa7.urdf.xacro' hardware_interface:=$(arg hardware_interface) robot_name:=$(arg robot_name) flange:=$(arg flange)" />
+  <param name="$(arg robot_name)/robot_description" command="$(find xacro)/xacro.py '$(find iiwa_description)/urdf/iiwa7.urdf.xacro' hardware_interface:=$(arg hardware_interface) robot_name:=$(arg robot_name) flange:=$(arg flange)" />
 </launch> 
