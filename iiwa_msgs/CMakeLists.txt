@@ -17,6 +17,7 @@ add_message_files(DIRECTORY msg
 		  CartesianVelocity.msg
 		  CartesianWrench.msg
 		  JointPosition.msg
+		  JointStiffness.msg
 		  JointTorque.msg
 		  JointVelocity.msg
 		  )

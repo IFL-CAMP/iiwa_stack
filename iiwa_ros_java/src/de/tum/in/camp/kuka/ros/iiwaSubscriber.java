@@ -21,7 +21,7 @@
  * 
  */
 
-package de.tum.in.camp.kuka.shared.ros;
+package de.tum.in.camp.kuka.ros;
 
 // ROS imports
 import org.ros.message.MessageListener;

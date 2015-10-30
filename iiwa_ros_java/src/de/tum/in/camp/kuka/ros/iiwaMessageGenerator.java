@@ -22,7 +22,7 @@
  */
 
 // IIWAROS import
-package de.tum.in.camp.kuka.shared.ros;
+package de.tum.in.camp.kuka.ros;
 
 // ROS import
 import org.ros.message.MessageFactory;
