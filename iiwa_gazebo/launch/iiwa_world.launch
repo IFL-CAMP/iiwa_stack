@@ -12,7 +12,7 @@
   <arg name="hardware_interface" default="PositionJointInterface"/>
   <arg name="robot_name" default="iiwa" />
   <arg name="model" default="iiwa7"/>
-  <arg name="flange" default="basic" />
+  <arg name="pneumatic" default="false" />
   
   <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
   
@@ -30,7 +30,7 @@
   <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)" />
-    <arg name="flange" value="$(arg flange)" />
+    <arg name="pneumatic" value="$(arg pneumatic)" />
   </include>
   
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->

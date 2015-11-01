@@ -12,8 +12,8 @@
   <arg name="robot_name" default="iiwa"/>
   <!-- Model of the iiwa to use : iiwa7, iiwa14 -->
   <arg name="model" default="iiwa14"/>
-  <!-- flange to use : basic, electric, pneumatic. -->
-  <arg name="flange" default="basic"/>
+  <!-- Flange is pneumatic or not. -->
+  <arg name="pneumatic" default="false"/>
   
   <!-- | Load the robot_description parameter before launching ROS-I nodes. | -->
   <include file="$(find iiwa_moveit)/launch/planning_context.launch">
@@ -21,7 +21,7 @@
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)"/>
     <arg name="model" value="$(arg model)"/>
-    <arg name="flange" value="$(arg flange)"/>
+    <arg name="pneumatic" value="$(arg pneumatic)"/>
   </include>
   
   <remap from="/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" to="/$(arg robot_name)/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" />
@@ -35,7 +35,7 @@
       <arg name="hardware_interface" value="$(arg hardware_interface)"/>
       <arg name="robot_name" value="$(arg robot_name)" />
       <arg name="model" value="$(arg model)"/>
-      <arg name="flange" value="$(arg flange)" />
+      <arg name="pneumatic" value="$(arg pneumatic)" />
     </include>
   </group>
   
@@ -49,7 +49,7 @@
 	   $(arg hardware_interface)_trajectory_controller" />
       <arg name="robot_name" value="$(arg robot_name)" />
       <arg name="model" value="$(arg model)" />
-      <arg name="flange" value="$(arg flange)" />
+      <arg name="pneumatic" value="$(arg pneumatic)" />
     </include>
         
     <!-- Robot interface -->
@@ -66,7 +66,7 @@
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)"/>
     <arg name="model" value="$(arg model)" />
-    <arg name="flange" value="$(arg flange)"/>
+    <arg name="pneumatic" value="$(arg pneumatic)"/>
   </include>
   
   <include file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
