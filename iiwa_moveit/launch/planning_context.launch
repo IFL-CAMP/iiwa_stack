@@ -6,7 +6,6 @@
   <arg name="hardware_interface" default="PositionJointInterface"/>
   <arg name="robot_name" default="iiwa"/>
   <arg name="model" default="iiwa14"/>
-  <arg name="pneumatic" default="false"/>
 
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="$(arg robot_name)/robot_description"/>
@@ -16,7 +15,6 @@
     <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
       <arg name="hardware_interface" value="$(arg hardware_interface)"/>
       <arg name="robot_name" value="$(arg robot_name)" />
-      <arg name="pneumatic" value="$(arg pneumatic)" />
     </include>
   </group>
 

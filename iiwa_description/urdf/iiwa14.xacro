@@ -14,12 +14,8 @@
   <xacro:property name="joint_damping" value="0.5" />
   <xacro:property name="max_effort" value="300"/>
   <xacro:property name="max_velocity" value="10"/>
-  
-    <!-- Flange lenghts    -->
-  <xacro:property name="basic_flange" value="0.045"/>
-  <xacro:property name="pneumatic_flange" value="0.075"/>
 
-  <xacro:macro name="iiwa14" params="parent hardware_interface robot_name pneumatic *origin">
+  <xacro:macro name="iiwa14" params="parent hardware_interface robot_name *origin">
 
     <!--joint between {parent} and link_0-->
     <joint name="${parent}_joint" type="fixed">
@@ -336,12 +332,7 @@
     <joint name="iiwa_joint_ee" type="fixed">
       <parent link="iiwa_link_7"/>
       <child link="iiwa_link_ee"/>
-      <xacro:if value="${pneumatic}">
-	        <origin xyz="0 0 ${pneumatic_flange}" rpy="${PI} ${PI} ${PI}"/>
-      </xacro:if>
-      <xacro:unless value="${pneumatic}">
-	        <origin xyz="0 0 ${basic_flange}" rpy="${PI} ${PI} ${PI}"/>
-      </xacro:unless>
+      <origin xyz="0 0 0.045" rpy="${PI} ${PI} ${PI}"/>
       <axis xyz="0 0 1"/>
     </joint>
 

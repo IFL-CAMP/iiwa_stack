@@ -4,13 +4,11 @@
   <arg name="hardware_interface" default="PositionJointInterface"/>
   <arg name="robot_name" default="iiwa"/>
   <arg name="model" default="iiwa14"/>
-  <arg name="pneumatic" default="false"/>
 
   <include file="$(find iiwa_moveit)/launch/planning_context.launch">
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)"/>
     <arg name="model" value="$(arg model)"/>
-    <arg name="pneumatic" value="$(arg pneumatic)"/>
   </include>
 
   <!-- GDB Debug Option -->

@@ -9,7 +9,7 @@
   <link name="world"/>
 
   <!--iiwa-->
-  <xacro:iiwa7 hardware_interface="$(arg hardware_interface)" robot_name="$(arg robot_name)" pneumatic="$(arg pneumatic)" parent="world">
+  <xacro:iiwa7 hardware_interface="$(arg hardware_interface)" robot_name="$(arg robot_name)" parent="world">
     <origin xyz="0 0 0.0" rpy="0 0 0" />
   </xacro:iiwa7>
 
