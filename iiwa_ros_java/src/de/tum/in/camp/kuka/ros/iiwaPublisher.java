@@ -72,7 +72,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * Constructs a series of ROS publishers for messages defined by the iiwa_msgs ROS package. <p>
 	 * The initial values of the messages are all set to zeros.
 	 */
-	public iiwaPublisher() {
+	public iiwaPublisher(String robotName) {
 		cp = cartesianPositionPublisher.newMessage();
 		cr = cartesianRotationPublisher.newMessage();
 		cv = cartesianVelocityPublisher.newMessage();
@@ -81,6 +81,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jp = jointPositionPublisher.newMessage();
 		jt = jointTorquePublisher.newMessage();
 		jv = jointVelocityPublisher.newMessage();
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * For Cartesian messages, the initial values will refer to the frame of the robot's Flange.
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
-	public iiwaPublisher(LBR robot) {
+	public iiwaPublisher(LBR robot, String robotName) {
 		cp = helper.buildCartesianPosition(robot);
 		cr = helper.buildCartesianRotation(robot);
 		cv = helper.buildCartesianVelocity(robot);
@@ -99,6 +101,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jp = helper.buildJointPosition(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -109,7 +113,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
-	public iiwaPublisher(LBR robot, ObjectFrame frame) {
+	public iiwaPublisher(LBR robot, ObjectFrame frame, String robotName) {
 		cp = helper.buildCartesianPosition(robot, frame);
 		cr = helper.buildCartesianRotation(robot, frame);
 		cv = helper.buildCartesianVelocity(robot, frame);
@@ -118,6 +122,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jp = helper.buildJointPosition(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**

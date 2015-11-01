@@ -77,7 +77,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * For Cartesian messages, the initial values will refer to the frame of the robot's Flange.
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
-	public iiwaSubscriber(LBR robot) {
+	public iiwaSubscriber(LBR robot, String robotName) {
 		cp = helper.buildCartesianPosition(robot);
 		cr = helper.buildCartesianRotation(robot);
 		cv = helper.buildCartesianVelocity(robot);
@@ -86,6 +86,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jp = helper.buildJointPosition(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -96,7 +98,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
 		cp = helper.buildCartesianPosition(robot, frame);
 		cr = helper.buildCartesianRotation(robot, frame);
 		cv = helper.buildCartesianVelocity(robot, frame);
@@ -105,6 +107,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jp = helper.buildJointPosition(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**
