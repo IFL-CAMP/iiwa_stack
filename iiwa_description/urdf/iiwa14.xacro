@@ -298,8 +298,8 @@
       <axis xyz="0 0 1"/>
       <limit lower="${-175 * PI / 180}" upper="${175 * PI / 180}"
              effort="${max_effort}" velocity="${max_velocity}" />
-       <safety_controller soft_lower_limit="${-118 * PI / 180}"
-           soft_upper_limit="${118 * PI / 180}"
+       <safety_controller soft_lower_limit="${-173 * PI / 180}"
+           soft_upper_limit="${173 * PI / 180}"
            k_position="${safety_controller_k_pos}"
            k_velocity="${safety_controller_k_vel}"/> 
       <dynamics damping="${joint_damping}"/>
