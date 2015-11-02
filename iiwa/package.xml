@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
 <package>
   <name>iiwa</name>
-  <version>1.2.0</version>
+  <version>1.4.0</version>
   <description>
     Collection of ROS packages for the KUKA LBR IIWA
   </description>
   
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
   
-  <license>TODO</license>
+  <license>GPLv3</license>
   
-  <url type="repository">https://campgit.in.tum.de/ros/iiwa_WS.git</url>
   <author email="salv.virga@tum.de">Salvo Virga</author>
   
   <buildtool_depend>catkin</buildtool_depend>
