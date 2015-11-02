@@ -23,6 +23,10 @@
  * \date 26/10/2015
  */
 
+/** 
+ * THIS IS JUST AN EXEMPLARY MAIN
+ * */
+
 #include "iiwaRos.h"
 
 #include <sys/mman.h>
