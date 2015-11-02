@@ -1,7 +1,7 @@
 /** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
- * Technische Universität München
+ * Technische Universitaet Muenchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
  * http://campar.in.tum.de
  * 
  * LICENSE :
@@ -48,6 +48,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<iiwa_msgs.CartesianWrench> cartesianWrenchPublisher;
 	// Joint Message Publishers
 	private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
+	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
 	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
 
@@ -59,6 +60,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.CartesianWrench cw;
 	// Joint Messages
 	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointStiffness js;
 	private iiwa_msgs.JointTorque jt;
 	private iiwa_msgs.JointVelocity jv;
 
@@ -79,6 +81,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cw = cartesianWrenchPublisher.newMessage();
 
 		jp = jointPositionPublisher.newMessage();
+		js = jointStiffnessPublisher.newMessage();
 		jt = jointTorquePublisher.newMessage();
 		jv = jointVelocityPublisher.newMessage();
 		
@@ -99,6 +102,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cw = helper.buildCartesianWrench(robot);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
 		
@@ -120,6 +124,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cw = helper.buildCartesianWrench(robot, frame);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
 		
@@ -160,6 +165,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	public void setJointPosition(iiwa_msgs.JointPosition position) {
 		jp = position;
+	}
+	/**
+	 * Set the JointStiffness message to be published.<p>
+	 * @param position : JointStiffness message to publish.
+	 */
+	public void setJointStiffness(iiwa_msgs.JointStiffness stiffness) {
+		js = stiffness;
 	}
 	/**
 	 * Set the JointTorque message to be published.<p>
@@ -218,6 +230,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", iiwa_msgs.CartesianWrench._TYPE);
 
 		jointPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
+		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
 		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 	}
@@ -238,6 +251,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		publishIfSubscriber(cartesianVelocityPublisher, cv);
 		publishIfSubscriber(cartesianWrenchPublisher, cw);
 		publishIfSubscriber(jointPositionPublisher, jp);
+		publishIfSubscriber(jointStiffnessPublisher, js);
 		publishIfSubscriber(jointTorquePublisher, jt);
 		publishIfSubscriber(jointVelocityPublisher, jv);
 	}

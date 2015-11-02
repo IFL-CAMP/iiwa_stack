@@ -1,7 +1,7 @@
 /** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
- * Technische Universität München
+ * Technische Universitaet Muenchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
  * http://campar.in.tum.de
  * 
  * LICENSE :
@@ -299,6 +299,27 @@ public class iiwaMessageGenerator {
 		return jp;
 	}
 
+	/**
+	 * Builds a JointStiffness message given a LBR iiwa Robot.<p>
+	 * The <b>stiffness will be set to zero</b>,<br>
+	 * the message header is set to current time.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 * @return built JointStiffness message.
+	 */
+	public iiwa_msgs.JointStiffness buildJointStiffness(LBR robot) {
+		double[] stiffness = new double[7];
+		// TODO: build stiffness vector
+
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setFrameId("Robot");
+		header.setStamp(time.getCurrentTime());
+
+		iiwa_msgs.JointStiffness js = messageFactory.newFromType(iiwa_msgs.JointStiffness._TYPE);
+		js.setStiffness(stiffness);
+		js.setHeader(header);
+		return js;
+	}
+	
 	/**
 	 * Builds a JointTorque message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>

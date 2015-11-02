@@ -1,7 +1,7 @@
 /** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
- * Technische Universität München
+ * Technische Universitaet Muenchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
  * http://campar.in.tum.de
  * 
  * LICENSE :
@@ -44,23 +44,27 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// ROSJava Subscribers for iiwa_msgs
 	// Cartesian Message Subscribers
+	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
 	private Subscriber<iiwa_msgs.CartesianPosition> cartesianPositionSubscriber;
 	private Subscriber<iiwa_msgs.CartesianRotation> cartesianRotationSubscriber;
 	private Subscriber<iiwa_msgs.CartesianVelocity> cartesianVelocitySubscriber;
 	private Subscriber<iiwa_msgs.CartesianWrench> cartesianWrenchSubscriber;
 	// Joint Message Publishers
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
+	private Subscriber<iiwa_msgs.JointStiffness> jointStiffnessSubscriber;
 	private Subscriber<iiwa_msgs.JointTorque> jointTorqueSubscriber;
 	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
 
 	// Local iiwa_msgs to store received messages 
 	// Cartesian Messages
+	private geometry_msgs.PoseStamped cpose;
 	private iiwa_msgs.CartesianPosition cp;
 	private iiwa_msgs.CartesianRotation cr;
 	private iiwa_msgs.CartesianVelocity cv;
 	private iiwa_msgs.CartesianWrench cw;
 	// Joint Messages
 	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointStiffness js;
 	private iiwa_msgs.JointTorque jt;
 	private iiwa_msgs.JointVelocity jv;
 
@@ -84,6 +88,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cw = helper.buildCartesianWrench(robot);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
 		
@@ -105,10 +110,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cw = helper.buildCartesianWrench(robot, frame);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
 		
 		iiwaName = robotName;
+	}
+	
+	public geometry_msgs.PoseStamped getCartesianPose() {
+		return cpose;
 	}
 
 	/**
@@ -155,6 +165,16 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public iiwa_msgs.JointPosition getJointPosition() {
 		return jp;
 	}
+	
+	/**
+	 * Returns the last received Joint Stiffness message. <p>
+	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
+	 * @return the received Joint Stiffness message.
+	 */
+	public iiwa_msgs.JointStiffness getJointStiffness() {
+		return js;
+	}
+	
 	/**
 	 * Returns the last received Joint Torque message. <p>
 	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
@@ -208,15 +228,25 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 
+		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		cartesianPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPosition", iiwa_msgs.CartesianPosition._TYPE);
 		cartesianRotationSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianRotation", iiwa_msgs.CartesianRotation._TYPE);
 		cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", iiwa_msgs.CartesianVelocity._TYPE);
 		cartesianWrenchSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianWrench", iiwa_msgs.CartesianWrench._TYPE);
 
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
+		jointStiffnessSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointTorqueSubscriber = connectedNode.newSubscriber(iiwaName + "/commmand/JointTorque", iiwa_msgs.JointTorque._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 
+		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
+			@Override
+			public void onNewMessage(geometry_msgs.PoseStamped pose) {
+				// TODO: check if it works
+				cpose = pose;
+			}
+		});
+		
 		cartesianPositionSubscriber.addMessageListener(new MessageListener<iiwa_msgs.CartesianPosition>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.CartesianPosition position) {
@@ -250,6 +280,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPosition position){
 				jp = position;
+			}
+		});
+		
+		jointStiffnessSubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointStiffness>() {
+			@Override
+			public void onNewMessage(iiwa_msgs.JointStiffness stiffness){
+				js = stiffness;
 			}
 		});
 
