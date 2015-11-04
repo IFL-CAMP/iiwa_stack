@@ -46,7 +46,7 @@ import com.kuka.roboticsAPI.motionModel.SmartServo;
  * but any other of its property included in the iiwa_msgs ROS package can be published
  * and received in the same way.
  */
-public class EXAMPLE_ROSCommand extends RoboticsAPIApplication {
+public class ROSSmartServo extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
@@ -166,7 +166,7 @@ public class EXAMPLE_ROSCommand extends RoboticsAPIApplication {
 	 * Auto-generated method stub. Do not modify the contents of this method.
 	 */
 	public static void main(String[] args) {
-		EXAMPLE_ROSCommand app = new EXAMPLE_ROSCommand();
+		ROSSmartServo app = new ROSSmartServo();
 		app.runApplication();
 	}
 }
