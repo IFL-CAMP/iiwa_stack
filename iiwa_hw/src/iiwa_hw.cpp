@@ -1,16 +1,36 @@
-/** (c) 2015 Technische Universität München
+/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  *
  * This class implements a bridge between ROS hardware interfaces and a KUKA LBR IIWA Robot,
  * using an IIWARos communication described in the iiwa_ros package.
+ *
  * It is a porting of the work from the Centro E. Piaggio in Pisa : https://github.com/CentroEPiaggio/kuka-lwr
- * for the LBR IIWA.
+ * for the LBR IIWA. We acknowledge the good work of their main contributors :
+ * Carlos J. Rosales - cjrosales@gmail.com
+ * Enrico Corvaglia
+ * Marco Esposito - marco.esposito@tum.de
+ * Manuel Bonilla - josemanuelbonilla@gmail.com
+ * 
+ * LICENSE :
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * \author Salvatore Virga
  * \version 2.0.0
- * \date 05/04/2015
+ * \date 26/10/2015
  */
 
 #include "iiwa_hw.h"
@@ -20,9 +40,7 @@ using namespace std;
 IIWA_HW::IIWA_HW(ros::NodeHandle nh)
 {
   nh_ = nh;
-  
-  //iiwa_ros_conn_.init();
-  
+    
   joint_position_.position.resize(IIWA_JOINTS);
   joint_torque_.torque.resize(IIWA_JOINTS);
   command_joint_position_.position.resize(IIWA_JOINTS);
@@ -63,7 +81,8 @@ bool IIWA_HW::start() {
   // TODO : make use of this
   // get inteface param or give default values
   nh_.param("interface", interface_, std::string("PositionJointInterface"));
-  
+  nh_.param("robot_name", robot_name_, std::string("iiwa"));
+    
   /* TODO
    * nh_.param("move_group", movegroup_name_, "arm");
    * group(movegroup_name_);
@@ -82,11 +101,19 @@ bool IIWA_HW::start() {
     ROS_ERROR("No joints to be handled, ensure you load a yaml file naming the joint names this hardware interface refers to.");
     throw std::runtime_error("No joint name specification");
   }
-  if( !(urdf_model_.initParam("/robot_description")) )
+  
+  std::stringstream ss;
+  ss << "/" << robot_name_ << "/robot_description";
+  std::string robot_description = ss.str();
+  
+  if( !(urdf_model_.initParam(robot_description)))
   {
     ROS_ERROR("No URDF model in the robot_description parameter, this is required to define the joint limits.");
+    std::cout << robot_description << endl;
     throw std::runtime_error("No URDF model available");
   }
+  
+  iiwa_ros_conn_.init(false, robot_name_);
   
   // initialize and set to zero the state and command values
   device_->init();

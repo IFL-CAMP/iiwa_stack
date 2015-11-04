@@ -1,16 +1,27 @@
-/** 
+/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
  * Technische Universitaet Muenchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
  * http://campar.in.tum.de
  * 
- * @author Salvatore Virga
+ * LICENSE :
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
- * TODO LICENSE
+ * @author Salvatore Virga
  * 
  */
 
-package de.tum.in.camp.kuka.shared.ros;
+package de.tum.in.camp.kuka.ros;
 
 // ROS imports
 import org.ros.namespace.GraphName;
@@ -37,6 +48,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<iiwa_msgs.CartesianWrench> cartesianWrenchPublisher;
 	// Joint Message Publishers
 	private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
+	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
 	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
 
@@ -48,6 +60,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.CartesianWrench cw;
 	// Joint Messages
 	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointStiffness js;
 	private iiwa_msgs.JointTorque jt;
 	private iiwa_msgs.JointVelocity jv;
 
@@ -61,15 +74,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * Constructs a series of ROS publishers for messages defined by the iiwa_msgs ROS package. <p>
 	 * The initial values of the messages are all set to zeros.
 	 */
-	public iiwaPublisher() {
+	public iiwaPublisher(String robotName) {
 		cp = cartesianPositionPublisher.newMessage();
 		cr = cartesianRotationPublisher.newMessage();
 		cv = cartesianVelocityPublisher.newMessage();
 		cw = cartesianWrenchPublisher.newMessage();
 
 		jp = jointPositionPublisher.newMessage();
+		js = jointStiffnessPublisher.newMessage();
 		jt = jointTorquePublisher.newMessage();
 		jv = jointVelocityPublisher.newMessage();
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -79,15 +95,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * For Cartesian messages, the initial values will refer to the frame of the robot's Flange.
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
-	public iiwaPublisher(LBR robot) {
+	public iiwaPublisher(LBR robot, String robotName) {
 		cp = helper.buildCartesianPosition(robot);
 		cr = helper.buildCartesianRotation(robot);
 		cv = helper.buildCartesianVelocity(robot);
 		cw = helper.buildCartesianWrench(robot);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -98,15 +117,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
-	public iiwaPublisher(LBR robot, ObjectFrame frame) {
+	public iiwaPublisher(LBR robot, ObjectFrame frame, String robotName) {
 		cp = helper.buildCartesianPosition(robot, frame);
 		cr = helper.buildCartesianRotation(robot, frame);
 		cv = helper.buildCartesianVelocity(robot, frame);
 		cw = helper.buildCartesianWrench(robot, frame);
 
 		jp = helper.buildJointPosition(robot);
+		js = helper.buildJointStiffness(robot);
 		jt = helper.buildJointTorque(robot);
 		jv = helper.buildJointVelocity(robot);
+		
+		iiwaName = robotName;
 	}
 
 	/**
@@ -143,6 +165,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	public void setJointPosition(iiwa_msgs.JointPosition position) {
 		jp = position;
+	}
+	/**
+	 * Set the JointStiffness message to be published.<p>
+	 * @param position : JointStiffness message to publish.
+	 */
+	public void setJointStiffness(iiwa_msgs.JointStiffness stiffness) {
+		js = stiffness;
 	}
 	/**
 	 * Set the JointTorque message to be published.<p>
@@ -201,6 +230,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", iiwa_msgs.CartesianWrench._TYPE);
 
 		jointPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
+		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
 		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 	}
@@ -221,6 +251,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		publishIfSubscriber(cartesianVelocityPublisher, cv);
 		publishIfSubscriber(cartesianWrenchPublisher, cw);
 		publishIfSubscriber(jointPositionPublisher, jp);
+		publishIfSubscriber(jointStiffnessPublisher, js);
 		publishIfSubscriber(jointTorquePublisher, jt);
 		publishIfSubscriber(jointVelocityPublisher, jv);
 	}

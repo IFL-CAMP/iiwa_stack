@@ -1,17 +1,28 @@
-/** 
+/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
  * Technische Universitaet Muenchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
  * http://campar.in.tum.de
  * 
- * @author Salvatore Virga
+ * LICENSE :
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
- * TODO LICENSE
+ * @author Salvatore Virga
  * 
  */
 
 // IIWAROS import
-package de.tum.in.camp.kuka.shared.ros;
+package de.tum.in.camp.kuka.ros;
 
 // ROS import
 import org.ros.message.MessageFactory;
@@ -288,6 +299,27 @@ public class iiwaMessageGenerator {
 		return jp;
 	}
 
+	/**
+	 * Builds a JointStiffness message given a LBR iiwa Robot.<p>
+	 * The <b>stiffness will be set to zero</b>,<br>
+	 * the message header is set to current time.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 * @return built JointStiffness message.
+	 */
+	public iiwa_msgs.JointStiffness buildJointStiffness(LBR robot) {
+		double[] stiffness = new double[7];
+		// TODO: build stiffness vector
+
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setFrameId("Robot");
+		header.setStamp(time.getCurrentTime());
+
+		iiwa_msgs.JointStiffness js = messageFactory.newFromType(iiwa_msgs.JointStiffness._TYPE);
+		js.setStiffness(stiffness);
+		js.setHeader(header);
+		return js;
+	}
+	
 	/**
 	 * Builds a JointTorque message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>

@@ -1,12 +1,31 @@
-/** (c) 2015 Technische Universität München
+/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * 
+ * LICENSE :
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  * \author Salvatore Virga
- * \version 1.0.0
- * \date 27/04/2015
+ * \version 2.0.0
+ * \date 26/10/2015
  */
+
+/** 
+ * THIS IS JUST AN EXEMPLARY MAIN
+ * */
 
 #include "iiwaRos.h"
 
@@ -42,7 +61,8 @@ int main( int argc, char** argv )
   iiwa_msgs::JointPosition receiveMessage, sendMessage;
   
   // The IIWA - ROS interface.
-  iiwaRos iiwa_ros("my_iiwa");
+  iiwaRos iiwa_ros;
+  iiwa_ros.init(false, "my_iiwa");
   
   // Rate at which you want to send and receive messages.
   ros::Rate* loop_rate_ = new ros::Rate(1000);

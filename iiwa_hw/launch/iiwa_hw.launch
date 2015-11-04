@@ -1,16 +1,19 @@
 <?xml version="1.0"?>
 <launch>
+  
+  <!-- LAUNCH INTERFACE -->
+  <arg name="hardware_interface" default="PositionJointInterface"/>
+  <arg name="robot_name" default="iiwa"/>
+  
+  <!-- LAUNCH IMPLEMENTATION -->
+  <group ns="$(arg robot_name)">
+    <rosparam command="load" file="$(find iiwa_hw)/config/joint_names.yaml" />
+    <!-- addresses /-->
+    <param name="interface" value="$(arg hardware_interface)"/>
+    <param name="robot_name" value="$(arg robot_name)"/>
 
-	<!-- LAUNCH INTERFACE -->
-	<arg name="hardware_interface" default="PositionJointInterface"/>
-
-	<!-- LAUNCH IMPLEMENTATION -->
-	<group ns="iiwa">
-		<rosparam command="load" file="$(find iiwa_hw)/config/joint_names.yaml" />
-		<!-- addresses /-->
-		<param name="interface" value="$(arg hardware_interface)"/>
-		<!-- the real hardware interface /-->
-		<node name="iiwa_hw" pkg="iiwa_hw" type="iiwa_hw-bin" respawn="false" output="screen"/>
-	</group>
-
+    <!-- the real hardware interface /-->
+    <node name="iiwa_hw" pkg="iiwa_hw" type="iiwa_hw-bin" respawn="false" output="screen"/>
+  </group>
+  
 </launch>

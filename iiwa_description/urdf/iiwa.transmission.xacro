@@ -1,80 +1,80 @@
 <?xml version="1.0"?>
-<robot name="iiwa" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="iiwa_transmission" params="name hardware_interface">
+  <xacro:macro name="iiwa_transmission" params="hardware_interface">
 
-    <transmission name="${name}_tran_1">
+    <transmission name="iiwa_tran_1">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_1">
+      <joint name="iiwa_joint_1">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_1">
+      <actuator name="iiwa_motor_1">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_2">
+    <transmission name="iiwa_tran_2">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_2">
+      <joint name="iiwa_joint_2">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_2">
+      <actuator name="iiwa_motor_2">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_3">
+    <transmission name="iiwa_tran_3">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_3">
+      <joint name="iiwa_joint_3">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_3">
+      <actuator name="iiwa_motor_3">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_4">
+    <transmission name="iiwa_tran_4">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_4">
+      <joint name="iiwa_joint_4">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_4">
+      <actuator name="iiwa_motor_4">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_5">
+    <transmission name="iiwa_tran_5">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_5">
+      <joint name="iiwa_joint_5">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_5">
+      <actuator name="iiwa_motor_5">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_6">
+    <transmission name="iiwa_tran_6">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_6">
+      <joint name="iiwa_joint_6">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_6">
+      <actuator name="iiwa_motor_6">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>
     </transmission>
 
-    <transmission name="${name}_tran_7">
+    <transmission name="iiwa_tran_7">
       <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${name}_joint_7">
+      <joint name="iiwa_joint_7">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
       </joint>
-      <actuator name="${name}_motor_7">
+      <actuator name="iiwa_motor_7">
 	<hardwareInterface>${hardware_interface}</hardwareInterface>
 	<mechanicalReduction>1</mechanicalReduction>
       </actuator>

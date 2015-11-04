@@ -1,5 +1,5 @@
 controller_list:
-  - name: /iiwa/effort_pos_joint_trajectory_controller
+  - name: EffortJointInterface_trajectory_controller
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
