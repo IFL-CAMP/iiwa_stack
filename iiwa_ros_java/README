@@ -1,0 +1,17 @@
+# How to put the required Java code on the iiwa
+
+The iiwa stack requires an additional Sunrise application running on the robot. A Sunrise project is very bound to the version of the Sunrise controller that runs on the robot, so it is not possible to distribute a Sunrise project with the stack.
+
+Here are described the steps needed to create an own Sunrise project, and add the applications needed with their dependencies.
+
+1. Create a Sunrise project, or load an existing one from the controller
+2. Right-click on your Sunrise project and choose _Build Path_ -> _Configure Build Path..._
+3. Go to the _Source_ tab and click the _Link Source_ button
+4. Browse to the location of the folder _iiwa\_stack_/_iiwa\_ros\_java_/_src_ to use it as linked folder location
+5. Choose a folder name different than _src_
+6. Do not choose any inclusion/exclusion pattern and finish
+7. Go to the _Libraries_ tab and click the _Add External JARs..._ button
+8. Add all of the JARs contained in the _iiwa\_stack_/_iiwa\_ros\_java_/_ROSJavaLib_ folder
+
+Your project is now ready to be uploaded to the controller. There should be no red sign or problem found by the IDE. 
+ 
