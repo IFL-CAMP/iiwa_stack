@@ -38,7 +38,7 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
  * Only the Joint Position of the robot is published in this example,
  * but any other of its property included in the iiwa_msgs ROS package can be published in the same way.
  */
-public class EXAMPLE_ROSMonitor extends RoboticsAPIApplication {
+public class ROSMonitor extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
@@ -132,7 +132,7 @@ public class EXAMPLE_ROSMonitor extends RoboticsAPIApplication {
 	 * Auto-generated method stub. Do not modify the contents of this method.
 	 */
 	public static void main(String[] args) {
-		EXAMPLE_ROSMonitor app = new EXAMPLE_ROSMonitor();
+		ROSMonitor app = new ROSMonitor();
 		app.runApplication();
 	}
 }
