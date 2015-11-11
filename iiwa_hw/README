@@ -1,0 +1,9 @@
+IIWA_HW 
+
+This package implements the hardware interface for a KUKA IIWA LWR robot, it can read the current status of the robot and command it. (e.g. using Moveit! you can command the robot in joint space after a new trajectory is generated).
+
+We strongly suggest to have a look at the main function at /src/main.cpp, 
+and to focus on the functions read and write in the class file at /src/iiwa_hw.cpp. 
+Those are the ones doing the job.
+
+This package is an adaptation of the one for the LWR4+ from https://github.com/CentroEPiaggio/kuka-lwr.

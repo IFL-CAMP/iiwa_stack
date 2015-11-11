@@ -1,0 +1,27 @@
+IIWA_GAZEBO
+
+This package contains the files to use a KUKA IIWA LWR R800 or R820 with Gazebo.
+You can load a robot in Gazebo using the launch file iiwa_gazebo.launch
+
+The file is parametric, you can select : 
+- hardware_interface : PositionJointInterface, EffortJointInterface or VelocityJointInterface. Default : PositionJointInterface
+
+NOTE : you are able to select the last two, but they are not yet implemented.
+To implement them, iiwa_control and iiwa_hw have to be integrated.
+
+- robot_name : The given name will be used as namespace for every rosparam, rostopic and rosnode used in this stack. Default : iiwa.
+
+- model : iiwa7 or iiwa14. To use a LWR R800 or R820. Default : iiwa14.
+
+- trajectory : true or false. Boolean to select if you want to use 7 single Joint Controllers (one for each joint) or a Joint Trajectory Controller. Default : true.
+
+EXAMPLE : 
+
+roslaunch iiwa_gazebo iiwa_gazeno.launch robot_name=Pluto model=iiwa14
+
+This will open Gazebo spawning an IIWA LWR R820 robot controller by a Joint Position Trajectory controller, all the nodes and topics will be under the namespace /Pluto (e.g. /Pluto/...)
+
+NOTES : 
+For the iiwa14 (LWR R820) everything seems to work.
+For the iiwa7 (LWR R800) nothing works, we don't have the correct inertial parameters in its URDF, changing them to the right one should fix the thing.
+As we don't use Gazebo that much, not much of this is tested.

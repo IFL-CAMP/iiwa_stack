@@ -1,0 +1,32 @@
+IIWA_MOVEIT
+
+This package contains the Moveit! configuration for both the KUKA IIWA LWR R800 and R820.
+
+You can use Moveit! either with a Gazebo simulation or with a real robot.
+For Gazebo, currently only the iiwa14  (LWR R820) works properly, check the README of iiwa_gazebo for more.
+
+The launch file for Moveit! has the following parameters :
+- sim : true or false, boolean to select if you want to use the Gazebo simulation or not. DEFAULT : true (Gazebo will start).
+
+- hardware_interface : PositionJointInterface, EffortJointInterface or VelocityJointInterface. Default : PositionJointInterface
+
+NOTE : you are able to select the last two, but they are not yet implemented.
+To implement them, iiwa_control and iiwa_hw have to be integrated.
+
+- robot_name : The given name will be used as namespace for every rosparam, rostopic and rosnode used in this stack. Default : iiwa.
+
+- model : iiwa7 or iiwa14. To use a LWR R800 or R820. Default : iiwa7.
+
+EXAPLE : 
+
+MOVEIT! WITH GAZEBO :
+
+roslaunch iiwa_moveit moveit_planning_execution.launch robot_name=Pluto model=iiwa14
+
+This will launch Moveit+RViz+Gazebo with a LWR R820 controller by a Joint Position Trajectory controller, all the nodes and topics will be under the namespace /Pluto.
+
+MOVEIT! WITH THE REAL ROBOT :
+
+roslaunch iiwa_moveit moveit_planning_execution.launch sim=false robot_name=Pluto
+
+This will launch Moveit+RVis and will communicate with a LWR R800 connected via ROS Messages. (more on iiwa_hw, iiwa_ros, iiwa_msgs).

@@ -1,0 +1,6 @@
+IIWA_ROS
+
+This package allows to communicate with the a KUKA IIWA LRW side using ROS messages inside iiwa_msgs.
+It is strongly suggested to have a look at the toy example at /src/main.cpp
+
+As you can see there, you just need to create your iiwaRos object and use its get and set methods to receive individual messages or prepare them to be sent with the publish method.
