@@ -41,4 +41,4 @@ This packages contained in this repository are :
 [5]: https://bitbucket.org/khansari/iiwa/src/c4578460d79d5d24f58bf94bd97fb6cb0b6f280f/JavaNode/?at=master
 [6]: http://git.lcsr.jhu.edu/cgrauma1/kuka_iiwa_shared
 [7]: https://github.com/rtkg/lbr_iiwa
-[8]: https://campgit.in.tum.de/ros/iiwa_stack/wikis/home
+[8]: https://github.com/SalvoVirga/iiwa_stack/wiki
