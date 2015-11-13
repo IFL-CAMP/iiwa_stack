@@ -1,9 +1,14 @@
 ## IIWA STACK
-ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820.
+ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
 ___
 ### Features
 - obtain the current state of a KUKA IIWA LWR and command the robot using ROS Messages (either custom - like iiwa_msgs - or standard ones).
 - make use of the functionalities of Moveit! with a KUKA IIWA LWR. 
+- Gazebo simulation.
+
+The communication with the robot is implemented through ROS topics: a rosjava node runs in the context of a Sunrise application on the robot cabinet, which in turn performs a SmartServo motion. This approach allows great flexibility; we also plan to offer a service to reconfigure the ServoMotion at runtime (e.g. stiffness of certain joints or around cartesian axes). Though not real-time, we never incurred in any communication problems on our setup.
+
+We also plan to offer FRI as a communication option as soon as it is stable. 
 
 __The features and usage of the stack are described in depth on its  [WIKI][8].__  
 We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
