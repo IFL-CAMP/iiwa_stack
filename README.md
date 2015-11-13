@@ -10,6 +10,8 @@ The communication with the robot is implemented through ROS topics: a rosjava no
 
 We also plan to offer FRI as a communication option as soon as it is stable. 
 
+___
+### Usage
 __The features and usage of the stack are described in depth on its  [WIKI][8].__  
 We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
 
