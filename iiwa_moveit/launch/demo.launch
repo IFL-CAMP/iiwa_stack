@@ -36,6 +36,7 @@
   <!-- Load move_group -->
   <include file="$(find iiwa_moveit)/launch/move_group.launch">
     <arg name="publish_monitored_planning_scene" value="true" />
+    <arg name="fake_execution" value="true"/>
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)"/>
     <arg name="model" value="$(arg model)" />
