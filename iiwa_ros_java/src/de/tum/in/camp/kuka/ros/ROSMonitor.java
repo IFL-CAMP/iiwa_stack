@@ -24,14 +24,22 @@
 package de.tum.in.camp.kuka.ros;
 
 //ROS imports
+import java.net.URI;
+
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
-import java.net.URI;
 
-//KUKA imports
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
+import com.kuka.roboticsAPI.motionModel.SmartServo;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 /*
  * This example shows how to monitor the state of the robot, publishing it into ROS nodes.
@@ -41,6 +49,11 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 public class ROSMonitor extends RoboticsAPIApplication {
 
 	private LBR robot;
+	private IUserKeyBar keybar;
+	private IUserKey gravCompKey;
+	private IUserKeyListener gravCompKeyList;
+	private boolean gravCompEnabled = false;
+	private boolean gravCompSwitched = false;
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 
@@ -57,9 +70,27 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private iiwa_msgs.JointPosition currentPosition;
 
 	private boolean debug = false;
+	private ISmartServoRuntime runtime;
 
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
+		keybar = getApplicationUI().createUserKeyBar("Gravcomp");
+		gravCompKeyList = new IUserKeyListener() {
+			@Override
+			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+				if (event == UserKeyEvent.FirstKeyDown) {
+					gravCompEnabled = true;
+					gravCompSwitched = true;
+				} else if (event == UserKeyEvent.SecondKeyDown) {
+					gravCompEnabled = false;
+					gravCompSwitched = true;
+				}
+			}
+		};
+		gravCompKey = keybar.addDoubleUserKey(0, gravCompKeyList, true);
+		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
+		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
+		keybar.publish();
 		helper = new iiwaMessageGenerator();
 		publisher = new iiwaPublisher(robot,"iiwa");
 
@@ -88,7 +119,18 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	}
 
 	public void run() {
-
+		// SmartServo motion for gravity compensation.
+		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setJointVelocityRel(0.2);
+		
+		if (SmartServo.validateForImpedanceMode(robot))
+			getLogger().error("Too much external torque on the robot! Is it a singular position?");
+		
+		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(7); // TODO!!
+		robot.moveAsync(motion.setMode(controlMode));
+		runtime = motion.getRuntime();
+		
 		// The run loop
 		getLogger().info("Starting the ROS Monitor loop...");
 		try {
@@ -105,6 +147,27 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				//published.setJointTorque(aJointTorqueMessage);
 				//published.setCartesianRotation(aCartesianRotationMessage);
 				publisher.publish();
+				
+				if (gravCompEnabled) {
+					// TODO: set stiffness to 0, update position
+					if (gravCompSwitched) {
+						controlMode.setStiffnessForAllJoints(0);
+						controlMode.setDampingForAllJoints(0.7);
+						runtime.changeControlModeSettings(controlMode);
+						gravCompSwitched = false;
+					}
+					runtime.setDestination(robot.getCurrentJointPosition());
+					robot.moveAsync(motion); // TODO: can / should be left out?
+				} else {
+					// TODO: recover previous stiffness
+					if (gravCompSwitched) {
+						controlMode.setStiffnessForAllJoints(1500);
+						runtime.changeControlModeSettings(controlMode);
+						runtime.setDestination(robot.getCurrentJointPosition());
+						robot.moveAsync(motion); // TODO: can / should be left out?
+						gravCompSwitched = false;
+					}
+				}
 			} 
 		}
 		catch (InterruptedException e) {
