@@ -32,6 +32,7 @@ import java.net.URI;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 
@@ -49,9 +50,11 @@ import com.kuka.roboticsAPI.motionModel.SmartServo;
 public class ROSSmartServo extends RoboticsAPIApplication {
 
 	private LBR robot;
+	private Tool tool;
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
+	private iiwaConfiguration configuration; //< Configuration via parameters and services.
 
 	// TODO: change the following IP addresses according to your setup.
 	private String masterUri = "http://160.69.69.100:11311";
@@ -62,6 +65,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private URI uri;
 	private NodeConfiguration nodeConfPublisher;
 	private NodeConfiguration nodeConfSubscriber;
+	private NodeConfiguration nodeConfConfiguration;
 	private NodeMainExecutor nodeMainExecutor;
 
 	// iiwa_msgs to Publish and to receive.
@@ -75,6 +79,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		helper = new iiwaMessageGenerator();
 		publisher = new iiwaPublisher(robot,"iiwa");
 		subscriber = new iiwaSubscriber(robot,"iiwa");
+		configuration = new iiwaConfiguration("iiwa");
 
 		try {
 			// Set the configuration parameters of the ROS nodes to create.
@@ -89,11 +94,16 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			nodeConfSubscriber = NodeConfiguration.newPublic(host);
 			nodeConfSubscriber.setNodeName("subscriberNode");
 			nodeConfSubscriber.setMasterUri(uri);
+			
+			nodeConfConfiguration = NodeConfiguration.newPublic(host);
+			nodeConfConfiguration.setNodeName("/iiwa/iiwa_configuration");
+			nodeConfConfiguration.setMasterUri(uri);
 
 			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
 			nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
 			nodeMainExecutor.execute(publisher, nodeConfPublisher);
 			nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
+			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
 		}
 		catch (Exception e) {
 			if (debug) getLogger().info("Node Configuration failed.");
@@ -110,6 +120,24 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
 		robot.moveAsync(motion);
+		
+		try {
+			configuration.waitForInitialization();
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+			return;
+		}
+		
+		String toolFromConfig = configuration.getToolName();
+		if (toolFromConfig == null) 
+			getLogger().error("null parameter server!");
+		if (toolFromConfig != "") {
+			getLogger().info("attaching tool " + toolFromConfig);
+			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
+			tool.attachTo(robot.getFlange());
+		} else {
+			getLogger().info("no tool attached");
+		}
 
 		ISmartServoRuntime runtime = motion.getRuntime();
 
@@ -144,6 +172,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			if (nodeMainExecutor != null) {
 				nodeMainExecutor.shutdownNodeMain(publisher);
 				nodeMainExecutor.shutdownNodeMain(subscriber);
+				nodeMainExecutor.shutdownNodeMain(configuration);
 			}
 			runtime.stopMotion();
 			if (debug)getLogger().info("ROS Nodea terminated.");
@@ -157,6 +186,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (nodeMainExecutor != null && publisher != null && subscriber != null) {
 			nodeMainExecutor.shutdownNodeMain(publisher);
 			nodeMainExecutor.shutdownNodeMain(subscriber);
+			nodeMainExecutor.shutdownNodeMain(configuration);
 			getLogger().info("ROS nodes have been terminated by Garbage Collection.");
 		}
 		super.dispose();
