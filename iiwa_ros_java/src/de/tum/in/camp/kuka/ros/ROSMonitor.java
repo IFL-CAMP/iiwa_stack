@@ -124,7 +124,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
 		
-		if (SmartServo.validateForImpedanceMode(robot))
+		if (!SmartServo.validateForImpedanceMode(robot))
 			getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		
 		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(7); // TODO!!
@@ -149,23 +149,22 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				publisher.publish();
 				
 				if (gravCompEnabled) {
-					// TODO: set stiffness to 0, update position
 					if (gravCompSwitched) {
+						gravCompSwitched = false;
+						getLogger().warn("Enabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(0);
 						controlMode.setDampingForAllJoints(0.7);
 						runtime.changeControlModeSettings(controlMode);
-						gravCompSwitched = false;
 					}
 					runtime.setDestination(robot.getCurrentJointPosition());
-					robot.moveAsync(motion); // TODO: can / should be left out?
 				} else {
-					// TODO: recover previous stiffness
 					if (gravCompSwitched) {
+						gravCompSwitched = false;
+						getLogger().warn("Disabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(1500);
 						runtime.changeControlModeSettings(controlMode);
 						runtime.setDestination(robot.getCurrentJointPosition());
-						robot.moveAsync(motion); // TODO: can / should be left out?
-						gravCompSwitched = false;
+						robot.moveAsync(motion);
 					}
 				}
 			} 
