@@ -51,11 +51,15 @@ public class ROSMonitor extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private Tool tool;
+	
 	private IUserKeyBar keybar;
+	private IUserKey generalKey;
+	private IUserKeyListener generalKeyList;
 	private IUserKey gravCompKey;
 	private IUserKeyListener gravCompKeyList;
 	private boolean gravCompEnabled = false;
 	private boolean gravCompSwitched = false;
+	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaConfiguration configuration; //< Configuration via parameters and services.
@@ -80,6 +84,20 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 		
 		keybar = getApplicationUI().createUserKeyBar("Gravcomp");
+		generalKeyList = new IUserKeyListener() {
+			@Override
+			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+				if (event == UserKeyEvent.FirstKeyDown) {
+					publisher.publishButton1Pressed();
+				} else if (event == UserKeyEvent.FirstKeyUp) {
+					publisher.publishButton1Released();
+				} else if (event == UserKeyEvent.SecondKeyDown) {
+					publisher.publishButton2Pressed();
+				} else if (event == UserKeyEvent.SecondKeyUp) {
+					publisher.publishButton2Released();
+				}
+			}
+		};
 		gravCompKeyList = new IUserKeyListener() {
 			@Override
 			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
@@ -92,6 +110,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				}
 			}
 		};
+		generalKey = keybar.addDoubleUserKey(2, generalKeyList, false);
+		// TODO: make keys general, take text from configuration
+		generalKey.setText(UserKeyAlignment.TopMiddle, "1");
+		generalKey.setText(UserKeyAlignment.BottomMiddle, "2");
 		gravCompKey = keybar.addDoubleUserKey(0, gravCompKeyList, true);
 		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
 		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
