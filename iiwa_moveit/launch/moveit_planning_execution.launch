@@ -12,6 +12,7 @@
   <arg name="robot_name" default="iiwa"/>
   <!-- Model of the iiwa to use : iiwa7, iiwa14 -->
   <arg name="model" default="iiwa7"/>
+  <arg name="rviz" default="true" />
   
   <!-- | Load the robot_description parameter before launching ROS-I nodes. | -->
   <include file="$(find iiwa_moveit)/launch/planning_context.launch">
@@ -63,7 +64,7 @@
     <arg name="model" value="$(arg model)" />
   </include>
   
-  <include file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
+  <include if="$(arg rviz)" file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
     <arg name="config" value="true"/>
   </include>
   
