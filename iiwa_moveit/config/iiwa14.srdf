@@ -26,7 +26,7 @@
         <joint name="iiwa_joint_5" />
         <joint name="iiwa_joint_6" />
         <joint name="iiwa_joint_7" />
-	<joint name="iiwa_joint_ee" />
+        <joint name="iiwa_joint_ee" />
         <chain base_link="iiwa_link_0" tip_link="iiwa_link_ee" />
     </group>
     <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
@@ -44,4 +44,30 @@
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="fixed_base" type="fixed" parent_frame="world" child_link="iiwa_link_0" />
     <virtual_joint name="fixed_ee" type="fixed" parent_frame="iiwa_link_7" child_link="iiwa_link_ee" />
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="iiwa_link_0" link2="iiwa_link_1" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_0" link2="iiwa_link_2" reason="Never" />
+    <disable_collisions link1="iiwa_link_0" link2="iiwa_link_3" reason="Never" />
+    <disable_collisions link1="iiwa_link_0" link2="iiwa_link_4" reason="Never" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_2" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_3" reason="Never" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_4" reason="Never" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_5" reason="Never" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_6" reason="Never" />
+    <disable_collisions link1="iiwa_link_1" link2="iiwa_link_7" reason="Never" />
+    <disable_collisions link1="iiwa_link_2" link2="iiwa_link_3" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_2" link2="iiwa_link_4" reason="Never" />
+    <disable_collisions link1="iiwa_link_2" link2="iiwa_link_5" reason="Never" />
+    <disable_collisions link1="iiwa_link_2" link2="iiwa_link_6" reason="Never" />
+    <disable_collisions link1="iiwa_link_2" link2="iiwa_link_7" reason="Never" />
+    <disable_collisions link1="iiwa_link_3" link2="iiwa_link_4" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_3" link2="iiwa_link_5" reason="Never" />
+    <disable_collisions link1="iiwa_link_3" link2="iiwa_link_6" reason="Never" />
+    <disable_collisions link1="iiwa_link_3" link2="iiwa_link_7" reason="Never" />
+    <disable_collisions link1="iiwa_link_4" link2="iiwa_link_5" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_4" link2="iiwa_link_6" reason="Never" />
+    <disable_collisions link1="iiwa_link_4" link2="iiwa_link_7" reason="Never" />
+    <disable_collisions link1="iiwa_link_5" link2="iiwa_link_6" reason="Adjacent" />
+    <disable_collisions link1="iiwa_link_5" link2="iiwa_link_7" reason="Never" />
+    <disable_collisions link1="iiwa_link_6" link2="iiwa_link_7" reason="Adjacent" />
 </robot>
