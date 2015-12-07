@@ -18,13 +18,13 @@
   <xacro:macro name="iiwa7" params="parent hardware_interface robot_name *origin">
     
     <!--joint between {parent} and link_0-->
-    <joint name="${parent}_joint" type="fixed">
+    <joint name="${parent}_${robot_name}_joint" type="fixed">
       <insert_block name="origin"/>
       <parent link="${parent}"/>
-      <child link="iiwa_link_0"/>
+      <child link="${robot_name}_link_0"/>
     </joint>
 
-    <link name="iiwa_link_0">
+    <link name="${robot_name}_link_0">
       <inertial>
         <origin xyz="-0.1 0 0.07" rpy="0 0 0"/>
         <mass value="5"/>
@@ -57,9 +57,9 @@
     </link>
 
     <!-- joint between link_0 and link_1 -->
-    <joint name="iiwa_joint_1" type="revolute">
-      <parent link="iiwa_link_0"/>
-      <child link="iiwa_link_1"/>
+    <joint name="${robot_name}_joint_1" type="revolute">
+      <parent link="${robot_name}_link_0"/>
+      <child link="${robot_name}_link_1"/>
       <origin xyz="0 0 0.15" rpy="0 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-170 * PI / 180}" upper="${170 * PI / 180}"
@@ -71,7 +71,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
     
-    <link name="iiwa_link_1">
+    <link name="${robot_name}_link_1">
       <inertial>
         <origin xyz="0 -0.03 0.12" rpy="0 0 0"/>
         <mass value="4"/>
@@ -93,9 +93,9 @@
       </collision>
     </link>
     
-    <joint name="iiwa_joint_2" type="revolute">
-      <parent link="iiwa_link_1"/>
-      <child link="iiwa_link_2"/>
+    <joint name="${robot_name}_joint_2" type="revolute">
+      <parent link="${robot_name}_link_1"/>
+      <child link="${robot_name}_link_2"/>
       <origin xyz="0 0 0.19" rpy="${PI / 2}   0 ${PI}"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
@@ -107,7 +107,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
     
-    <link name="iiwa_link_2">
+    <link name="${robot_name}_link_2">
       <inertial>
         <origin xyz="0.0003 0.059 0.042" rpy="0 0 0"/>
         <mass value="4"/>
@@ -130,9 +130,9 @@
       </collision>
     </link>
 
-    <joint name="iiwa_joint_3" type="revolute">
-      <parent link="iiwa_link_2"/>
-      <child link="iiwa_link_3"/>
+    <joint name="${robot_name}_joint_3" type="revolute">
+      <parent link="${robot_name}_link_2"/>
+      <child link="${robot_name}_link_3"/>
       <origin xyz="0 0.21 0" rpy="${PI / 2} 0 ${PI}"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-170 * PI / 180}" upper="${170 * PI / 180}"
@@ -144,7 +144,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
 
-    <link name="iiwa_link_3">
+    <link name="${robot_name}_link_3">
       <inertial>
         <origin xyz="0 0.03 0.13" rpy="0 0 0"/>
         <mass value="3"/>
@@ -169,9 +169,9 @@
       
     </link>
 
-    <joint name="iiwa_joint_4" type="revolute">
-      <parent link="iiwa_link_3"/>
-      <child link="iiwa_link_4"/>
+    <joint name="${robot_name}_joint_4" type="revolute">
+      <parent link="${robot_name}_link_3"/>
+      <child link="${robot_name}_link_4"/>
       <origin xyz="0 0 0.19" rpy="${PI / 2} 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
@@ -183,7 +183,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
 
-    <link name="iiwa_link_4">
+    <link name="${robot_name}_link_4">
       <inertial>
         <origin xyz="0 0.067 0.034" rpy="0 0 0"/>
         <mass value="2.7"/>
@@ -207,9 +207,9 @@
       </collision>
     </link>
 
-    <joint name="iiwa_joint_5" type="revolute">
-      <parent link="iiwa_link_4"/>
-      <child link="iiwa_link_5"/>-169
+    <joint name="${robot_name}_joint_5" type="revolute">
+      <parent link="${robot_name}_link_4"/>
+      <child link="${robot_name}_link_5"/>-169
       <origin xyz="0 0.21 0" rpy="${-PI / 2} ${PI} 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-175 * PI / 180}" upper="${175 * PI / 180}"
@@ -221,7 +221,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
 
-    <link name="iiwa_link_5">
+    <link name="${robot_name}_link_5">
       <inertial>
         <origin xyz="0.0001 0.021 0.076" rpy="0 0 0"/>
         <mass value="1.7"/>
@@ -245,9 +245,9 @@
       </collision>
     </link>
 
-    <joint name="iiwa_joint_6" type="revolute">
-      <parent link="iiwa_link_5"/>
-      <child link="iiwa_link_6"/>
+    <joint name="${robot_name}_joint_6" type="revolute">
+      <parent link="${robot_name}_link_5"/>
+      <child link="${robot_name}_link_6"/>
       <origin xyz="0 0.06070 0.19" rpy="${PI / 2} 0 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-120 * PI / 180}" upper="${120 * PI / 180}"
@@ -259,7 +259,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
 
-    <link name="iiwa_link_6">
+    <link name="${robot_name}_link_6">
       <inertial>
         <origin xyz="0 0.0006 0.0004" rpy="0 0 0"/>
         <mass value="1.8"/>
@@ -283,9 +283,9 @@
       </collision>
     </link>
 
-    <joint name="iiwa_joint_7" type="revolute">
-      <parent link="iiwa_link_6"/>
-      <child link="iiwa_link_7"/>
+    <joint name="${robot_name}_joint_7" type="revolute">
+      <parent link="${robot_name}_link_6"/>
+      <child link="${robot_name}_link_7"/>
       <origin xyz="0 0.081 0.06070" rpy="${- PI / 2} ${PI} 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-175 * PI / 180}" upper="${175 * PI / 180}"
@@ -297,7 +297,7 @@
       <dynamics damping="${joint_damping}"/>
     </joint>
 
-    <link name="iiwa_link_7">
+    <link name="${robot_name}_link_7">
       <inertial>
         <origin xyz="0 0 0.02" rpy="0 0 0"/>
         <mass value="0.3"/>
@@ -320,14 +320,14 @@
         <material name="Grey"/>
       </collision>
     </link>
-    <joint name="iiwa_joint_ee" type="fixed">
-      <parent link="iiwa_link_7"/>
-      <child link="iiwa_link_ee"/>
+    <joint name="${robot_name}_joint_ee" type="fixed">
+      <parent link="${robot_name}_link_7"/>
+      <child link="${robot_name}_link_ee"/>
       <origin xyz="0 0 0.045" rpy="${PI} ${PI} ${PI}"/>
       <axis xyz="0 0 1"/>
     </joint>
 
-    <link name="iiwa_link_ee">
+    <link name="${robot_name}_link_ee">
     </link>
     
     <!--Extensions -->
