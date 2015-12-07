@@ -3,17 +3,26 @@
 
   <!-- By default, we do not start a database (it can be large) -->
   <arg name="db" default="false" />
+  
+   <!-- hardware_interface to use : PositionJointInterface, EffortJointInterface, VelocityJointInterface. -->
+  <arg name="hardware_interface" default="PositionJointInterface"/>
+  <!-- name of the iiwa to use, useful in case of multiple robots. Every robot is gonna have its nodees/topics under a namespace with the same name. -->
+  <arg name="robot_name" default="iiwa"/>
+  <!-- Model of the iiwa to use : iiwa7, iiwa14 -->
+  <arg name="model" default="iiwa7"/>
 
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
-  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+  <!-- | Load the robot_description parameter before launching ROS-I nodes. | -->
   <include file="$(find iiwa_moveit)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+    <arg name="robot_name" value="$(arg robot_name)"/>
+    <arg name="model" value="$(arg model)"/>
   </include>
 
-  <!-- If needed, broadcast static tf for robot root -->
-  
+  <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
 
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
@@ -24,12 +33,13 @@
   <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
-  <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <!-- Load move_group -->
   <include file="$(find iiwa_moveit)/launch/move_group.launch">
-    <arg name="allow_trajectory_execution" value="true"/>  
+    <arg name="publish_monitored_planning_scene" value="true" />
     <arg name="fake_execution" value="true"/>
-    <arg name="info" value="true"/>
-    <arg name="debug" value="$(arg debug)"/>
+    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+    <arg name="robot_name" value="$(arg robot_name)"/>
+    <arg name="model" value="$(arg model)" />
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->

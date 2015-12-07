@@ -1,9 +1,11 @@
 <launch>
-
+  
   <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
+  <arg name="hardware_interface" default="PositionJointInterface"/>
+  
   <param name="moveit_controller_manager" value="moveit_fake_controller_manager/MoveItFakeControllerManager"/>
-
+  
   <!-- The rest of the params are specific to this plugin -->
   <rosparam file="$(find iiwa_moveit)/config/fake_controllers.yaml"/>
-
+  
 </launch>
