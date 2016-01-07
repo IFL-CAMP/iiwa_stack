@@ -38,12 +38,11 @@
   <!--Cuboid-->
   <!--Cylinder: length is along the y-axis! -->
   <!-- some constants -->
-  <!-- Flange lenghts    -->
   <!-- Fix to world just for testing -->
   <link name="world"/>
   <!--iiwa-->
   <!--joint between {parent} and link_0-->
-  <joint name="world_joint" type="fixed">
+  <joint name="world_iiwa_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 0 0.0"/>
     <parent link="world"/>
     <child link="iiwa_link_0"/>
@@ -268,7 +267,7 @@
     <origin rpy="-1.57079632679 3.14159265359 0" xyz="0 0.081 0"/>
     <axis xyz="0 0 1"/>
     <limit effort="300" lower="-3.05432619099" upper="3.05432619099" velocity="10"/>
-    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.05948851735" soft_upper_limit="2.05948851735"/>
+    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-3.01941960595" soft_upper_limit="3.01941960595"/>
     <dynamics damping="0.5"/>
   </joint>
   <link name="iiwa_link_7">
@@ -299,6 +298,13 @@
     <axis xyz="0 0 1"/>
   </joint>
   <link name="iiwa_link_ee">
+    </link>
+  <joint name="tool0_joint" type="fixed">
+    <parent link="iiwa_link_ee"/>
+    <child link="tool0"/>
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0"/>
+  </joint>
+  <link name="tool0">
     </link>
   <!--Extensions -->
   <!-- Load Gazebo lib and set the robot namespace -->

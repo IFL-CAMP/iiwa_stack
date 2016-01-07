@@ -338,6 +338,15 @@
 
     <link name="${robot_name}_link_ee">
     </link>
+    
+    <joint name="tool0_joint" type="fixed">
+      <parent link="${robot_name}_link_ee"/>
+      <child link="tool0"/>
+      <origin xyz="0 0 0" rpy="0 -${PI/2} 0"/>
+    </joint>
+
+    <link name="tool0">
+    </link>
 
     <!--Extensions -->
     <xacro:iiwa_gazebo robot_name="${robot_name}" />
