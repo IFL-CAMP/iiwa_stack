@@ -226,10 +226,8 @@ bool IIWA_HW::read(ros::Duration period)
 		if (init_loop) {
 			for (int j = 0; j < IIWA_JOINTS; j++) {
 				device_->joint_position_command[j] = joint_position_.position[j];
-				std::cout << device_->joint_position_command[j] << ", ";
 			}
 			init_loop = false;
-			std::cout << std::endl;
 		}
 		
 		return 1;
@@ -257,9 +255,7 @@ bool IIWA_HW::write(ros::Duration period)
 		if (interface_ == interface_type_.at(0)) {
 			
 			// Building the message
-			for (int j = 0; j < IIWA_JOINTS; j++) {
-				std::cout << device_->joint_position_command[j] << ", ";
-				
+			for (int j = 0; j < IIWA_JOINTS; j++) {				
 				command_joint_position_.position[j] = device_->joint_position_command[j];
 				command_joint_position_.header.stamp = ros::Time::now();
 			}
