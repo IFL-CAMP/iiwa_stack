@@ -96,6 +96,10 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -127,7 +131,7 @@ Visualization Manager:
         Start State Alpha: 1
         Start State Color: 0; 255; 0
       Planning Scene Topic: move_group/monitored_planning_scene
-      Robot Description: robot_description
+      Robot Description: iiwa/robot_description
       Scene Geometry:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
@@ -184,6 +188,10 @@ Visualization Manager:
             Show Trail: false
             Value: true
           iiwa_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          tool0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
