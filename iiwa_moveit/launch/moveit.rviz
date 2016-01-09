@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Status1
       Splitter Ratio: 0.74256
     Tree Height: 532
   - Class: rviz/Help
@@ -131,7 +132,7 @@ Visualization Manager:
         Start State Alpha: 1
         Start State Color: 0; 255; 0
       Planning Scene Topic: move_group/monitored_planning_scene
-      Robot Description: iiwa/robot_description
+      Robot Description: robot_description
       Scene Geometry:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
