@@ -53,8 +53,6 @@ IIWA_HW::IIWA_HW(ros::NodeHandle nh)
 	interface_type_.push_back("PositionJointInterface");
 	interface_type_.push_back("EffortJointInterface");
 	interface_type_.push_back("VelocityJointInterface");
-	
-	init_loop = true;
 }
 
 IIWA_HW::~IIWA_HW() {}
@@ -85,6 +83,11 @@ bool IIWA_HW::start() {
 	nh_.param("interface", interface_, std::string("PositionJointInterface"));
 	nh_.param("robot_name", robot_name_, std::string("iiwa"));
 	
+	/* TODO
+	 * nh_.param("move_group", movegroup_name_, "arm");
+	 * group(movegroup_name_);
+	 */
+	
 	// TODO: use transmission configuration to get names directly from the URDF model
 	if( ros::param::get("joints", device_->joint_names) )
 	{
@@ -106,7 +109,6 @@ bool IIWA_HW::start() {
 	if( !(urdf_model_.initParam(robot_description)))
 	{
 		ROS_ERROR("No URDF model in the robot_description parameter, this is required to define the joint limits.");
-		std::cout << robot_description << endl;
 		throw std::runtime_error("No URDF model available");
 	}
 	
@@ -133,18 +135,33 @@ bool IIWA_HW::start() {
 		}
 		
 		// joint state handle
-		hardware_interface::JointStateHandle state_handle(device_->joint_names[i],&(device_->joint_position[i]),&(device_->joint_velocity[i]),&(device_->joint_effort[i]));
+		hardware_interface::JointStateHandle state_handle(device_->joint_names[i],
+														  &(device_->joint_position[i]),
+														  &(device_->joint_velocity[i]),
+														  &(device_->joint_effort[i]));
+		
 		state_interface_.registerHandle(state_handle);
 		
 		// position command handle
-		hardware_interface::JointHandle position_joint_handle = hardware_interface::JointHandle(state_interface_.getHandle(device_->joint_names[i]),&device_->joint_position_command[i]);
+		hardware_interface::JointHandle position_joint_handle = hardware_interface::JointHandle(
+			state_interface_.getHandle(device_->joint_names[i]),
+																								&device_->joint_position_command[i]);
+		
 		position_interface_.registerHandle(position_joint_handle);
 		
 		// effort command handle
-		hardware_interface::JointHandle joint_handle = hardware_interface::JointHandle(state_interface_.getHandle(device_->joint_names[i]),&device_->joint_effort_command[i]);
+		hardware_interface::JointHandle joint_handle = hardware_interface::JointHandle(
+			state_interface_.getHandle(device_->joint_names[i]),
+																					   &device_->joint_effort_command[i]);
+		
 		effort_interface_.registerHandle(joint_handle);
 		
-		registerJointLimits(device_->joint_names[i],joint_handle,&urdf_model_,&device_->joint_lower_limits[i],&device_->joint_upper_limits[i],&device_->joint_effort_limits[i]);
+		registerJointLimits(device_->joint_names[i],
+							joint_handle,
+					  &urdf_model_,
+					  &device_->joint_lower_limits[i],
+					  &device_->joint_upper_limits[i],
+					  &device_->joint_effort_limits[i]);
 	}
 	
 	ROS_INFO("Register state and effort interfaces");
@@ -158,7 +175,11 @@ bool IIWA_HW::start() {
 	return true;
 }
 
-void IIWA_HW::registerJointLimits(const std::string& joint_name,const hardware_interface::JointHandle& joint_handle,const urdf::Model *const urdf_model,double *const lower_limit, double *const upper_limit,double *const effort_limit)
+void IIWA_HW::registerJointLimits(const std::string& joint_name,
+								  const hardware_interface::JointHandle& joint_handle,
+								  const urdf::Model *const urdf_model,
+								  double *const lower_limit, double *const upper_limit,
+								  double *const effort_limit)
 {
 	*lower_limit = -std::numeric_limits<double>::max();
 	*upper_limit = std::numeric_limits<double>::max();
@@ -214,22 +235,12 @@ bool IIWA_HW::read(ros::Duration period)
 		joint_position_ = iiwa_ros_conn_.getReceivedJointPosition();
 		joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
 		
-		for (int j = 0; j < IIWA_JOINTS; j++) {
-			
-			device_->joint_position_prev[j] = device_->joint_position[j];
-			device_->joint_position[j] = joint_position_.position[j];
-			device_->joint_effort[j] = joint_torque_.torque[j];
-			
-			
-			device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), device_->joint_velocity[j], 0.2);
-		}			
-		if (init_loop) {
-			for (int j = 0; j < IIWA_JOINTS; j++) {
-				device_->joint_position_command[j] = joint_position_.position[j];
-			}
-			init_loop = false;
-		}
+		device_->joint_position_prev = device_->joint_position;
+		device_->joint_position = joint_position_.position;
+		device_->joint_effort = joint_torque_.torque;
 		
+		for (int j = 0; j < IIWA_JOINTS; j++)
+			device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), device_->joint_velocity[j], 0.2);    
 		return 1;
 	}
 	else if (delta.toSec() >= 10) {
@@ -249,17 +260,15 @@ bool IIWA_HW::write(ros::Duration period)
 	ros::Duration delta = ros::Time::now() - timer_;
 	
 	//reading the force/torque values
-	if (iiwa_ros_conn_.getRobotIsConnected() && !init_loop)
+	if (iiwa_ros_conn_.getRobotIsConnected())
 	{
 		// Joint Position Control
 		if (interface_ == interface_type_.at(0)) {
 			
 			// Building the message
-			for (int j = 0; j < IIWA_JOINTS; j++) {				
-				command_joint_position_.position[j] = device_->joint_position_command[j];
-				command_joint_position_.header.stamp = ros::Time::now();
-			}
-			std::cout << std::endl;
+			command_joint_position_.position = device_->joint_position_command;
+			command_joint_position_.header.stamp = ros::Time::now();
+			
 			iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);
 		}
 		// Joint Impedance Control

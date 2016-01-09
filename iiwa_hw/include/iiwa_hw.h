@@ -86,7 +86,11 @@ public:
 	 * The limits are retrieved from the urdf_model.
 	 * Returns the joint's type, lower position limit, upper position limit, and effort limit.
 	 */
-	void registerJointLimits(const std::string& joint_name,const hardware_interface::JointHandle& joint_handle,const urdf::Model *const urdf_model,double *const lower_limit, double *const upper_limit,double *const effort_limit);
+	void registerJointLimits(const std::string& joint_name,
+							 const hardware_interface::JointHandle& joint_handle,
+						  const urdf::Model *const urdf_model,
+						  double *const lower_limit, double *const upper_limit,
+						  double *const effort_limit);
 	
 	/**
 	 * \brief Reads the current robot state via the IIWARos interfae and sends the values to the IIWA device struct.
@@ -200,7 +204,6 @@ private:
 	ros::Time timer_;
 	ros::Rate* loop_rate_;
 	double control_frequency_;
-	bool init_loop;
 	
 	
 	iiwaRos iiwa_ros_conn_;
