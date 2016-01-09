@@ -293,18 +293,18 @@
   </link>
   <joint name="iiwa_joint_ee" type="fixed">
     <parent link="iiwa_link_7"/>
-    <child link="iiwa_link_ee"/>
+    <child link="iiwa_link_ee_kuka"/>
     <origin rpy="3.14159265359 3.14159265359 3.14159265359" xyz="0 0 0.045"/>
     <axis xyz="0 0 1"/>
   </joint>
-  <link name="iiwa_link_ee">
+  <link name="iiwa_link_ee_kuka">
     </link>
   <joint name="tool0_joint" type="fixed">
-    <parent link="iiwa_link_ee"/>
-    <child link="tool0"/>
-    <origin rpy="0 -1.57079632679 0" xyz="0 0 0"/>
+    <parent link="iiwa_link_7"/>
+    <child link="iiwa_link_ee"/>
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0.045"/>
   </joint>
-  <link name="tool0">
+  <link name="iiwa_link_ee">
     </link>
   <!--Extensions -->
   <!-- Load Gazebo lib and set the robot namespace -->

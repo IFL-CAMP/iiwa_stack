@@ -331,21 +331,21 @@
     
     <joint name="${robot_name}_joint_ee" type="fixed">
       <parent link="${robot_name}_link_7"/>
-      <child link="${robot_name}_link_ee"/>
+      <child link="${robot_name}_link_ee_kuka"/>
       <origin xyz="0 0 0.045" rpy="${PI} ${PI} ${PI}"/>
       <axis xyz="0 0 1"/>
     </joint>
 
-    <link name="${robot_name}_link_ee">
+    <link name="${robot_name}_link_ee_kuka">
     </link>
     
     <joint name="tool0_joint" type="fixed">
-      <parent link="${robot_name}_link_ee"/>
-      <child link="tool0"/>
-      <origin xyz="0 0 0" rpy="0 -${PI/2} 0"/>
+      <parent link="${robot_name}_link_7"/>
+      <child link="${robot_name}_link_ee"/>
+      <origin xyz="0 0 0.045" rpy="0 -${PI/2} 0"/>
     </joint>
 
-    <link name="tool0">
+    <link name="${robot_name}_link_ee">
     </link>
 
     <!--Extensions -->
