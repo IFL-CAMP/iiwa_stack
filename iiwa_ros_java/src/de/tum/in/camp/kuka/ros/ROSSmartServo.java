@@ -129,9 +129,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 		
 		String toolFromConfig = configuration.getToolName();
-		if (toolFromConfig == null) 
-			getLogger().error("null parameter server!");
-		if (toolFromConfig != "") {
+		if (toolFromConfig != null && toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
 			tool.attachTo(robot.getFlange());

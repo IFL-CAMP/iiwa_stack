@@ -23,8 +23,11 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import org.ros.exception.ParameterNotFoundException;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
@@ -36,7 +39,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	private String iiwaName = "iiwa";
 	private ConnectedNode node;
 	private ParameterTree params;
-	private String toolName = "";
 	
 	private Semaphore initSemaphore = new Semaphore(0);
 	
@@ -94,9 +96,59 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 	
 	public String getToolName() {
+		return getStringParameter("toolName");
+	}
+	
+	public class ToolbarSpecification {
+		String name;
+		String button1id;
+		String button2id;
+	}
+	
+	// one of the dirtiest things I did in my life. but I can't see a better way
+	public List<ToolbarSpecification> getToolbarSpecifications() {
+		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
+		List<?> param = getListParameter("toolbarSpecifications");
+		
+		while ((param.get(0)) == "spec") {
+			ToolbarSpecification ts = new ToolbarSpecification();
+			ts.name = (String) param.get(1);
+			ts.button1id = (String) param.get(2);
+			ts.button2id = (String) param.get(3);
+			
+			param.remove(0);
+			param.remove(1);
+			param.remove(2);
+			param.remove(3);
+		}
+		
+		return ret;
+	}
+	
+	public String getStringParameter(String argname) {
 		params = getParameterTree();
-		toolName = params.getString(iiwaName + "/toolName", "");
-		return toolName;
+		String ret = null;
+		try {
+			ret = params.getString(iiwaName + "/" + argname, "");			
+		} catch (ParameterNotFoundException e) {
+			// TODO
+		}
+		
+		return ret;
+	}
+	
+	public List<?> getListParameter(String argname) {
+		List<?> args = new ArrayList<String>();
+		params = getParameterTree();
+		try {
+			args = params.getList(iiwaName + "/" + argname);
+			if (args == null || args.size() == 0) {
+				return null;
+			}
+		} catch (ParameterNotFoundException e) {
+			return null;
+		}
+		return args;
 	}
 
 }

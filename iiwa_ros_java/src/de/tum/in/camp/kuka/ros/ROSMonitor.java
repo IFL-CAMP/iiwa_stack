@@ -25,6 +25,7 @@ package de.tum.in.camp.kuka.ros;
 
 //ROS imports
 import java.net.URI;
+import java.util.List;
 
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
@@ -41,6 +42,8 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
+
+import de.tum.in.camp.kuka.ros.iiwaConfiguration.ToolbarSpecification;
 
 /*
  * This example shows how to monitor the state of the robot, publishing it into ROS nodes.
@@ -164,9 +167,20 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			return;
 		}
 		
+		// toolbars to create
+		List<ToolbarSpecification> toolbarNames = configuration.getToolbarSpecifications();
+		if (toolbarNames == null) {
+			getLogger().error("got a null as toolbarNames!");
+		} else {
+			getLogger().info("here are the toolbarNames: ");
+			for (int i = 0; i < toolbarNames.size(); i++)
+				getLogger().info(toolbarNames.get(i).name);
+		}
+		
+		// Tool to attach
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig == null) 
-			getLogger().error("null parameter server!");
+			getLogger().error("got null parameter for tool!");
 		if (toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
