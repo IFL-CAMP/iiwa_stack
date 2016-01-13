@@ -24,6 +24,8 @@
 package de.tum.in.camp.kuka.ros;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -40,6 +42,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	private ConnectedNode node;
 	private ParameterTree params;
 	
+	// used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
 	
 	public iiwaConfiguration(String robotName) {
@@ -100,26 +103,39 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 	
 	public class ToolbarSpecification {
-		String name;
-		String button1id;
-		String button2id;
+		public String name;
+		public String[] buttonIDs;
 	}
+	
+//	public void setupToolbars() {
+//		
+//	}
 	
 	// one of the dirtiest things I did in my life. but I can't see a better way
 	public List<ToolbarSpecification> getToolbarSpecifications() {
 		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
-		List<?> param = getListParameter("toolbarSpecifications");
+		List<?> rawParam = getListParameter("toolbarSpecifications");
 		
-		while ((param.get(0)) == "spec") {
+		if (rawParam == null)
+			return null;
+		
+		@SuppressWarnings("unchecked")
+		List<String> stringParam = new LinkedList<String>((Collection<? extends String>) rawParam);
+		
+		while (stringParam.size() > 0 && (stringParam.get(0)).equals("spec")) {
 			ToolbarSpecification ts = new ToolbarSpecification();
-			ts.name = (String) param.get(1);
-			ts.button1id = (String) param.get(2);
-			ts.button2id = (String) param.get(3);
-			
-			param.remove(0);
-			param.remove(1);
-			param.remove(2);
-			param.remove(3);
+			stringParam.remove(0);
+			ts.name = (String) stringParam.get(0);
+			stringParam.remove(0);
+			List<String> buttons = new LinkedList<String>();
+			while (stringParam.size() > 0 && !(stringParam.get(0)).equals("spec")) {
+				buttons.add(stringParam.get(0));
+				stringParam.remove(0);
+			}
+			if (buttons.size() == 0) // toolbar name but no buttons; TODO: log
+				continue;
+			ts.buttonIDs = buttons.toArray(new String[buttons.size()]);
+			ret.add(ts);
 		}
 		
 		return ret;
@@ -138,11 +154,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 	
 	public List<?> getListParameter(String argname) {
-		List<?> args = new ArrayList<String>();
+		List<?> args = new LinkedList<String>();  // supports remove
 		params = getParameterTree();
 		try {
 			args = params.getList(iiwaName + "/" + argname);
-			if (args == null || args.size() == 0) {
+			if (args == null) {
 				return null;
 			}
 		} catch (ParameterNotFoundException e) {

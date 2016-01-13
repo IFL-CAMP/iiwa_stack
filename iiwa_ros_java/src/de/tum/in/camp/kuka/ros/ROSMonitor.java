@@ -25,6 +25,7 @@ package de.tum.in.camp.kuka.ros;
 
 //ROS imports
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ros.node.DefaultNodeMainExecutor;
@@ -55,9 +56,13 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private LBR robot;
 	private Tool tool;
 	
-	private IUserKeyBar keybar;
-	private IUserKey generalKey;
-	private IUserKeyListener generalKeyList;
+	// configurable toolbars
+	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
+	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
+	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
+	
+	// gravity compensation stuff
+	private IUserKeyBar gravcompKeybar;
 	private IUserKey gravCompKey;
 	private IUserKeyListener gravCompKeyList;
 	private boolean gravCompEnabled = false;
@@ -86,21 +91,13 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		
-		keybar = getApplicationUI().createUserKeyBar("Gravcomp");
-		generalKeyList = new IUserKeyListener() {
-			@Override
-			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
-				if (event == UserKeyEvent.FirstKeyDown) {
-					publisher.publishButton1Pressed();
-				} else if (event == UserKeyEvent.FirstKeyUp) {
-					publisher.publishButton1Released();
-				} else if (event == UserKeyEvent.SecondKeyDown) {
-					publisher.publishButton2Pressed();
-				} else if (event == UserKeyEvent.SecondKeyUp) {
-					publisher.publishButton2Released();
-				}
-			}
-		};
+		// standard stuff
+		helper = new iiwaMessageGenerator();
+		publisher = new iiwaPublisher(robot,"iiwa");
+		configuration = new iiwaConfiguration("iiwa");
+		
+		// gravity compensation - only in ROSMonitor for safety
+		gravcompKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
 		gravCompKeyList = new IUserKeyListener() {
 			@Override
 			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
@@ -113,17 +110,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				}
 			}
 		};
-		generalKey = keybar.addDoubleUserKey(2, generalKeyList, false);
-		// TODO: make keys general, take text from configuration
-		generalKey.setText(UserKeyAlignment.TopMiddle, "1");
-		generalKey.setText(UserKeyAlignment.BottomMiddle, "2");
-		gravCompKey = keybar.addDoubleUserKey(0, gravCompKeyList, true);
+		gravCompKey = gravcompKeybar.addDoubleUserKey(0, gravCompKeyList, true);
 		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
 		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
-		keybar.publish();
-		helper = new iiwaMessageGenerator();
-		publisher = new iiwaPublisher(robot,"iiwa");
-		configuration = new iiwaConfiguration("iiwa");
+		gravcompKeybar.publish();
 
 		try {
 			// Set the configuration parameters of the ROS node to create.
@@ -167,20 +157,69 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			return;
 		}
 		
-		// toolbars to create
-		List<ToolbarSpecification> toolbarNames = configuration.getToolbarSpecifications();
-		if (toolbarNames == null) {
-			getLogger().error("got a null as toolbarNames!");
-		} else {
-			getLogger().info("here are the toolbarNames: ");
-			for (int i = 0; i < toolbarNames.size(); i++)
-				getLogger().info(toolbarNames.get(i).name);
+		// configurable toolbars to publish events on topics - TODO: move to iiwaConfiguration.setupToolbars()
+		List<ToolbarSpecification> ts = configuration.getToolbarSpecifications();
+		if (ts != null) {
+			for (final ToolbarSpecification t: ts) {
+				IUserKeyBar generalKeyBar = getApplicationUI().createUserKeyBar(t.name);
+				
+				for (int i = 0; i < t.buttonIDs.length; i++) {
+					final String buttonID = t.buttonIDs[i];
+					IUserKey generalKey;
+					if (buttonID.contains(",")) {
+						// double button
+						final String[] singleButtonIDs = buttonID.split(",");
+						
+						IUserKeyListener generalKeyList = new IUserKeyListener() {
+							@Override
+							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+								if (event == UserKeyEvent.FirstKeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[0]);
+								} else if (event == UserKeyEvent.FirstKeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[0]);
+								} else if (event == UserKeyEvent.SecondKeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[1]);
+								} else if (event == UserKeyEvent.SecondKeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[1]);
+								}
+							}
+						};
+						generalKeyLists.add(generalKeyList);
+						
+						generalKey = generalKeyBar.addDoubleUserKey(i, generalKeyList, false);
+						generalKey.setText(UserKeyAlignment.TopMiddle, singleButtonIDs[0]);
+						generalKey.setText(UserKeyAlignment.BottomMiddle, singleButtonIDs[1]);
+						generalKeys.add(generalKey);
+					} else {
+						// single button
+						IUserKeyListener generalKeyList = new IUserKeyListener() {
+							@Override
+							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+								if (event == UserKeyEvent.KeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+buttonID);
+								} else if (event == UserKeyEvent.KeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+buttonID);
+								} 
+							}
+						};
+						generalKeyLists.add(generalKeyList);
+						
+						generalKey = generalKeyBar.addUserKey(i, generalKeyList, false);
+						generalKey.setText(UserKeyAlignment.TopMiddle, buttonID);
+						generalKeys.add(generalKey);
+					}
+				}
+				
+				generalKeyBars.add(generalKeyBar);
+			}	
+			for (IUserKeyBar kb  : generalKeyBars)
+				kb.publish();
 		}
 		
 		// Tool to attach
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig == null) 
-			getLogger().error("got null parameter for tool!");
+			getLogger().error("no Sunrise tool name specified!");
 		if (toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);

@@ -29,8 +29,6 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 
-import std_msgs.Bool;
-
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 
@@ -52,9 +50,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
 	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
-	// UserKey Event Publishers
-	private Publisher<std_msgs.Bool> iiwaButton1Pressed; // TODO: make beautiful
-	private Publisher<std_msgs.Bool> iiwaButton2Pressed; 
+	// UserKey Event Publisher
+	private Publisher<std_msgs.String> iiwaButtonPublisher; // TODO: iiwa_msgs.ButtonEvent
 	
 	// Local iiwa_msgs to publish 
 	// Cartesian Messages
@@ -238,8 +235,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
 		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 		
-		iiwaButton1Pressed = connectedNode.newPublisher(iiwaName + "/state/button1Pressed", std_msgs.Bool._TYPE);
-		iiwaButton2Pressed = connectedNode.newPublisher(iiwaName + "/state/button2Pressed", std_msgs.Bool._TYPE);
+		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 	}
 
 	/**
@@ -270,27 +266,15 @@ public class iiwaPublisher extends AbstractNodeMain {
 		}
 	}
 	
-	public void publishButton1Pressed() {
-		final Bool msg = iiwaButton1Pressed.newMessage();
-		msg.setData(true);
-		iiwaButton1Pressed.publish(msg);
+	public void publishButtonPressed(String name) {
+		final std_msgs.String msg = iiwaButtonPublisher.newMessage();
+		msg.setData(name + "_pressed");
+		iiwaButtonPublisher.publish(msg);
 	}
 	
-	public void publishButton1Released() {
-		final Bool msg = iiwaButton1Pressed.newMessage();
-		msg.setData(false);
-		iiwaButton1Pressed.publish(msg);
-	}
-	
-	public void publishButton2Pressed() {
-		final Bool msg = iiwaButton2Pressed.newMessage();
-		msg.setData(true);
-		iiwaButton2Pressed.publish(msg);
-	}
-	
-	public void publishButton2Released() {
-		final Bool msg = iiwaButton2Pressed.newMessage();
-		msg.setData(false);
-		iiwaButton2Pressed.publish(msg);
+	public void publishButtonReleased(String name) {
+		final std_msgs.String msg = iiwaButtonPublisher.newMessage();
+		msg.setData(name + "_released");
+		iiwaButtonPublisher.publish(msg);
 	}
 }
