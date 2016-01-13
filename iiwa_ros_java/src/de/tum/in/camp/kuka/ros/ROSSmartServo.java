@@ -27,6 +27,8 @@ import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 // KUKA imports
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
@@ -35,6 +37,9 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 
 /*
  * This example shows how to monitor and change the state of the robot.
@@ -51,6 +56,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private Tool tool;
+	
+	
+	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
@@ -73,6 +81,11 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private iiwa_msgs.JointPosition commandPosition;
 
 	private boolean debug = false;
+	
+	// configurable toolbars
+	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
+	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
+	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
 
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
@@ -127,6 +140,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			e1.printStackTrace();
 			return;
 		}
+		
+		// configurable toolbars to publish events on topics - TODO: move to iiwaConfiguration.setupToolbars()
+		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 		
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig != null && toolFromConfig != "") {

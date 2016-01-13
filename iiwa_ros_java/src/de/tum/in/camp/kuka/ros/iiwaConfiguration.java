@@ -35,6 +35,13 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.parameter.ParameterTree;
 
+import com.kuka.roboticsAPI.uiModel.IApplicationUI;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
+
 public class iiwaConfiguration extends AbstractNodeMain {
 	
 	// Name to use to build the name of the ROS topics
@@ -107,10 +114,70 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		public String[] buttonIDs;
 	}
 	
-//	public void setupToolbars() {
-//		
-//	}
-	
+	public void setupToolbars(IApplicationUI appUI, 
+			final iiwaPublisher publisher, 
+			List<IUserKey> generalKeys, 
+			List<IUserKeyListener> generalKeyLists, 
+			List<IUserKeyBar> generalKeyBars) {
+		List<ToolbarSpecification> ts = getToolbarSpecifications();
+		if (ts != null) {
+			for (final ToolbarSpecification t: ts) {
+				IUserKeyBar generalKeyBar = appUI.createUserKeyBar(t.name);
+				
+				for (int i = 0; i < t.buttonIDs.length; i++) {
+					final String buttonID = t.buttonIDs[i];
+					IUserKey generalKey;
+					if (buttonID.contains(",")) {
+						// double button
+						final String[] singleButtonIDs = buttonID.split(",");
+						
+						IUserKeyListener generalKeyList = new IUserKeyListener() {
+							@Override
+							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+								if (event == UserKeyEvent.FirstKeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[0]);
+								} else if (event == UserKeyEvent.FirstKeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[0]);
+								} else if (event == UserKeyEvent.SecondKeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[1]);
+								} else if (event == UserKeyEvent.SecondKeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[1]);
+								}
+							}
+						};
+						generalKeyLists.add(generalKeyList);
+						
+						generalKey = generalKeyBar.addDoubleUserKey(i, generalKeyList, false);
+						generalKey.setText(UserKeyAlignment.TopMiddle, singleButtonIDs[0]);
+						generalKey.setText(UserKeyAlignment.BottomMiddle, singleButtonIDs[1]);
+						generalKeys.add(generalKey);
+					} else {
+						// single button
+						IUserKeyListener generalKeyList = new IUserKeyListener() {
+							@Override
+							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+								if (event == UserKeyEvent.KeyDown) {
+									publisher.publishButtonPressed(t.name+"_"+buttonID);
+								} else if (event == UserKeyEvent.KeyUp) {
+									publisher.publishButtonReleased(t.name+"_"+buttonID);
+								} 
+							}
+						};
+						generalKeyLists.add(generalKeyList);
+						
+						generalKey = generalKeyBar.addUserKey(i, generalKeyList, false);
+						generalKey.setText(UserKeyAlignment.TopMiddle, buttonID);
+						generalKeys.add(generalKey);
+					}
+				}
+				
+				generalKeyBars.add(generalKeyBar);
+			}	
+			for (IUserKeyBar kb  : generalKeyBars)
+				kb.publish();
+		}
+	}
+
 	// one of the dirtiest things I did in my life. but I can't see a better way
 	public List<ToolbarSpecification> getToolbarSpecifications() {
 		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();

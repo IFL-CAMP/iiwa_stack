@@ -56,18 +56,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private LBR robot;
 	private Tool tool;
 	
-	// configurable toolbars
-	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
-	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
-	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
-	
-	// gravity compensation stuff
-	private IUserKeyBar gravcompKeybar;
-	private IUserKey gravCompKey;
-	private IUserKeyListener gravCompKeyList;
-	private boolean gravCompEnabled = false;
-	private boolean gravCompSwitched = false;
-	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaConfiguration configuration; //< Configuration via parameters and services.
@@ -87,7 +75,19 @@ public class ROSMonitor extends RoboticsAPIApplication {
 
 	private boolean debug = false;
 	private ISmartServoRuntime runtime;
-
+	
+	// configurable toolbars
+	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
+	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
+	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
+	
+	// gravity compensation stuff
+	private IUserKeyBar gravcompKeybar;
+	private IUserKey gravCompKey;
+	private IUserKeyListener gravCompKeyList;
+	private boolean gravCompEnabled = false;
+	private boolean gravCompSwitched = false;
+	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		
@@ -157,64 +157,8 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			return;
 		}
 		
-		// configurable toolbars to publish events on topics - TODO: move to iiwaConfiguration.setupToolbars()
-		List<ToolbarSpecification> ts = configuration.getToolbarSpecifications();
-		if (ts != null) {
-			for (final ToolbarSpecification t: ts) {
-				IUserKeyBar generalKeyBar = getApplicationUI().createUserKeyBar(t.name);
-				
-				for (int i = 0; i < t.buttonIDs.length; i++) {
-					final String buttonID = t.buttonIDs[i];
-					IUserKey generalKey;
-					if (buttonID.contains(",")) {
-						// double button
-						final String[] singleButtonIDs = buttonID.split(",");
-						
-						IUserKeyListener generalKeyList = new IUserKeyListener() {
-							@Override
-							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
-								if (event == UserKeyEvent.FirstKeyDown) {
-									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[0]);
-								} else if (event == UserKeyEvent.FirstKeyUp) {
-									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[0]);
-								} else if (event == UserKeyEvent.SecondKeyDown) {
-									publisher.publishButtonPressed(t.name+"_"+singleButtonIDs[1]);
-								} else if (event == UserKeyEvent.SecondKeyUp) {
-									publisher.publishButtonReleased(t.name+"_"+singleButtonIDs[1]);
-								}
-							}
-						};
-						generalKeyLists.add(generalKeyList);
-						
-						generalKey = generalKeyBar.addDoubleUserKey(i, generalKeyList, false);
-						generalKey.setText(UserKeyAlignment.TopMiddle, singleButtonIDs[0]);
-						generalKey.setText(UserKeyAlignment.BottomMiddle, singleButtonIDs[1]);
-						generalKeys.add(generalKey);
-					} else {
-						// single button
-						IUserKeyListener generalKeyList = new IUserKeyListener() {
-							@Override
-							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
-								if (event == UserKeyEvent.KeyDown) {
-									publisher.publishButtonPressed(t.name+"_"+buttonID);
-								} else if (event == UserKeyEvent.KeyUp) {
-									publisher.publishButtonReleased(t.name+"_"+buttonID);
-								} 
-							}
-						};
-						generalKeyLists.add(generalKeyList);
-						
-						generalKey = generalKeyBar.addUserKey(i, generalKeyList, false);
-						generalKey.setText(UserKeyAlignment.TopMiddle, buttonID);
-						generalKeys.add(generalKey);
-					}
-				}
-				
-				generalKeyBars.add(generalKeyBar);
-			}	
-			for (IUserKeyBar kb  : generalKeyBars)
-				kb.publish();
-		}
+		// configurable toolbars to publish events on topics
+		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 		
 		// Tool to attach
 		String toolFromConfig = configuration.getToolName();
