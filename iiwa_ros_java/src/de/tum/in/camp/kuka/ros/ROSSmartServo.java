@@ -56,8 +56,10 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private Tool tool;
+	private SmartServo motion;
+	private ISmartServoRuntime runtime;
 	
-	
+	private boolean debug = false;
 	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
@@ -80,13 +82,11 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private iiwa_msgs.JointPosition currentPosition;
 	private iiwa_msgs.JointPosition commandPosition;
 
-	private boolean debug = false;
-	
 	// configurable toolbars
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
-
+	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		helper = new iiwaMessageGenerator();
@@ -128,8 +128,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 	public void run() {
 
-		// SmartServo motion to move the robot.
-		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
+		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
 		
@@ -140,7 +139,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			return;
 		}
 		
-		// configurable toolbars to publish events on topics - TODO: move to iiwaConfiguration.setupToolbars()
+		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 		
 		String toolFromConfig = configuration.getToolName();
@@ -153,7 +152,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 
 		robot.moveAsync(motion);
-		ISmartServoRuntime runtime = motion.getRuntime();
+		runtime = motion.getRuntime();
 
 		// The run loop
 		getLogger().info("Starting the ROS Command loop...");

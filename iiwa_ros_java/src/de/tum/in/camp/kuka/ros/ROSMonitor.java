@@ -44,8 +44,6 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
-import de.tum.in.camp.kuka.ros.iiwaConfiguration.ToolbarSpecification;
-
 /*
  * This example shows how to monitor the state of the robot, publishing it into ROS nodes.
  * Only the Joint Position of the robot is published in this example,
@@ -55,6 +53,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private Tool tool;
+	private SmartServo motion;
+	private ISmartServoRuntime runtime;
+	
+	private boolean debug = false;
 	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
@@ -73,9 +75,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	// Message to publish.
 	private iiwa_msgs.JointPosition currentPosition;
 
-	private boolean debug = false;
-	private ISmartServoRuntime runtime;
-	
 	// configurable toolbars
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
@@ -145,10 +144,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 
 	public void run() {
 		
-		// SmartServo motion for gravity compensation.
-		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
+		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
+		motion.setTimeoutAfterGoalReach(300);
 		
 		try {
 			configuration.waitForInitialization();
