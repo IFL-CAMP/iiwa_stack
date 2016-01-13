@@ -132,7 +132,6 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
-		robot.moveAsync(motion);
 		
 		try {
 			configuration.waitForInitialization();
@@ -153,6 +152,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			getLogger().info("no tool attached");
 		}
 
+		robot.moveAsync(motion);
 		ISmartServoRuntime runtime = motion.getRuntime();
 
 		// The run loop
