@@ -121,96 +121,114 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
 	
-	public IMotionControlMode configureSmartServo(SmartServoParameters params) {
+	public IMotionControlMode configureSmartServo(iiwa_msgs.SmartServoMode params) {
 		IMotionControlMode cm;
 		
-		switch (params.mode) {
-			case CARTESIAN_IMPEDANCE: {
+		switch (params.getMode()) {
+			case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
 				CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
 				
-				switch (params.cartesian_stiffness.length) {
+				switch (params.getCartesianStiffness().length) {
 				case 1: {
-					ccm.parametrize(CartDOF.ALL).setStiffness(params.cartesian_stiffness[0]);
+					ccm.parametrize(CartDOF.ALL).setStiffness(params.getCartesianStiffness()[0]);
 					break;
 				}
 				case 2: {
-					ccm.parametrize(CartDOF.TRANSL).setStiffness(params.cartesian_stiffness[0]);
-					ccm.parametrize(CartDOF.ROT).setStiffness(params.cartesian_stiffness[1]);
+					ccm.parametrize(CartDOF.TRANSL).setStiffness(params.getCartesianStiffness()[0]);
+					ccm.parametrize(CartDOF.ROT).setStiffness(params.getCartesianStiffness()[1]);
 					break;
 				}
 				case 6: {
-					ccm.parametrize(CartDOF.X).setStiffness(params.cartesian_stiffness[0]);
-					ccm.parametrize(CartDOF.Y).setStiffness(params.cartesian_stiffness[1]);
-					ccm.parametrize(CartDOF.Z).setStiffness(params.cartesian_stiffness[2]);
-					ccm.parametrize(CartDOF.A).setStiffness(params.cartesian_stiffness[3]);
-					ccm.parametrize(CartDOF.B).setStiffness(params.cartesian_stiffness[4]);
-					ccm.parametrize(CartDOF.C).setStiffness(params.cartesian_stiffness[5]);
+					float[] stiffness = params.getCartesianStiffness();
+					ccm.parametrize(CartDOF.X).setStiffness(stiffness[0]);
+					ccm.parametrize(CartDOF.Y).setStiffness(stiffness[1]);
+					ccm.parametrize(CartDOF.Z).setStiffness(stiffness[2]);
+					ccm.parametrize(CartDOF.A).setStiffness(stiffness[3]);
+					ccm.parametrize(CartDOF.B).setStiffness(stiffness[4]);
+					ccm.parametrize(CartDOF.C).setStiffness(stiffness[5]);
 					break;
 				}
 				default: {
-					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.cartesian_damping.length+" of cartesian stiffness array");
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getCartesianStiffness().length+" of cartesian stiffness array");
 				}
 				}
 				
-				switch (params.cartesian_damping.length) {
+				switch (params.getCartesianDamping().length) {
 				case 1: {
-					ccm.parametrize(CartDOF.ALL).setDamping(params.cartesian_stiffness[0]);
+					ccm.parametrize(CartDOF.ALL).setDamping(params.getCartesianDamping()[0]);
 					break;
 				}
 				case 2: {
-					ccm.parametrize(CartDOF.TRANSL).setDamping(params.cartesian_stiffness[0]);
-					ccm.parametrize(CartDOF.ROT).setDamping(params.cartesian_stiffness[1]);
+					ccm.parametrize(CartDOF.TRANSL).setDamping(params.getCartesianDamping()[0]);
+					ccm.parametrize(CartDOF.ROT).setDamping(params.getCartesianDamping()[1]);
 					break;
 				}
 				case 6: {
-					ccm.parametrize(CartDOF.X).setDamping(params.cartesian_stiffness[0]);
-					ccm.parametrize(CartDOF.Y).setDamping(params.cartesian_stiffness[1]);
-					ccm.parametrize(CartDOF.Z).setDamping(params.cartesian_stiffness[2]);
-					ccm.parametrize(CartDOF.A).setDamping(params.cartesian_stiffness[3]);
-					ccm.parametrize(CartDOF.B).setDamping(params.cartesian_stiffness[4]);
-					ccm.parametrize(CartDOF.C).setDamping(params.cartesian_stiffness[5]);
+					float[] damping = params.getCartesianDamping();
+					ccm.parametrize(CartDOF.X).setDamping(damping[0]);
+					ccm.parametrize(CartDOF.Y).setDamping(damping[1]);
+					ccm.parametrize(CartDOF.Z).setDamping(damping[2]);
+					ccm.parametrize(CartDOF.A).setDamping(damping[3]);
+					ccm.parametrize(CartDOF.B).setDamping(damping[4]);
+					ccm.parametrize(CartDOF.C).setDamping(damping[5]);
 					break;
 				}
 				default: {
-					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.cartesian_damping.length+" of cartesian damping array");
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getCartesianDamping().length+" of cartesian damping array");
 				}
 				}
 				
-				ccm.setNullSpaceStiffness(params.nullspace_stiffness);
-				ccm.setNullSpaceDamping(params.nullspace_damping);
+				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
+				ccm.setNullSpaceDamping(params.getNullspaceDamping());
 				
 				cm = ccm;
 				break;
 			}
 			
-			case JOINT_IMPEDANCE: {
+			case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
 				JointImpedanceControlMode jcm = new JointImpedanceControlMode();
 				
-				switch (params.joint_stiffness.length) {
+				switch (params.getJointStiffness().length) {
 				case 1: {
-					jcm.setStiffnessForAllJoints(params.joint_stiffness[0]);
+					jcm.setStiffnessForAllJoints(params.getJointStiffness()[0]);
 					break;
 				}
 				case 7: {
-					jcm.setStiffness(params.joint_stiffness);
+					float[] stiffness = params.getJointStiffness();
+					// yay, java!
+					double[] doubleStiffness = new double[stiffness.length];
+					for (int i = 0 ; i < stiffness.length; i++)
+					{
+						doubleStiffness[i] = (double) stiffness[i];
+					}
+					
+					jcm.setStiffness(doubleStiffness);
 					break;
 				}
 				default: {
-					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.cartesian_damping.length+" of joint stiffness array");
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getJointStiffness().length+" of joint stiffness array");
 				}
 				}
 				
-				switch (params.joint_damping.length) {
+				switch (params.getJointDamping().length) {
 				case 1: {
-					jcm.setDampingForAllJoints(params.joint_damping[0]);
+					jcm.setDampingForAllJoints(params.getJointDamping()[0]);
 					break;
 				}
 				case 7: {
-					jcm.setDamping(params.joint_damping);
+					float[] damping = params.getJointDamping();
+					// yay, java!
+					double[] doubleDamping = new double[damping.length];
+					for (int i = 0 ; i < damping.length; i++)
+					{
+						doubleDamping[i] = (double) damping[i];
+					}
+					
+					jcm.setDamping(doubleDamping);
 					break;
 				}
 				default: {
-					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.cartesian_damping.length+" of joint stiffness array");
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getJointDamping().length+" of joint stiffness array");
 				}
 				}
 				
