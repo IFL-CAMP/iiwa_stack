@@ -25,6 +25,8 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS import
+import geometry_msgs.PoseStamped;
+
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
@@ -34,7 +36,10 @@ import org.ros.time.WallTimeProvider;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
+import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
+import com.kuka.roboticsAPI.geometricModel.math.MatrixRotation;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
+import com.kuka.roboticsAPI.geometricModel.math.Vector;
 
 /**
  * This class helps the building of iiwa_msgs ROS messages,
@@ -359,5 +364,57 @@ public class iiwaMessageGenerator {
 		jv.setVelocity(velocity);
 		jv.setHeader(header);
 		return jv;
+	}
+	
+	// TODO: remove if not used or find a better place if more utility functions are needed
+	public final static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
+	    double sqw = w*w;
+	    double sqx = x*x;
+	    double sqy = y*y;
+	    double sqz = z*z;
+	    
+	    MatrixBuilder mb = new MatrixBuilder();
+
+	    // invs (inverse square length) is only required if quaternion is not already normalised
+	    double invs = 1 / (sqx + sqy + sqz + sqw);
+	    mb.setElement00(( sqx - sqy - sqz + sqw)*invs) ; // since sqw + sqx + sqy + sqz =1/invs*invs
+	    mb.setElement11((-sqx + sqy - sqz + sqw)*invs);
+	    mb.setElement22((-sqx - sqy + sqz + sqw)*invs);
+	    
+	    double tmp1 = x*y;
+	    double tmp2 = z*w;
+	    mb.setElement10(2.0 * (tmp1 + tmp2)*invs);
+	    mb.setElement01(2.0 * (tmp1 - tmp2)*invs);
+	    
+	    tmp1 = x*z;
+	    tmp2 = y*w;
+	    mb.setElement20(2.0 * (tmp1 - tmp2)*invs);
+	    mb.setElement02(2.0 * (tmp1 + tmp2)*invs);
+
+	    tmp1 = y*z;
+	    tmp2 = x*w;
+	    mb.setElement21(2.0 * (tmp1 + tmp2)*invs);
+	    mb.setElement12(2.0 * (tmp1 - tmp2)*invs);
+	    
+	    return MatrixRotation.of(mb.toMatrix());
+	}
+	
+	public Transformation getKukaCartesianGoal(PoseStamped commandCartesianPosition) {
+		if (commandCartesianPosition == null)
+			return null;
+		
+		float tx = (float) commandCartesianPosition.getPose().getPosition().getX();
+		float ty = (float) commandCartesianPosition.getPose().getPosition().getY();
+		float tz = (float) commandCartesianPosition.getPose().getPosition().getZ();
+						
+		float x = (float) commandCartesianPosition.getPose().getOrientation().getX();
+		float y = (float) commandCartesianPosition.getPose().getOrientation().getY();
+		float z = (float) commandCartesianPosition.getPose().getOrientation().getZ();
+		float w = (float) commandCartesianPosition.getPose().getOrientation().getW();
+		
+		MatrixRotation rot = iiwaMessageGenerator.quatToMatrix(x, y, z, w);
+		Vector transl = Vector.of(tx, ty, tz);
+		
+        return Transformation.of(transl, rot);
 	}
 }
