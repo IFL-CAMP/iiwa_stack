@@ -60,7 +60,7 @@ int main( int argc, char** argv ) {
     
     // The IIWA - ROS interface.
     iiwaRos iiwa_ros;
-    iiwa_ros.init(false, "my_iiwa");
+    iiwa_ros.init(false);
     
     // Rate at which you want to send and receive messages.
     ros::Rate* loop_rate_ = new ros::Rate(1000);

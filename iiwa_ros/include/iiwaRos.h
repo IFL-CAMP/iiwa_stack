@@ -59,7 +59,7 @@ public:
   /** 
    * Init
    */
-  void init(bool initRos = false, std::string iiwaName = "iiwa");
+  void init(bool initRos = false);
   
   /**
    * Getters

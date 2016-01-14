@@ -72,7 +72,6 @@ bool IIWA_HW::start() {
     // TODO : make use of this
     // get inteface param or give default values
     nh_.param("interface", interface_, std::string("PositionJointInterface"));
-    nh_.param("robot_name", robot_name_, std::string("iiwa"));
     
     /* TODO
      * nh_.param("move_group", movegroup_name_, "arm");
@@ -90,7 +89,7 @@ bool IIWA_HW::start() {
     }
     
     std::stringstream ss;
-    ss << "/" << robot_name_ << "/robot_description";
+    ss << nh_.getNamespace() << "/robot_description";
     std::string robot_description = ss.str();
     
     if (!(urdf_model_.initParam(robot_description))) {
@@ -98,7 +97,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No URDF model available");
     }
     
-    iiwa_ros_conn_.init(false, robot_name_);
+    iiwa_ros_conn_.init(false);
     
     // initialize and set to zero the state and command values
     device_->init();
@@ -218,8 +217,8 @@ bool IIWA_HW::read(ros::Duration period)
         joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
         
         device_->joint_position_prev = device_->joint_position;
-        device_->joint_position = joint_position_.position;
-        device_->joint_effort = joint_torque_.torque;
+        iiwaMsgsAxesToVector(joint_position_.position, device_->joint_position);
+        iiwaMsgsAxesToVector(joint_torque_.torque, device_->joint_effort);
         
         for (int j = 0; j < IIWA_JOINTS; j++)
             device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), 
@@ -247,7 +246,7 @@ bool IIWA_HW::write(ros::Duration period) {
         if (interface_ == interface_type_.at(0)) {
             
             // Building the message
-            command_joint_position_.position = device_->joint_position_command;
+            vectorToIiwaMsgsAxes(device_->joint_position_command, command_joint_position_.position);
             command_joint_position_.header.stamp = ros::Time::now();
             
             iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);

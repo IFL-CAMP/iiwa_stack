@@ -36,32 +36,31 @@
 #ifndef IIWA_HW_H_
 #define IIWA_HW_H_
 
-#include <vector>
-#include <sstream>
+// iiwa_msgs and ROS inteface includes
+#include "iiwaRos.h"
+#include <iiwa_msgs/JointPosition.h>
+#include <iiwa_msgs/JointTorque.h>
 
 // ROS headers
-#include <ros/ros.h>
 #include <controller_manager/controller_manager.h>
-#include <std_msgs/Duration.h>
+#include <control_toolbox/filters.h>
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <joint_limits_interface/joint_limits.h>
 #include <joint_limits_interface/joint_limits_interface.h>
 #include <joint_limits_interface/joint_limits_rosparam.h>
 #include <joint_limits_interface/joint_limits_urdf.h>
-#include <control_toolbox/filters.h>
+#include <std_msgs/Duration.h>
+#include <ros/ros.h>
 #include <urdf/model.h>
 
-// iiwa_msgs and ROS inteface includes
-#include "iiwa_msgs/JointPosition.h"
-#include "iiwa_msgs/JointTorque.h"
-#include "iiwaRos.h"
+#include <vector>
+#include <sstream>
 
 constexpr int DEFAULT_CONTROL_FREQUENCY = 1000; // Hz
 constexpr int IIWA_JOINTS = 7;
 
-class IIWA_HW : public hardware_interface::RobotHW
-{
+class IIWA_HW : public hardware_interface::RobotHW {
 public:
     /** 
      * Constructor
@@ -182,7 +181,7 @@ private:
     ros::NodeHandle nh_;
     
     /* Parameters */
-    std::string interface_, movegroup_name_, robot_name_;
+    std::string interface_, movegroup_name_;
     urdf::Model urdf_model_;
     
     hardware_interface::JointStateInterface state_interface_; /**< Interface for joint state */
@@ -202,7 +201,6 @@ private:
     ros::Rate* loop_rate_;
     double control_frequency_;
     
-    
     iiwaRos iiwa_ros_conn_;
     iiwa_msgs::JointPosition joint_position_;
     iiwa_msgs::JointTorque joint_torque_;
@@ -212,5 +210,27 @@ private:
     
     std::vector<std::string> interface_type_; /**< Contains the strings defining the possible hardware interfaces. */
 };
+
+template <typename T>
+void iiwaMsgsAxesToVector(const iiwa_msgs::Axes& ax, std::vector<T>& v) {
+    v[0] = ax.a1;
+    v[1] = ax.a2;
+    v[2] = ax.a3;
+    v[3] = ax.a4;
+    v[4] = ax.a5;
+    v[5] = ax.a6;
+    v[6] = ax.a7;
+}
+
+template <typename T>
+void vectorToIiwaMsgsAxes(const std::vector<T>& v, iiwa_msgs::Axes& ax) {
+    ax.a1 = v[0];
+    ax.a2 = v[1];
+    ax.a3 = v[2];
+    ax.a4 = v[3];
+    ax.a5 = v[4];
+    ax.a6 = v[5];
+    ax.a7 = v[6];
+}
 
 #endif //IIWA_HW_H_
