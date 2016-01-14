@@ -23,20 +23,24 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
-import org.ros.node.DefaultNodeMainExecutor;
-import org.ros.node.NodeConfiguration;
-import org.ros.node.NodeMainExecutor;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-// KUKA imports
+import org.ros.node.DefaultNodeMainExecutor;
+import org.ros.node.NodeConfiguration;
+import org.ros.node.NodeMainExecutor;
+
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
@@ -86,6 +90,137 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
+	
+	public static class UnsupportedControlModeException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		public UnsupportedControlModeException() { super(); }
+		public UnsupportedControlModeException(String message) { super(message); }
+		public UnsupportedControlModeException(String message, Throwable cause) { super(message, cause); }
+		public UnsupportedControlModeException(Throwable cause) { super(cause); }
+	}
+	
+	public IMotionControlMode configureSmartServo(iiwa_msgs.SmartServoMode params) {
+		IMotionControlMode cm;
+		
+		switch (params.getMode()) {
+			case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
+				CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
+				
+				switch (params.getCartesianStiffness().length) {
+				case 1: {
+					ccm.parametrize(CartDOF.ALL).setStiffness(params.getCartesianStiffness()[0]);
+					break;
+				}
+				case 2: {
+					ccm.parametrize(CartDOF.TRANSL).setStiffness(params.getCartesianStiffness()[0]);
+					ccm.parametrize(CartDOF.ROT).setStiffness(params.getCartesianStiffness()[1]);
+					break;
+				}
+				case 6: {
+					float[] stiffness = params.getCartesianStiffness();
+					ccm.parametrize(CartDOF.X).setStiffness(stiffness[0]);
+					ccm.parametrize(CartDOF.Y).setStiffness(stiffness[1]);
+					ccm.parametrize(CartDOF.Z).setStiffness(stiffness[2]);
+					ccm.parametrize(CartDOF.A).setStiffness(stiffness[3]);
+					ccm.parametrize(CartDOF.B).setStiffness(stiffness[4]);
+					ccm.parametrize(CartDOF.C).setStiffness(stiffness[5]);
+					break;
+				}
+				default: {
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getCartesianStiffness().length+" of cartesian stiffness array");
+				}
+				}
+				
+				switch (params.getCartesianDamping().length) {
+				case 1: {
+					ccm.parametrize(CartDOF.ALL).setDamping(params.getCartesianDamping()[0]);
+					break;
+				}
+				case 2: {
+					ccm.parametrize(CartDOF.TRANSL).setDamping(params.getCartesianDamping()[0]);
+					ccm.parametrize(CartDOF.ROT).setDamping(params.getCartesianDamping()[1]);
+					break;
+				}
+				case 6: {
+					float[] damping = params.getCartesianDamping();
+					ccm.parametrize(CartDOF.X).setDamping(damping[0]);
+					ccm.parametrize(CartDOF.Y).setDamping(damping[1]);
+					ccm.parametrize(CartDOF.Z).setDamping(damping[2]);
+					ccm.parametrize(CartDOF.A).setDamping(damping[3]);
+					ccm.parametrize(CartDOF.B).setDamping(damping[4]);
+					ccm.parametrize(CartDOF.C).setDamping(damping[5]);
+					break;
+				}
+				default: {
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getCartesianDamping().length+" of cartesian damping array");
+				}
+				}
+				
+				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
+				ccm.setNullSpaceDamping(params.getNullspaceDamping());
+				
+				cm = ccm;
+				break;
+			}
+			
+			case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
+				JointImpedanceControlMode jcm = new JointImpedanceControlMode();
+				
+				switch (params.getJointStiffness().length) {
+				case 1: {
+					jcm.setStiffnessForAllJoints(params.getJointStiffness()[0]);
+					break;
+				}
+				case 7: {
+					float[] stiffness = params.getJointStiffness();
+					// yay, java!
+					double[] doubleStiffness = new double[stiffness.length];
+					for (int i = 0 ; i < stiffness.length; i++)
+					{
+						doubleStiffness[i] = (double) stiffness[i];
+					}
+					
+					jcm.setStiffness(doubleStiffness);
+					break;
+				}
+				default: {
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getJointStiffness().length+" of joint stiffness array");
+				}
+				}
+				
+				switch (params.getJointDamping().length) {
+				case 1: {
+					jcm.setDampingForAllJoints(params.getJointDamping()[0]);
+					break;
+				}
+				case 7: {
+					float[] damping = params.getJointDamping();
+					// yay, java!
+					double[] doubleDamping = new double[damping.length];
+					for (int i = 0 ; i < damping.length; i++)
+					{
+						doubleDamping[i] = (double) damping[i];
+					}
+					
+					jcm.setDamping(doubleDamping);
+					break;
+				}
+				default: {
+					throw new java.lang.IndexOutOfBoundsException("Illegal length "+params.getJointDamping().length+" of joint stiffness array");
+				}
+				}
+				
+				cm = jcm;
+				break;
+			}
+			
+			default: {
+				throw new UnsupportedControlModeException();  // this should just not happen
+			}
+		}
+		
+		return cm;
+	}
 	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
@@ -174,7 +309,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				 * If the robot can move, then it will move to this new position.
 				 */
 				commandPosition = subscriber.getJointPosition();
-				if(robot.isReadyToMove())
+				if (robot.isReadyToMove()) 
 					runtime.setDestination(new JointPosition(commandPosition.getPosition()));
 			}
 		} catch (Exception ex) {
