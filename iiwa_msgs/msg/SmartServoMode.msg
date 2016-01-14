@@ -3,6 +3,8 @@ int32 CARTESIAN_IMPEDANCE = 1
 
 int32 mode
 
+float32 relative_velocity
+
 float32 nullspace_stiffness
 float32 nullspace_damping
 
