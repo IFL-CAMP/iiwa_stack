@@ -212,7 +212,7 @@ private:
 };
 
 template <typename T>
-void iiwaMsgsAxesToVector(const iiwa_msgs::Axes& ax, std::vector<T>& v) {
+void iiwaMsgsJointToVector(const iiwa_msgs::JointQuantity& ax, std::vector<T>& v) {
     v[0] = ax.a1;
     v[1] = ax.a2;
     v[2] = ax.a3;
@@ -223,7 +223,7 @@ void iiwaMsgsAxesToVector(const iiwa_msgs::Axes& ax, std::vector<T>& v) {
 }
 
 template <typename T>
-void vectorToIiwaMsgsAxes(const std::vector<T>& v, iiwa_msgs::Axes& ax) {
+void vectorToIiwaMsgsJoint(const std::vector<T>& v, iiwa_msgs::JointQuantity& ax) {
     ax.a1 = v[0];
     ax.a2 = v[1];
     ax.a3 = v[2];

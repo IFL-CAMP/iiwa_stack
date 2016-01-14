@@ -12,13 +12,17 @@ find_package(catkin REQUIRED COMPONENTS
 # Declare the message files to be built
 add_message_files(DIRECTORY msg
     FILES 
-    Axes.msg
-    CartesianRotation.msg
+    CartesianDamping.msg
+    CartesianQuantity.msg
+    CartesianStiffness.msg
     CartesianVelocity.msg
+    JointDamping.msg
     JointPosition.msg
+    JointQuantity.msg
     JointStiffness.msg
     JointTorque.msg
     JointVelocity.msg
+    SmartServoMode.msg
 )
 
 add_service_files(DIRECTORY srv

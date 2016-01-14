@@ -41,10 +41,8 @@ void iiwaRos::init(bool initRos) {
     ros::NodeHandle node_handle;
     
     received_cartesian_rotation_.rotation.resize(9);
-    received_cartesian_velocity_.velocity.resize(9);
     
     command_cartesian_rotation_.rotation.resize(9);
-    command_cartesian_velocity_.velocity.resize(9);
     
     new_cartesian_position_ = false;
     new_cartesian_rotation_  = false;

@@ -1,2 +1,2 @@
 Header header
-Axes velocity
+JointQuantity velocity
