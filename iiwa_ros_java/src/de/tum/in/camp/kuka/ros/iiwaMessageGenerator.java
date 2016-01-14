@@ -55,11 +55,6 @@ public class iiwaMessageGenerator {
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
 	private TimeProvider time = new WallTimeProvider();
 
-	// Converts 3x3 Matrix into a 9 elements vector
-	private static void reshapeRotation(Matrix m, double[] array) {
-		for(int i = 0; i < 9; ++i) array[i] = m.get(i/3, i%3);
-	}
-
 	/**
 	 * Builds a CartesianPosition message given a LBR iiwa Robot.<p>
 	 * The Cartesian position will be the obtained from current Flange frame,
@@ -67,26 +62,10 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @return built CartesianPosition message.
 	 */
-	public iiwa_msgs.CartesianPosition buildCartesianPosition(LBR robot) {
-		geometry_msgs.Point point = messageFactory.newFromType(geometry_msgs.Point._TYPE);
-		point.setX(robot.getCurrentCartesianPosition(robot.getFlange()).getX());
-		point.setY(robot.getCurrentCartesianPosition(robot.getFlange()).getY());
-		point.setZ(robot.getCurrentCartesianPosition(robot.getFlange()).getZ());
-
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(FLANGE_FRAME_ID);
-		header.setStamp(time.getCurrentTime());
-
-		geometry_msgs.PointStamped ps = messageFactory.newFromType(geometry_msgs.PointStamped._TYPE);
-		ps.setPoint(point);
-		ps.setHeader(header);
-
-		iiwa_msgs.CartesianPosition cp = messageFactory.newFromType(iiwa_msgs.CartesianPosition._TYPE);
-		cp.setPosition(ps);
-
-		return cp;
+	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot) {
+		return buildCartesianPose(robot, robot.getFlange());
 	}
-
+	
 	/**
 	 * Builds a CartesianPosition message given a LBR iiwa Robot and a frame of reference.<p>
 	 * The Cartesian position will be the obtained from the given Frame,
@@ -95,73 +74,29 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame to set the values of the Cartesian position.
 	 * @return built CartesianPosition message.
 	 */
-	public iiwa_msgs.CartesianPosition buildCartesianPosition(LBR robot, ObjectFrame frame) {
+	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot, ObjectFrame frame) {
 		geometry_msgs.Point point = messageFactory.newFromType(geometry_msgs.Point._TYPE);
-		point.setX(robot.getCurrentCartesianPosition(frame).getX());
-		point.setY(robot.getCurrentCartesianPosition(frame).getY());
-		point.setZ(robot.getCurrentCartesianPosition(frame).getZ());
+		point.setX(robot.getCurrentCartesianPosition(robot.getFlange()).getX()/1000);
+		point.setY(robot.getCurrentCartesianPosition(robot.getFlange()).getY()/1000);
+		point.setZ(robot.getCurrentCartesianPosition(robot.getFlange()).getZ()/1000);
 
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(frame.getName());
-		header.setStamp(time.getCurrentTime());
-
-		geometry_msgs.PointStamped ps = messageFactory.newFromType(geometry_msgs.PointStamped._TYPE);
-		ps.setPoint(point);
-		ps.setHeader(header);
-
-		iiwa_msgs.CartesianPosition cp = messageFactory.newFromType(iiwa_msgs.CartesianPosition._TYPE);
-		cp.setPosition(ps);
-
-		return cp;
-	}
-
-	/**
-	 * Builds a CartesianRotation message given a LBR iiwa Robot.<p>
-	 * The rotation will refer to the current Flange frame,
-	 * the message header is set to current time and according frame name.<br>
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built CartesianRotation message.
-	 */
-	public iiwa_msgs.CartesianRotation buildCartesianRotation(LBR robot) {
-		double[] rotation = new double[9];
 		Transformation transform = robot.getCurrentCartesianPosition(robot.getFlange()).transformationFromWorld();
 		Matrix rotationMatrix = transform.getRotationMatrix();
-		reshapeRotation(rotationMatrix,rotation);
+		geometry_msgs.Quaternion quaternion = matrixToQuat(rotationMatrix);
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId(FLANGE_FRAME_ID);
 		header.setStamp(time.getCurrentTime());
 
-		iiwa_msgs.CartesianRotation cr = messageFactory.newFromType(iiwa_msgs.CartesianRotation._TYPE);
-		cr.setRotation(rotation);
-		cr.setHeader(header);
+		geometry_msgs.Pose p = messageFactory.newFromType(geometry_msgs.Pose._TYPE);
+		p.setPosition(point);
+		p.setOrientation(quaternion);
 
-		return cr;
-	}
+		geometry_msgs.PoseStamped pps = messageFactory.newFromType(geometry_msgs.PoseStamped._TYPE);
+		pps.setHeader(header);
+		pps.setPose(p);
 
-	/**
-	 * Builds a CartesianRotation message given a LBR iiwa Robot and a frame of reference.<p>
-	 * The rotation will refer to the given frame,
-	 * the message header is set to current time and according frame name.<br>
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @param frame : reference frame the rotation refers to.
-	 * @return built CartesianRotation message.
-	 */
-	public iiwa_msgs.CartesianRotation buildCartesianRotation(LBR robot, ObjectFrame frame) {
-		double[] rotation = new double[9];
-		Transformation transform = robot.getCurrentCartesianPosition(frame).transformationFromWorld();
-		Matrix rotationMatrix = transform.getRotationMatrix();
-		reshapeRotation(rotationMatrix,rotation);
-
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(frame.getName());
-		header.setStamp(time.getCurrentTime());
-
-		iiwa_msgs.CartesianRotation cr = messageFactory.newFromType(iiwa_msgs.CartesianRotation._TYPE);
-		cr.setRotation(rotation);
-		cr.setHeader(header);
-
-		return cr;
+		return pps;
 	}
 
 	/**
@@ -172,7 +107,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianVelocity message.
 	 */
 	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot) {
-		double[] velocity = new double[9];
+//		double[] velocity = new double[9];
 
 		// Velocity is set to zero!
 		// TODO: Compute Cartesian velocity !
@@ -182,7 +117,9 @@ public class iiwaMessageGenerator {
 		header.setStamp(time.getCurrentTime());
 
 		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
-		cv.setVelocity(velocity);
+		
+//		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
+		
 		cv.setHeader(header);
 
 		return cv;
@@ -197,7 +134,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianVelocity message.
 	 */
 	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot, ObjectFrame frame) {
-		double[] velocity = new double[9];
+//		double[] velocity = new double[9];
 
 		// Velocity is set to zero!
 		// TODO: Compute Cartesian velocity !
@@ -207,7 +144,10 @@ public class iiwaMessageGenerator {
 		header.setStamp(time.getCurrentTime());
 
 		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
-		cv.setVelocity(velocity);
+		
+//		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
+		
+//		cv.setVelocity(velocity);
 		cv.setHeader(header);
 
 		return cv;
@@ -220,7 +160,7 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @return built CartesianWrench message.
 	 */
-	public iiwa_msgs.CartesianWrench buildCartesianWrench(LBR robot) {
+	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot) {
 		geometry_msgs.Vector3 force = messageFactory.newFromType(geometry_msgs.Vector3._TYPE);
 		force.setX(robot.getExternalForceTorque(robot.getFlange()).getForce().getX());
 		force.setY(robot.getExternalForceTorque(robot.getFlange()).getForce().getY());
@@ -243,9 +183,7 @@ public class iiwaMessageGenerator {
 		ws.setWrench(wrench);
 		ws.setHeader(header);
 
-		iiwa_msgs.CartesianWrench cw = messageFactory.newFromType(iiwa_msgs.CartesianWrench._TYPE);
-		cw.setWrench(ws);
-		return cw;
+		return ws;
 	}
 
 	/**
@@ -256,7 +194,7 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame the wrench refers to.
 	 * @return built CartesianWrench message.
 	 */
-	public iiwa_msgs.CartesianWrench buildCartesianWrench(LBR robot, ObjectFrame frame) {
+	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot, ObjectFrame frame) {
 		geometry_msgs.Vector3 force = messageFactory.newFromType(geometry_msgs.Vector3._TYPE);
 		force.setX(robot.getExternalForceTorque(frame).getForce().getX());
 		force.setY(robot.getExternalForceTorque(frame).getForce().getY());
@@ -279,9 +217,7 @@ public class iiwaMessageGenerator {
 		ws.setWrench(wrench);
 		ws.setHeader(header);
 
-		iiwa_msgs.CartesianWrench cw = messageFactory.newFromType(iiwa_msgs.CartesianWrench._TYPE);
-		cw.setWrench(ws);
-		return cw;
+		return ws;
 	}
 
 	/**
@@ -298,9 +234,12 @@ public class iiwaMessageGenerator {
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
 
+		iiwa_msgs.JointQuantity a = vectorToJointQuantity(position);
+		
 		iiwa_msgs.JointPosition jp = messageFactory.newFromType(iiwa_msgs.JointPosition._TYPE);
-		jp.setPosition(position);
 		jp.setHeader(header);
+		jp.setPosition(a);
+		
 		return jp;
 	}
 
@@ -318,13 +257,16 @@ public class iiwaMessageGenerator {
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
-
+			
+		iiwa_msgs.JointQuantity a = vectorToJointQuantity(stiffness);
+		
 		iiwa_msgs.JointStiffness js = messageFactory.newFromType(iiwa_msgs.JointStiffness._TYPE);
-		js.setStiffness(stiffness);
 		js.setHeader(header);
+		js.setStiffness(a);
+		
 		return js;
 	}
-	
+
 	/**
 	 * Builds a JointTorque message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
@@ -338,10 +280,13 @@ public class iiwaMessageGenerator {
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
+		
+		iiwa_msgs.JointQuantity a = vectorToJointQuantity(torque);
 
 		iiwa_msgs.JointTorque jt = messageFactory.newFromType(iiwa_msgs.JointTorque._TYPE);
-		jt.setTorque(torque);
 		jt.setHeader(header);
+		jt.setTorque(a);
+		
 		return jt;
 	}
 
@@ -359,62 +304,154 @@ public class iiwaMessageGenerator {
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
-
+		
+		iiwa_msgs.JointQuantity a = vectorToJointQuantity(velocity);
+		
 		iiwa_msgs.JointVelocity jv = messageFactory.newFromType(iiwa_msgs.JointVelocity._TYPE);
-		jv.setVelocity(velocity);
 		jv.setHeader(header);
+		jv.setVelocity(a);
 		return jv;
 	}
 	
-	// TODO: remove if not used or find a better place if more utility functions are needed
-	public final static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
-	    double sqw = w*w;
-	    double sqx = x*x;
-	    double sqy = y*y;
-	    double sqz = z*z;
-	    
-	    MatrixBuilder mb = new MatrixBuilder();
-
-	    // invs (inverse square length) is only required if quaternion is not already normalised
-	    double invs = 1 / (sqx + sqy + sqz + sqw);
-	    mb.setElement00(( sqx - sqy - sqz + sqw)*invs) ; // since sqw + sqx + sqy + sqz =1/invs*invs
-	    mb.setElement11((-sqx + sqy - sqz + sqw)*invs);
-	    mb.setElement22((-sqx - sqy + sqz + sqw)*invs);
-	    
-	    double tmp1 = x*y;
-	    double tmp2 = z*w;
-	    mb.setElement10(2.0 * (tmp1 + tmp2)*invs);
-	    mb.setElement01(2.0 * (tmp1 - tmp2)*invs);
-	    
-	    tmp1 = x*z;
-	    tmp2 = y*w;
-	    mb.setElement20(2.0 * (tmp1 - tmp2)*invs);
-	    mb.setElement02(2.0 * (tmp1 + tmp2)*invs);
-
-	    tmp1 = y*z;
-	    tmp2 = x*w;
-	    mb.setElement21(2.0 * (tmp1 + tmp2)*invs);
-	    mb.setElement12(2.0 * (tmp1 - tmp2)*invs);
-	    
-	    return MatrixRotation.of(mb.toMatrix());
+	// conversions
+	
+	public iiwa_msgs.JointQuantity vectorToJointQuantity(double[] torque) {
+		iiwa_msgs.JointQuantity ret = messageFactory.newFromType(iiwa_msgs.JointQuantity._TYPE);
+		
+		ret.setA1((float) torque[0]);
+		ret.setA2((float) torque[1]);
+		ret.setA3((float) torque[2]);
+		ret.setA4((float) torque[3]);
+		ret.setA5((float) torque[4]);
+		ret.setA6((float) torque[5]);
+		ret.setA7((float) torque[6]);
+		
+		return ret;
 	}
 	
+	public double[]  jointQuantityToVector(iiwa_msgs.JointQuantity a) {
+		double[] ret = new double[7];
+		
+		ret[0] = a.getA1();
+		ret[1] = a.getA2();
+		ret[2] = a.getA3();
+		ret[3] = a.getA4();
+		ret[4] = a.getA5();
+		ret[5] = a.getA6();
+		ret[6] = a.getA7();
+		
+		return ret;
+	}
+
+	public static MatrixRotation quatToMatrix(double x, double y, double z, double w) {
+		return quatToMatrix((float) x, (float) y, (float) z, (float) w);
+	}
+	
+	public final static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
+		double sqw = w*w;
+		double sqx = x*x;
+		double sqy = y*y;
+		double sqz = z*z;
+
+		MatrixBuilder mb = new MatrixBuilder();
+
+		// invs (inverse square length) is only required if quaternion is not already normalised
+		double invs = 1 / (sqx + sqy + sqz + sqw);
+		mb.setElement00(( sqx - sqy - sqz + sqw)*invs) ; // since sqw + sqx + sqy + sqz =1/invs*invs
+		mb.setElement11((-sqx + sqy - sqz + sqw)*invs);
+		mb.setElement22((-sqx - sqy + sqz + sqw)*invs);
+
+		double tmp1 = x*y;
+		double tmp2 = z*w;
+		mb.setElement10(2.0 * (tmp1 + tmp2)*invs);
+		mb.setElement01(2.0 * (tmp1 - tmp2)*invs);
+
+		tmp1 = x*z;
+		tmp2 = y*w;
+		mb.setElement20(2.0 * (tmp1 - tmp2)*invs);
+		mb.setElement02(2.0 * (tmp1 + tmp2)*invs);
+
+		tmp1 = y*z;
+		tmp2 = x*w;
+		mb.setElement21(2.0 * (tmp1 + tmp2)*invs);
+		mb.setElement12(2.0 * (tmp1 - tmp2)*invs);
+
+		return MatrixRotation.of(mb.toMatrix());
+	}
+
+	public geometry_msgs.Quaternion matrixToQuat(Matrix matrix) {
+
+		// mercilessly copied from https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/math/Quaternion.java
+		double xx = matrix.getElement00();
+		double xy = matrix.getElement01();
+		double xz = matrix.getElement02();
+		double yx = matrix.getElement10();
+		double yy = matrix.getElement11();
+		double yz = matrix.getElement12();
+		double zx = matrix.getElement20();
+		double zy = matrix.getElement21();
+		double zz = matrix.getElement22();
+
+		double x,y,z,w; // return
+
+		final double t = xx + yy + zz;
+
+		// we protect the division by s by ensuring that s>=1
+		if (t >= 0) { // |w| >= .5
+			float s = (float)Math.sqrt(t + 1); // |s|>=1 ...
+			w = 0.5f * s;
+			s = 0.5f / s; // so this division isn't bad
+			x = (zy - yz) * s;
+			y = (xz - zx) * s;
+			z = (yx - xy) * s;
+		} else if ((xx > yy) && (xx > zz)) {
+			float s = (float)Math.sqrt(1.0 + xx - yy - zz); // |s|>=1
+			x = s * 0.5f; // |x| >= .5
+			s = 0.5f / s;
+			y = (yx + xy) * s;
+			z = (xz + zx) * s;
+			w = (zy - yz) * s;
+		} else if (yy > zz) {
+			float s = (float)Math.sqrt(1.0 + yy - xx - zz); // |s|>=1
+			y = s * 0.5f; // |y| >= .5
+			s = 0.5f / s;
+			x = (yx + xy) * s;
+			z = (zy + yz) * s;
+			w = (xz - zx) * s;
+		} else {
+			float s = (float)Math.sqrt(1.0 + zz - xx - yy); // |s|>=1
+			z = s * 0.5f; // |z| >= .5
+			s = 0.5f / s;
+			x = (xz + zx) * s;
+			y = (zy + yz) * s;
+			w = (yx - xy) * s;
+		}
+
+		geometry_msgs.Quaternion ret = messageFactory.newFromType(geometry_msgs.Quaternion._TYPE);
+		ret.setX(x);
+		ret.setY(y);
+		ret.setZ(z);
+		ret.setW(w);
+		return ret;
+	}
+
 	public Transformation getKukaCartesianGoal(PoseStamped commandCartesianPosition) {
 		if (commandCartesianPosition == null)
 			return null;
-		
+
 		float tx = (float) commandCartesianPosition.getPose().getPosition().getX();
 		float ty = (float) commandCartesianPosition.getPose().getPosition().getY();
 		float tz = (float) commandCartesianPosition.getPose().getPosition().getZ();
-						
+
 		float x = (float) commandCartesianPosition.getPose().getOrientation().getX();
 		float y = (float) commandCartesianPosition.getPose().getOrientation().getY();
 		float z = (float) commandCartesianPosition.getPose().getOrientation().getZ();
 		float w = (float) commandCartesianPosition.getPose().getOrientation().getW();
-		
+
 		MatrixRotation rot = iiwaMessageGenerator.quatToMatrix(x, y, z, w);
 		Vector transl = Vector.of(tx, ty, tz);
-		
-        return Transformation.of(transl, rot);
+
+		return Transformation.of(transl, rot);
 	}
+
 }

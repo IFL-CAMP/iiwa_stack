@@ -41,10 +41,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 
 	// ROSJava Publishers for iiwa_msgs
 	// Cartesian Message Publishers
-	private Publisher<iiwa_msgs.CartesianPosition> cartesianPositionPublisher;
-	private Publisher<iiwa_msgs.CartesianRotation> cartesianRotationPublisher;
+	private Publisher<geometry_msgs.PoseStamped> cartesianPosePublisher;
 	private Publisher<iiwa_msgs.CartesianVelocity> cartesianVelocityPublisher;
-	private Publisher<iiwa_msgs.CartesianWrench> cartesianWrenchPublisher;
+	private Publisher<geometry_msgs.WrenchStamped> cartesianWrenchPublisher;
 	// Joint Message Publishers
 	private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
 	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
@@ -55,10 +54,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	
 	// Local iiwa_msgs to publish 
 	// Cartesian Messages
-	private iiwa_msgs.CartesianPosition cp;
-	private iiwa_msgs.CartesianRotation cr;
+	private geometry_msgs.PoseStamped cp;
 	private iiwa_msgs.CartesianVelocity cv;
-	private iiwa_msgs.CartesianWrench cw;
+	private geometry_msgs.WrenchStamped cw;
 	// Joint Messages
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointStiffness js;
@@ -76,8 +74,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * The initial values of the messages are all set to zeros.
 	 */
 	public iiwaPublisher(String robotName) {
-		cp = cartesianPositionPublisher.newMessage();
-		cr = cartesianRotationPublisher.newMessage();
+		cp = cartesianPosePublisher.newMessage();
 		cv = cartesianVelocityPublisher.newMessage();
 		cw = cartesianWrenchPublisher.newMessage();
 
@@ -97,8 +94,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
 	public iiwaPublisher(LBR robot, String robotName) {
-		cp = helper.buildCartesianPosition(robot);
-		cr = helper.buildCartesianRotation(robot);
+		cp = helper.buildCartesianPose(robot);
 		cv = helper.buildCartesianVelocity(robot);
 		cw = helper.buildCartesianWrench(robot);
 
@@ -119,8 +115,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
 	public iiwaPublisher(LBR robot, ObjectFrame frame, String robotName) {
-		cp = helper.buildCartesianPosition(robot, frame);
-		cr = helper.buildCartesianRotation(robot, frame);
+		cp = helper.buildCartesianPose(robot, frame);
 		cv = helper.buildCartesianVelocity(robot, frame);
 		cw = helper.buildCartesianWrench(robot, frame);
 
@@ -134,17 +129,10 @@ public class iiwaPublisher extends AbstractNodeMain {
 
 	/**
 	 * Set the CartesianPosition message to be published.<p>
-	 * @param position : CartesianPosition message to publish.
+	 * @param pose : CartesianPosition message to publish.
 	 */
-	public void setCartesianPosition(iiwa_msgs.CartesianPosition position) {
-		cp = position;
-	}
-	/**
-	 * Set the CartesianRotation message to be published.<p>
-	 * @param rotation : CartesianRotation message to publish.
-	 */
-	public void setCartesianRotation(iiwa_msgs.CartesianRotation rotation) {
-		cr = rotation;
+	public void setCartesianPose(geometry_msgs.PoseStamped pose) {
+		cp = pose;
 	}
 	/**
 	 * Set the CartesianVelocity message to be published.<p>
@@ -157,7 +145,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * Set the CartesianWrench message to be published.<p>
 	 * @param wrench : CartesianWrench message to publish.
 	 */
-	public void setCartesianWrench(iiwa_msgs.CartesianWrench wrench) {
+	public void setCartesianWrench(geometry_msgs.WrenchStamped wrench) {
 		cw = wrench;
 	}
 	/**
@@ -224,11 +212,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
-
-		cartesianPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPosition", iiwa_msgs.CartesianPosition._TYPE);
-		cartesianRotationPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianRotation", iiwa_msgs.CartesianRotation._TYPE);
+		cartesianPosePublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		cartesianVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianVelocity", iiwa_msgs.CartesianVelocity._TYPE);
-		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", iiwa_msgs.CartesianWrench._TYPE);
+		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
 		jointPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
@@ -249,8 +235,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		 * For each message, it's checked whether there is a subscriber waiting for a message
 		 * or not, if so the message is published.
 		 */
-		publishIfSubscriber(cartesianPositionPublisher, cp);
-		publishIfSubscriber(cartesianRotationPublisher, cr);
+		publishIfSubscriber(cartesianPosePublisher, cp);
 		publishIfSubscriber(cartesianVelocityPublisher, cv);
 		publishIfSubscriber(cartesianWrenchPublisher, cw);
 		publishIfSubscriber(jointPositionPublisher, jp);
