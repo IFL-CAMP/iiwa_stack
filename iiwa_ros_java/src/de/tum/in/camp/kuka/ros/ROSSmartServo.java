@@ -91,28 +91,6 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
 	
-	// TODO: create iiwa_msgs.SmartServoParameters (name is negotiable)
-	public static class SmartServoParameters {
-		public static enum Mode {
-			JOINT_IMPEDANCE,
-			CARTESIAN_IMPEDANCE
-		}
-		
-		public Mode mode;
-		
-		// both modes
-		public float nullspace_stiffness;
-		public float nullspace_damping;
-		
-		// joint space control
-		public double[] joint_stiffness;
-		public double[] joint_damping;
-		
-		// cartesian control
-		public float[] cartesian_stiffness;
-		public float[] cartesian_damping;
-	}
-	
 	public static class UnsupportedControlModeException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 		public UnsupportedControlModeException() { super(); }
