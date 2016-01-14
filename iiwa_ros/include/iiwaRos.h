@@ -26,25 +26,23 @@
 #ifndef IIWAROS_H_
 #define IIWAROS_H_
 
-#include "boost/thread.hpp"
-#include "time.h"
-
-#include "ros/ros.h"
-
-#include "iiwa_msgs/CartesianPosition.h"
 #include "iiwa_msgs/CartesianRotation.h"
 #include "iiwa_msgs/CartesianVelocity.h"
-#include "iiwa_msgs/CartesianWrench.h"
 #include "iiwa_msgs/JointPosition.h"
 #include "iiwa_msgs/JointStiffness.h"
 #include "iiwa_msgs/JointTorque.h"
 #include "iiwa_msgs/JointVelocity.h"
 
+#include <geometry_msgs/WrenchStamped.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <ros/ros.h>
+
+#include <boost/thread.hpp>
+
 #include <iostream>
 #include <string>
 #include <mutex>
-
-#define IIWA_JOINTS 7
+#include <time.h>
 
 class iiwaRos {
 public:
@@ -66,20 +64,20 @@ public:
   /**
    * Getters
    */
-  iiwa_msgs::CartesianPosition getReceivedCartesianPosition();
+  geometry_msgs::PoseStamped getReceivedCartesianPosition();
   iiwa_msgs::CartesianRotation getReceivedCartesianRotation();
   iiwa_msgs::CartesianVelocity getReceivedCartesianVelocity();
-  iiwa_msgs::CartesianWrench getReceivedCartesianWrench();
+  geometry_msgs::WrenchStamped getReceivedCartesianWrench();
   
   iiwa_msgs::JointPosition getReceivedJointPosition();
   iiwa_msgs::JointStiffness getReceivedJointStiffness();
   iiwa_msgs::JointTorque getReceivedJointTorque();
   iiwa_msgs::JointVelocity getReceivedJointVelocity();
   
-  iiwa_msgs::CartesianPosition getCommandCartesianPosition();
+  geometry_msgs::PoseStamped getCommandCartesianPosition();
   iiwa_msgs::CartesianRotation getCommandCartesianRotation();
   iiwa_msgs::CartesianVelocity getCommandCartesianVelocity();
-  iiwa_msgs::CartesianWrench getCommandCartesianWrench();
+  geometry_msgs::WrenchStamped getCommandCartesianWrench();
   
   iiwa_msgs::JointPosition getCommandJointPosition();
   iiwa_msgs::JointStiffness getCommandJointStiffness();
@@ -89,10 +87,10 @@ public:
   /*
    * 
    */
-  void setCommandCartesianPosition(const iiwa_msgs::CartesianPosition& position);
+  void setCommandCartesianPosition(const geometry_msgs::PoseStamped& position);
   void setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation);
   void setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
-  void setCommandCartesianWrench(const iiwa_msgs::CartesianWrench& wrench);
+  void setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench);
   
   void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
   void setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness);
@@ -128,10 +126,10 @@ private:
   /**
    * Callback for the ROS Subscribers
    */	
-  void cartesianPositionCallback(const iiwa_msgs::CartesianPosition& position);
+  void cartesianPositionCallback(const geometry_msgs::PoseStamped& position);
   void cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation);
   void cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity);
-  void cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench);
+  void cartesianWrenchCallback(const geometry_msgs::WrenchStamped& wrench);
   
   void jointPositionCallback(const iiwa_msgs::JointPosition& position);
   void jointStiffnessCallback(const iiwa_msgs::JointStiffness& stiffness);
@@ -168,22 +166,22 @@ private:
   /*
    * Messages received from the robot
    */
-  iiwa_msgs::CartesianPosition received_cartesian_position_;
+  geometry_msgs::PoseStamped received_cartesian_position_;
   iiwa_msgs::CartesianRotation received_cartesian_rotation_;
   iiwa_msgs::CartesianVelocity received_cartesian_velocity_;
-  iiwa_msgs::CartesianWrench received_cartesian_wrench_;
+  geometry_msgs::WrenchStamped received_cartesian_wrench_;
   iiwa_msgs::JointPosition received_joint_position_;
   iiwa_msgs::JointStiffness received_joint_stiffness_;
   iiwa_msgs::JointTorque received_joint_torque_;
   iiwa_msgs::JointVelocity received_joint_velocity_;
   
   /*
-   * Messages that will be send to the robot
+   * Messages that will be sent to the robot
    */
-  iiwa_msgs::CartesianPosition command_cartesian_position_;
+  geometry_msgs::PoseStamped command_cartesian_position_;
   iiwa_msgs::CartesianRotation command_cartesian_rotation_;
   iiwa_msgs::CartesianVelocity command_cartesian_velocity_;
-  iiwa_msgs::CartesianWrench command_cartesian_wrench_;
+  geometry_msgs::WrenchStamped command_cartesian_wrench_;
   iiwa_msgs::JointPosition command_joint_position_;
   iiwa_msgs::JointStiffness command_joint_stiffness_;
   iiwa_msgs::JointTorque command_joint_torque_;
