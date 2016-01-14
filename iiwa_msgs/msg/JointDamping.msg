@@ -1,2 +1,2 @@
 Header header
-JointQuantity stiffness
+JointQuantity damping
