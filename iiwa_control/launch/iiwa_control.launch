@@ -1,38 +1,25 @@
 <?xml version="1.0"?>
 <launch>
-  
-  <!-- Launches the controllers according to the hardware interface selected -->
-  <!-- Everythings is spawned under a namespace with the same name as the robot's. -->
-  <arg name="load_robot_description" default="false"/>
-  
-  <arg name="hardware_interface" default="PositionJointInterface"/>
-  <arg name="controllers" default="joint_state_controller 
-       pos_joint_trajectory_controller"/>
-  <arg name="robot_name" default="iiwa" />
-  <arg name="model" default="iiwa7" />
-  
-  <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
-  
-  <!-- Loads the URDF with the given hardware interface and robot name into the ROS Parameter Server -->
-  <group if="$(arg load_robot_description)">
-    <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
-      <arg name="hardware_interface" value="$(arg hardware_interface)"/>
-      <arg name="robot_name" value="$(arg robot_name)" />
-      </include>-->
-    </group>
+    
+    <!-- Launches the controllers according to the hardware interface selected -->
+    <!-- Everythings is spawned under a namespace with the same name as the robot's. -->
+    
+    <arg name="hardware_interface" default="PositionJointInterface"/>
+    <arg name="controllers" default="joint_state_controller pos_joint_trajectory_controller"/>
+    <arg name="robot_name" default="iiwa" />
+    <arg name="model" default="iiwa7" />
+    
     <!-- Loads joint controller configurations from YAML file to parameter server -->
-    <rosparam file="$(find iiwa_control)/config/iiwa_control.yaml" command="load" ns="$(arg robot_name)"/>
+    <rosparam file="$(find iiwa_control)/config/iiwa_control.yaml" command="load" />
     
     <!-- Loads the controllers -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-	  output="screen" ns="/$(arg robot_name)" args="$(arg controllers)" />
+          output="screen" args="$(arg controllers)" />
     
     <!-- Converts joint states to TF transforms for rviz, etc -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-	  respawn="false" output="screen">
-      <remap from="joint_states" to="/$(arg robot_name)/joint_states" />
-      <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
+          respawn="false" output="screen">
+        <remap from="joint_states" to="/$(arg robot_name)/joint_states" />
     </node>
     
-  </launch>
-  
+</launch>
