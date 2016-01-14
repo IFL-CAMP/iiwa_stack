@@ -58,7 +58,7 @@ int main( int argc, char** argv ) {
     signal(SIGHUP, quitRequested);
     
     // construct the lbr iiwa
-    ros::NodeHandle iiwa_nh("~");
+    ros::NodeHandle iiwa_nh;
     IIWA_HW iiwa_robot(iiwa_nh);
     
     // configuration routines

@@ -38,7 +38,7 @@ void iiwaRos::init(bool initRos) {
         ros::init(argc, argv, "iiwaRos");
     }
     
-    ros::NodeHandle node_handle("~");
+    ros::NodeHandle node_handle;
     
     received_cartesian_rotation_.rotation.resize(9);
     received_cartesian_velocity_.velocity.resize(9);

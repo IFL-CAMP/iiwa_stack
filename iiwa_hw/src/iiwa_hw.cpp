@@ -88,11 +88,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No joint name specification");
     }
     
-    std::stringstream ss;
-    ss << nh_.getNamespace() << "/robot_description";
-    std::string robot_description = ss.str();
-    
-    if (!(urdf_model_.initParam(robot_description))) {
+    if (!(urdf_model_.initParam("robot_description"))) {
         ROS_ERROR("No URDF model in the robot_description parameter, this is required to define the joint limits.");
         throw std::runtime_error("No URDF model available");
     }

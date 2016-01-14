@@ -42,7 +42,7 @@
         </include>
         
         <!-- Robot interface -->
-        <include ns="$(arg robot_name)" file="$(find iiwa_hw)/launch/iiwa_hw.launch" >
+        <include file="$(find iiwa_hw)/launch/iiwa_hw.launch" >
             <arg name="hardware_interface" value="$(arg hardware_interface)" />
         </include>
         
