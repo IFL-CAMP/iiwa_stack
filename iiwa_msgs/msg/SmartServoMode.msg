@@ -3,11 +3,11 @@ int32 CARTESIAN_IMPEDANCE = 1
 
 int32 mode
 
-float64 nullspace_stiffness
-float64 nullspace_damping
+float32 nullspace_stiffness
+float32 nullspace_damping
 
-Axes joint_stiffness
-Axes joint_damping
+JointStiffness joint_stiffness
+JointDamping joint_damping
 
-Axes cartesian_stiffness
-Axes cartesian_damping
+CartesianStiffness cartesian_stiffness
+CartesianDamping cartesian_damping

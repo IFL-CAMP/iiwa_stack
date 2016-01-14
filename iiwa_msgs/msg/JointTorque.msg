@@ -1,2 +1,2 @@
 Header header
-Axes torque
+JointQuantity torque

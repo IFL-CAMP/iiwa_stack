@@ -213,8 +213,8 @@ bool IIWA_HW::read(ros::Duration period)
         joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
         
         device_->joint_position_prev = device_->joint_position;
-        iiwaMsgsAxesToVector(joint_position_.position, device_->joint_position);
-        iiwaMsgsAxesToVector(joint_torque_.torque, device_->joint_effort);
+        iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
+        iiwaMsgsJointToVector(joint_torque_.torque, device_->joint_effort);
         
         for (int j = 0; j < IIWA_JOINTS; j++)
             device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), 
@@ -242,7 +242,7 @@ bool IIWA_HW::write(ros::Duration period) {
         if (interface_ == interface_type_.at(0)) {
             
             // Building the message
-            vectorToIiwaMsgsAxes(device_->joint_position_command, command_joint_position_.position);
+            vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
             command_joint_position_.header.stamp = ros::Time::now();
             
             iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);
