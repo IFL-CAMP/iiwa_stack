@@ -8,13 +8,13 @@ if __name__ == '__main__':
     rospy.init_node('toolbar_event_publisher')
 
     spec_param = rospy.get_param('toolbarSpecifications')
-    specs = [list(group) for k, group in groupby(spec_param, lambda x: x == "") if not k]
+    specs = [list(group) for k, group in groupby(spec_param, lambda x: x == 'spec') if not k]
 
     publishers = {}
 
     for spec in specs:
-        bar = spec[1]
-        buttons = spec[2:]
+        bar = spec[0]
+        buttons = spec[1:]
         for b in buttons:
             if ',' in b:
                 buttons.remove(b)
