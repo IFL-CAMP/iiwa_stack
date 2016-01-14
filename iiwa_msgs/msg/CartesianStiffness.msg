@@ -1,2 +1,2 @@
 Header header
-CartesianQuantity velocity
+CartesianQuantity stiffness
