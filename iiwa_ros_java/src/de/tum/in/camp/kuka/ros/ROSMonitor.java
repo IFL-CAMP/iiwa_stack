@@ -35,7 +35,6 @@ import org.ros.node.NodeMainExecutor;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.Tool;
-import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
@@ -54,7 +53,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private LBR robot;
 	private Tool tool;
 	private SmartServo motion;
-	private ISmartServoRuntime runtime;
 	
 	private boolean initSuccessful = false;
 	private boolean debug = false;
@@ -177,7 +175,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		
 		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(7); // TODO!!
 		robot.moveAsync(motion.setMode(controlMode));
-		runtime = motion.getRuntime();
 		
 		// The run loop
 		getLogger().info("Starting the ROS Monitor loop...");
@@ -198,16 +195,16 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						getLogger().warn("Enabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(0);
 						controlMode.setDampingForAllJoints(0.7);
-						runtime.changeControlModeSettings(controlMode);
+						motion.getRuntime().changeControlModeSettings(controlMode);
 					}
-					runtime.setDestination(robot.getCurrentJointPosition());
+					motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 				} else {
 					if (gravCompSwitched) {
 						gravCompSwitched = false;
 						getLogger().warn("Disabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(1500);
-						runtime.changeControlModeSettings(controlMode);
-						runtime.setDestination(robot.getCurrentJointPosition());
+						motion.getRuntime().changeControlModeSettings(controlMode);
+						motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 						robot.moveAsync(motion);
 					}
 				}

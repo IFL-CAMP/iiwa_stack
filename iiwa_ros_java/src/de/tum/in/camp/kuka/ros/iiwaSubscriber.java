@@ -24,10 +24,15 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
+import iiwa_msgs.ConfigureSmartServoRequest;
+import iiwa_msgs.ConfigureSmartServoResponse;
+
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
+import org.ros.node.service.ServiceResponseBuilder;
+import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
 
 // KUKA imports
@@ -48,11 +53,17 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		JOINT_POSITION,
 		JOINT_VELOCITY
 	}
+	
+	private ConnectedNode node = null;
+	
+	// Service for reconfiguring control mode
+	private ServiceServer<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoServer = null;
+	private ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> configureSmartServoCallback = null;
 
 	// ROSJava Subscribers for iiwa_msgs
 	// Cartesian Message Subscribers
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
-	private Subscriber<iiwa_msgs.CartesianVelocity> cartesianVelocitySubscriber;
+//	private Subscriber<iiwa_msgs.CartesianVelocity> cartesianVelocitySubscriber;
 	private Subscriber<geometry_msgs.WrenchStamped> cartesianWrenchSubscriber;
 	// Joint Message Publishers
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
@@ -119,6 +130,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 //		jv = helper.buildJointVelocity(robot);
 		
 		iiwaName = robotName;
+	}
+	
+	public void setConfigureSmartServoCallback(ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> callback) {
+		configureSmartServoCallback = callback;
 	}
 	
 	public geometry_msgs.PoseStamped getCartesianPose() {
@@ -213,9 +228,11 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
+		
+		node = connectedNode;
 
 		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
-		cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", iiwa_msgs.CartesianVelocity._TYPE);
+//		cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", iiwa_msgs.CartesianVelocity._TYPE);
 		cartesianWrenchSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
@@ -232,13 +249,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			}
 		});
 
-		cartesianVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.CartesianVelocity>() {
-			@Override
-			public void onNewMessage(iiwa_msgs.CartesianVelocity velocity) {
-				cv = velocity;
-				currentCommandType = CommandType.CARTESIAN_VELOCITY;
-			}
-		});
+//		cartesianVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.CartesianVelocity>() {
+//			@Override
+//			public void onNewMessage(iiwa_msgs.CartesianVelocity velocity) {
+//				cv = velocity;
+//				currentCommandType = CommandType.CARTESIAN_VELOCITY;
+//			}
+//		});
 
 		cartesianWrenchSubscriber.addMessageListener(new MessageListener<geometry_msgs.WrenchStamped>() {
 			@Override
@@ -276,5 +293,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
 //				currentCommandType = CommandType.JOINT_VELOCITY;
 //			}
 //		});
+		
+		if (configureSmartServoCallback != null) {
+			configureSmartServoServer = node.newServiceServer(
+					"configureSmartServo", 
+					"iiwa_msgs/ConfigureSmartServo", 
+					configureSmartServoCallback);
+		}
 	}
 }

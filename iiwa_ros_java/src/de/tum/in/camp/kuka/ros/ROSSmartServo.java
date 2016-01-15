@@ -26,15 +26,20 @@ package de.tum.in.camp.kuka.ros;
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.CartesianDamping;
 import iiwa_msgs.CartesianStiffness;
+import iiwa_msgs.ConfigureSmartServoRequest;
+import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ros.exception.ServiceException;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
+import org.ros.node.service.ServiceResponseBuilder;
+import org.ros.node.service.ServiceServer;
 
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
@@ -42,7 +47,6 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
-import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -67,11 +71,10 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private LBR robot;
 	private Tool tool;
 	private SmartServo motion;
-	private ISmartServoRuntime runtime;
-	
+
 	private boolean initSuccessful = false;
 	private boolean debug = false;
-	
+
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
@@ -88,7 +91,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
-	
+
 	public static class UnsupportedControlModeException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 		public UnsupportedControlModeException() { super(); }
@@ -96,81 +99,91 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		public UnsupportedControlModeException(String message, Throwable cause) { super(message, cause); }
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
-	
+
 	public IMotionControlMode configureMotionControlMode(iiwa_msgs.SmartServoMode params) {
 		IMotionControlMode cm;
-		
-		switch (params.getMode()) {
-			case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
-				CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
 
-				CartesianStiffness stiffness = params.getCartesianStiffness();
-				ccm.parametrize(CartDOF.X).setStiffness(stiffness.getStiffness().getX());
-				ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getStiffness().getY());
-				ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getStiffness().getZ());
-				ccm.parametrize(CartDOF.A).setStiffness(stiffness.getStiffness().getA());
-				ccm.parametrize(CartDOF.B).setStiffness(stiffness.getStiffness().getB());
-				ccm.parametrize(CartDOF.C).setStiffness(stiffness.getStiffness().getC());
-				
-				CartesianDamping damping = params.getCartesianDamping();
-				ccm.parametrize(CartDOF.X).setDamping(damping.getDamping().getX());
-				ccm.parametrize(CartDOF.Y).setDamping(damping.getDamping().getY());
-				ccm.parametrize(CartDOF.Z).setDamping(damping.getDamping().getZ());
-				ccm.parametrize(CartDOF.A).setDamping(damping.getDamping().getA());
-				ccm.parametrize(CartDOF.B).setDamping(damping.getDamping().getB());
-				ccm.parametrize(CartDOF.C).setDamping(damping.getDamping().getC());
-					
-				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
-				ccm.setNullSpaceDamping(params.getNullspaceDamping());
-				
-				cm = ccm;
-				break;
-			}
-			
-			case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
-				JointImpedanceControlMode jcm = new JointImpedanceControlMode();
-				
-				JointQuantity stiffness = params.getJointStiffness().getStiffness();
-				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
-				
-				JointQuantity damping = params.getJointDamping().getDamping();
-				jcm.setDamping(helper.jointQuantityToVector(damping));
-				
-				cm = jcm;
-				break;
-			}
-			
-			default: {
-				throw new UnsupportedControlModeException();  // this should just not happen
-			}
+		switch (params.getMode()) {
+		case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
+			CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
+
+			CartesianStiffness stiffness = params.getCartesianStiffness();
+			ccm.parametrize(CartDOF.X).setStiffness(stiffness.getStiffness().getX());
+			ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getStiffness().getY());
+			ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getStiffness().getZ());
+			ccm.parametrize(CartDOF.A).setStiffness(stiffness.getStiffness().getA());
+			ccm.parametrize(CartDOF.B).setStiffness(stiffness.getStiffness().getB());
+			ccm.parametrize(CartDOF.C).setStiffness(stiffness.getStiffness().getC());
+
+			CartesianDamping damping = params.getCartesianDamping();
+			ccm.parametrize(CartDOF.X).setDamping(damping.getDamping().getX());
+			ccm.parametrize(CartDOF.Y).setDamping(damping.getDamping().getY());
+			ccm.parametrize(CartDOF.Z).setDamping(damping.getDamping().getZ());
+			ccm.parametrize(CartDOF.A).setDamping(damping.getDamping().getA());
+			ccm.parametrize(CartDOF.B).setDamping(damping.getDamping().getB());
+			ccm.parametrize(CartDOF.C).setDamping(damping.getDamping().getC());
+
+			ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
+			ccm.setNullSpaceDamping(params.getNullspaceDamping());
+
+			cm = ccm;
+			break;
 		}
-		
+
+		case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
+			JointImpedanceControlMode jcm = new JointImpedanceControlMode();
+
+			JointQuantity stiffness = params.getJointStiffness().getStiffness();
+			jcm.setStiffness(helper.jointQuantityToVector(stiffness));
+
+			JointQuantity damping = params.getJointDamping().getDamping();
+			jcm.setDamping(helper.jointQuantityToVector(damping));
+
+			cm = jcm;
+			break;
+		}
+
+		default: {
+			throw new UnsupportedControlModeException();  // this should just not happen
+		}
+		}
+
 		return cm;
 	}
-	
+
 	public SmartServo configure(iiwa_msgs.SmartServoMode ssm) {
 		return configure(ssm, null);
 	}
-	
+
 	public SmartServo configure(iiwa_msgs.SmartServoMode ssm, SmartServo mot) {
 		if (mot == null) {
 			mot = new SmartServo(robot.getCurrentJointPosition());
 			mot.setMinimumTrajectoryExecutionTime(8e-3);
 		}
-		
+
 		motion.setJointVelocityRel(ssm.getRelativeVelocity());
-		
+
 		motion.setMode(configureMotionControlMode(ssm));
-		
+
 		return motion;
 	}
-	
+
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		helper = new iiwaMessageGenerator();
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(robot, iiwaConfiguration.getRobotName());
 		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
+
+		// SmartServo configuration service callback
+		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
+
+			@Override
+			public void build(ConfigureSmartServoRequest req,
+					ConfigureSmartServoResponse resp) throws ServiceException {
+				configure(req.getMode(), motion);
+			}
+		});
 
 		try {
 			// Set the configuration parameters of the ROS nodes to create.
@@ -185,7 +198,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
 			nodeConfSubscriber.setNodeName("iiwa_subscriber");
 			nodeConfSubscriber.setMasterUri(uri);
-			
+
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
 			nodeConfConfiguration.setNodeName("iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
@@ -195,6 +208,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			nodeMainExecutor.execute(publisher, nodeConfPublisher);
 			nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
 			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
+
 		}
 		catch (Exception e) {
 			if (debug) getLogger().info("Node Configuration failed.");
@@ -203,7 +217,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 		if (debug) 
 			getLogger().info("ROS Nodes initialized.");
-		
+
 		initSuccessful = true;
 	}
 
@@ -211,22 +225,22 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-		
+
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
 		motion.setTimeoutAfterGoalReach(300);
-		
+
 		try {
 			configuration.waitForInitialization();
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 			return;
 		}
-		
+
 		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
-		
+
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig != null && toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
@@ -237,7 +251,6 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 
 		robot.moveAsync(motion);
-		runtime = motion.getRuntime();
 
 		// The run loop
 		getLogger().info("Starting the ROS Command loop...");
@@ -251,7 +264,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				 * one just needs to build the message and set it to the publisher.
 				 */
 				publisher.publishCurrentState(robot, motion);
-				
+
 				if (subscriber.currentCommandType != null) {
 					switch (subscriber.currentCommandType) {
 					case CARTESIAN_POSE: {
@@ -259,9 +272,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
 
 						if (robot.isReadyToMove()) 
-							runtime.setDestination(tr);
+							motion.getRuntime().setDestination(tr);
 					}
-						break;
+					break;
 					case JOINT_POSITION: {
 						/*
 						 * This will acquire the last received JointPosition command from the commanding ROS node.
@@ -271,16 +284,16 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						JointPosition jp = helper.rosJointPositionToKuka(commandPosition);
 
 						if (robot.isReadyToMove()) 
-							runtime.setDestination(jp);
+							motion.getRuntime().setDestination(jp);
 					}
-						break;
+					break;
 
 					default:
 						throw new UnsupportedControlModeException();
 					}
-					
+
 				}
-								
+
 			}
 		} catch (Exception ex) {
 			getLogger().info("ROS loop aborted. " + ex.toString());
@@ -292,7 +305,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				nodeMainExecutor.shutdownNodeMain(subscriber);
 				nodeMainExecutor.shutdownNodeMain(configuration);
 			}
-			runtime.stopMotion();
+			motion.getRuntime().stopMotion();
 			if (debug)getLogger().info("ROS Node terminated.");
 		}
 		getLogger().info("ROS loop has ended. Application terminated.");
