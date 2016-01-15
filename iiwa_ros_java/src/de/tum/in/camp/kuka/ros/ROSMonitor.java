@@ -24,8 +24,15 @@
 package de.tum.in.camp.kuka.ros;
 
 //ROS imports
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.ros.node.DefaultNodeMainExecutor;
@@ -63,8 +70,12 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private iiwaConfiguration configuration; //< Configuration via parameters and services.
 
 	// TODO: change the following IP addresses according to your setup.
-	private String masterUri = "http://160.69.69.100:11311"; //< IP address of ROS core to talk to.
-	private String host = "160.69.69.69"; //< IP address of the IIWA Cabinet.
+	private String masterIp = null;
+	private String masterPort = null;
+	private String masterUri = null; //< IP address of ROS core to talk to.
+	private String localhostIp = null;
+	
+	private boolean configSuccessful = false;
 
 	// ROS Configuration and Node execution objects.
 	private URI uri;
@@ -113,20 +124,83 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
 		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
 		gravcompKeybar.publish();
+		
+		// network configuration
+		BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("config.txt")));
+		try {
+			String line = null;
+			while((line = br.readLine()) != null) {
+				String[] lineComponents = line.split(":");
+				if (lineComponents.length == 0)
+					continue;
+				if (lineComponents[0].equals("master_ip")) {
+					masterIp = lineComponents[1].trim();
+				}
+				if (lineComponents[0].equals("master_port")) {
+					masterPort = lineComponents[1].trim();
+				}
+			}
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		if (masterIp == null) {
+			System.out.println("Could not find ROS master ip in config file!");
+			return;
+		}
+		
+		if (masterPort == null) {
+			System.out.println("Could not find ROS master port in config file!");
+			return;
+		}
+		
+		masterUri = "http://" + masterIp + ":" + masterPort;
+		
+		String[] master_components = masterIp.split("\\.");
+		Enumeration<NetworkInterface> ifaces = null;
+		try {
+			ifaces = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		boolean localhostIpFound = false;
+		while(!localhostIpFound && ifaces.hasMoreElements())
+		{
+		    NetworkInterface n = (NetworkInterface) ifaces.nextElement();
+		    Enumeration<InetAddress> ee = n.getInetAddresses();
+		    while (ee.hasMoreElements())
+		    {
+		        localhostIp = ((InetAddress) ee.nextElement()).getHostAddress();
+		        String[] components = localhostIp.split("\\.");
+				
+				boolean matches = components[0].equals(master_components[0])
+						&& components[1].equals(master_components[1])
+						&& components[2].equals(master_components[2]);
+				if (matches) {
+					localhostIpFound = true;
+					break;
+				}
+		    }
+		}
+		
+		// ROS initialization
 
 		try {
 			// Set the configuration parameters of the ROS node to create.
 			uri = new URI(masterUri);
-			nodeConfPublisher = NodeConfiguration.newPublic(host);
+			nodeConfPublisher = NodeConfiguration.newPublic(localhostIp);
 			nodeConfPublisher.setNodeName("/iiwa/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
-			nodeConfConfiguration = NodeConfiguration.newPublic(host);
+			nodeConfConfiguration = NodeConfiguration.newPublic(localhostIp);
 			nodeConfConfiguration.setNodeName("/iiwa/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
 		}
 		catch (Exception e) {
 			if (debug) getLogger().info("Node Configuration failed; please check the ROS master IP in the Sunrise app source code");
 			getLogger().info(e.toString());
+			return;
 		}
 
 		try {
@@ -139,10 +213,16 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		catch(Exception e) {
 			if (debug) getLogger().info("Node Executor failed.");
 			getLogger().info(e.toString());
+			return;
 		}
+		
+		configSuccessful = true;
 	}
 
 	public void run() {
+		if (!configSuccessful) {
+			throw new RuntimeException("Could not configure successfully");
+		}
 		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
