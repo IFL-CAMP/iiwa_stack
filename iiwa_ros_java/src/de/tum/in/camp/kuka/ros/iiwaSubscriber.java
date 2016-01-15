@@ -57,6 +57,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private ConnectedNode node = null;
 	
 	// Service for reconfiguring control mode
+	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoServer = null;
 	private ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> configureSmartServoCallback = null;
 

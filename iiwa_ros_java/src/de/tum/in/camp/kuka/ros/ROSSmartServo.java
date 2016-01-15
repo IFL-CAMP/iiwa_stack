@@ -29,17 +29,19 @@ import iiwa_msgs.CartesianStiffness;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
+import iiwa_msgs.SmartServoMode;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.ros.exception.ServiceException;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
-import org.ros.node.service.ServiceServer;
 
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
@@ -71,6 +73,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private LBR robot;
 	private Tool tool;
 	private SmartServo motion;
+	private Lock configureSmartServoLock = new ReentrantLock();
 
 	private boolean initSuccessful = false;
 	private boolean debug = false;
@@ -100,7 +103,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
 
-	public IMotionControlMode configureMotionControlMode(iiwa_msgs.SmartServoMode params) {
+	public IMotionControlMode buildMotionControlMode(iiwa_msgs.SmartServoMode params) {
 		IMotionControlMode cm;
 
 		switch (params.getMode()) {
@@ -122,6 +125,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			ccm.parametrize(CartDOF.A).setDamping(damping.getDamping().getA());
 			ccm.parametrize(CartDOF.B).setDamping(damping.getDamping().getB());
 			ccm.parametrize(CartDOF.C).setDamping(damping.getDamping().getC());
+			
+			// TODO: add stiffness along axis
 
 			ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
 			ccm.setNullSpaceDamping(params.getNullspaceDamping());
@@ -151,21 +156,25 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		return cm;
 	}
 
-	public SmartServo configure(iiwa_msgs.SmartServoMode ssm) {
-		return configure(ssm, null);
+	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
+		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
+		mot.setMinimumTrajectoryExecutionTime(8e-3);
+		
+		configureSmartServoMotion(ssm, mot);
+		return mot;
 	}
 
-	public SmartServo configure(iiwa_msgs.SmartServoMode ssm, SmartServo mot) {
-		if (mot == null) {
-			mot = new SmartServo(robot.getCurrentJointPosition());
-			mot.setMinimumTrajectoryExecutionTime(8e-3);
-		}
+	public void configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm, SmartServo mot) {
+		if (mot == null)
+			return; // TODO: exception?
 
 		motion.setJointVelocityRel(ssm.getRelativeVelocity());
-
-		motion.setMode(configureMotionControlMode(ssm));
-
-		return motion;
+		motion.setMode(buildMotionControlMode(ssm));
+	}
+	
+	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
+		return (roscm.getMode() == SmartServoMode.CARTESIAN_IMPEDANCE && kukacm.getClass().getName().equals("CartesianImpedanceControlMode"))
+				|| (roscm.getMode() == SmartServoMode.JOINT_IMPEDANCE && kukacm.getClass().getName().equals("JointImpedanceControlMode"));
 	}
 
 	public void initialize() {
@@ -181,7 +190,26 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			@Override
 			public void build(ConfigureSmartServoRequest req,
 					ConfigureSmartServoResponse resp) throws ServiceException {
-				configure(req.getMode(), motion);
+				// we can change the parameters if it is the same type of control strategy
+				// otherwise we have to stop the motion, replace it and start it again
+				try {
+				if (isSameControlMode(motion.getMode(), req.getMode())) {
+					motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+				} else {
+					configureSmartServoLock.lock();
+					
+					SmartServo oldmotion = motion;
+					motion = configureSmartServoMotion(req.getMode());
+					robot.moveAsync(motion);
+					oldmotion.getRuntime().stopMotion();
+					
+					configureSmartServoLock.unlock();
+				}
+				} catch (Exception e) {
+					resp.setSuccess(false);
+					return;
+				}
+				resp.setSuccess(true);
 			}
 		});
 
@@ -266,6 +294,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				publisher.publishCurrentState(robot, motion);
 
 				if (subscriber.currentCommandType != null) {
+					configureSmartServoLock.lock(); // the service could stop the motion and restart it
+					
 					switch (subscriber.currentCommandType) {
 					case CARTESIAN_POSE: {
 						PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
@@ -292,6 +322,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						throw new UnsupportedControlModeException();
 					}
 
+					configureSmartServoLock.unlock();
 				}
 
 			}
