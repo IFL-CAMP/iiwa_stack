@@ -26,12 +26,12 @@ package de.tum.in.camp.kuka.ros;
 
 // ROS import
 import geometry_msgs.Pose;
+
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
 import org.ros.time.WallTimeProvider;
 
-// KUKA import
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
@@ -205,7 +205,15 @@ public class iiwaMessageGenerator {
 	 */
 	public iiwa_msgs.JointStiffness buildJointStiffness(LBR robot) {
 		double[] stiffness = new double[7];
-		// TODO: build stiffness vector
+
+		// this does not fit into our architecture yet
+//		SmartServo motion;
+//		try {
+//			stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
+//		} catch (Exception e) {
+//			// ups, our control mode is not joint impedance
+//			return null;
+//		}
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");

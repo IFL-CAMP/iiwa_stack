@@ -125,7 +125,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			nodeConfConfiguration.setMasterUri(uri);
 		}
 		catch (Exception e) {
-			if (debug) getLogger().info("Node Configuration failed.");
+			if (debug) getLogger().info("Node Configuration failed; please check the ROS master IP in the Sunrise app source code");
 			getLogger().info(e.toString());
 		}
 
