@@ -269,7 +269,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	}
 
 	<T> void publishIfSubscriber(Publisher<T> p, T m) {
-		if (p != null) {
+		if (p != null && m != null) {
 			if (p.getNumberOfSubscribers() > 0)
 				p.publish(m);
 		}

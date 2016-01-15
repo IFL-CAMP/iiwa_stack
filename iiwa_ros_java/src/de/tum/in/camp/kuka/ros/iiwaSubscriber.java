@@ -84,7 +84,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 //	private iiwa_msgs.JointVelocity jv;
 	
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
-	CommandType currentCommandType;
+	CommandType currentCommandType = CommandType.JOINT_POSITION;
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
@@ -244,7 +244,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
-				// TODO: check if it works
 				cp = position;
 				currentCommandType = CommandType.CARTESIAN_POSE;
 			}
@@ -297,7 +296,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		
 		if (configureSmartServoCallback != null) {
 			configureSmartServoServer = node.newServiceServer(
-					"configureSmartServo", 
+					iiwaName + "/configuration/configureSmartServo", 
 					"iiwa_msgs/ConfigureSmartServo", 
 					configureSmartServoCallback);
 		}

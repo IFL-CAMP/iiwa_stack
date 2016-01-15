@@ -41,6 +41,7 @@ import com.kuka.roboticsAPI.geometricModel.math.MatrixRotation;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.geometricModel.math.Vector;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
 /**
@@ -213,6 +214,8 @@ public class iiwaMessageGenerator {
 		double[] stiffness = new double[7];
 
 		try {
+			IMotionControlMode mode = motion.getMode();
+			JointImpedanceControlMode cm = (JointImpedanceControlMode) mode;  //TODO: debug, remove
 			stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
 		} catch (Exception e) {
 			// ups, our control mode is not joint impedance

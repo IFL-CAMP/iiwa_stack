@@ -31,6 +31,8 @@ import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
 import iiwa_msgs.SmartServoMode;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,7 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
+import com.kuka.roboticsAPI.motionModel.ServoMotion;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -136,7 +139,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 
 		case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
-			JointImpedanceControlMode jcm = new JointImpedanceControlMode();
+			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
 
 			JointQuantity stiffness = params.getJointStiffness().getStiffness();
 			jcm.setStiffness(helper.jointQuantityToVector(stiffness));
@@ -168,13 +171,23 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (mot == null)
 			return; // TODO: exception?
 
-		motion.setJointVelocityRel(ssm.getRelativeVelocity());
-		motion.setMode(buildMotionControlMode(ssm));
+		mot.setJointVelocityRel(ssm.getRelativeVelocity());
+		mot.setMode(buildMotionControlMode(ssm));
 	}
 	
 	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
-		return (roscm.getMode() == SmartServoMode.CARTESIAN_IMPEDANCE && kukacm.getClass().getName().equals("CartesianImpedanceControlMode"))
-				|| (roscm.getMode() == SmartServoMode.JOINT_IMPEDANCE && kukacm.getClass().getName().equals("JointImpedanceControlMode"));
+		String roscmname = null;
+		switch (roscm.getMode()) {
+		case SmartServoMode.CARTESIAN_IMPEDANCE:
+			roscmname = "CartesianImpedanceControlMode";
+			break;
+		case SmartServoMode.JOINT_IMPEDANCE:
+			roscmname = "JointImpedanceControlMode";
+			break;
+		}
+		String kukacmname = kukacm.getClass().getSimpleName();
+		
+		return roscmname.equals(kukacmname);
 	}
 
 	public void initialize() {
@@ -193,20 +206,29 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				// we can change the parameters if it is the same type of control strategy
 				// otherwise we have to stop the motion, replace it and start it again
 				try {
-				if (isSameControlMode(motion.getMode(), req.getMode())) {
-					motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
-				} else {
-					configureSmartServoLock.lock();
-					
-					SmartServo oldmotion = motion;
-					motion = configureSmartServoMotion(req.getMode());
-					robot.moveAsync(motion);
-					oldmotion.getRuntime().stopMotion();
-					
-					configureSmartServoLock.unlock();
-				}
+					if (motion.getMode() != null && isSameControlMode(motion.getMode(), req.getMode())) {
+						motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+					} else {
+						configureSmartServoLock.lock();
+						
+						SmartServo oldmotion = motion;
+						ServoMotion.validateForImpedanceMode(robot);
+						motion = configureSmartServoMotion(req.getMode());
+						robot.moveAsync(motion);
+						oldmotion.getRuntime().stopMotion();
+						
+						configureSmartServoLock.unlock();
+					}
 				} catch (Exception e) {
 					resp.setSuccess(false);
+					if (e.getMessage() != null) {
+						StringWriter sw = new StringWriter();
+						PrintWriter pw = new PrintWriter(sw);
+						e.printStackTrace(pw);
+						resp.setError(e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
+					} else {
+						resp.setError("because I hate you :)");
+					}
 					return;
 				}
 				resp.setSuccess(true);
