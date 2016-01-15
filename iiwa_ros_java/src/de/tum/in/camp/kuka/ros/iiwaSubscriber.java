@@ -58,7 +58,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
 	private Subscriber<iiwa_msgs.JointStiffness> jointStiffnessSubscriber;
 	private Subscriber<iiwa_msgs.JointTorque> jointTorqueSubscriber;
-	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
+//	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
 
 	// Local iiwa_msgs to store received messages 
 	// Cartesian Messages
@@ -69,7 +69,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointStiffness js;
 	private iiwa_msgs.JointTorque jt;
-	private iiwa_msgs.JointVelocity jv;
+//	private iiwa_msgs.JointVelocity jv;
 	
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
 	CommandType currentCommandType;
@@ -89,13 +89,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwaSubscriber(LBR robot, String robotName) {
 		cp = helper.buildCartesianPose(robot);
-		cv = helper.buildCartesianVelocity(robot);
+//		cv = helper.buildCartesianVelocity(robot);
 		cw = helper.buildCartesianWrench(robot);
 
 		jp = helper.buildJointPosition(robot);
-		js = helper.buildJointStiffness(robot);
+		js = helper.buildJointStiffness(robot, null);
 		jt = helper.buildJointTorque(robot);
-		jv = helper.buildJointVelocity(robot);
+//		jv = helper.buildJointVelocity(robot);
 		
 		iiwaName = robotName;
 	}
@@ -110,13 +110,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
 		cp = helper.buildCartesianPose(robot, frame);
-		cv = helper.buildCartesianVelocity(robot, frame);
+//		cv = helper.buildCartesianVelocity(robot, frame);
 		cw = helper.buildCartesianWrench(robot, frame);
 
 		jp = helper.buildJointPosition(robot);
-		js = helper.buildJointStiffness(robot);
+		js = helper.buildJointStiffness(robot, null);
 		jt = helper.buildJointTorque(robot);
-		jv = helper.buildJointVelocity(robot);
+//		jv = helper.buildJointVelocity(robot);
 		
 		iiwaName = robotName;
 	}
@@ -174,9 +174,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
 	 * @return the received Joint Velocity message.
 	 */
-	public iiwa_msgs.JointVelocity getJointVelocity() {
-		return jv;
-	}
+//	public iiwa_msgs.JointVelocity getJointVelocity() {
+//		return jv;
+//	}
 
 	/**
 	 * Set the name to use to compose the ROS topics' names for the subscribers. <p>
@@ -221,7 +221,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointStiffnessSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointTorqueSubscriber = connectedNode.newSubscriber(iiwaName + "/commmand/JointTorque", iiwa_msgs.JointTorque._TYPE);
-		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
+//		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
@@ -269,12 +269,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			}
 		});
 
-		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
-			@Override
-			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
-				jv = velocity;
-				currentCommandType = CommandType.JOINT_VELOCITY;
-			}
-		});
+//		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
+//			@Override
+//			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
+//				jv = velocity;
+//				currentCommandType = CommandType.JOINT_VELOCITY;
+//			}
+//		});
 	}
 }

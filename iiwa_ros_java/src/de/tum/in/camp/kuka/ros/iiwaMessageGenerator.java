@@ -32,6 +32,7 @@ import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
 import org.ros.time.WallTimeProvider;
 
+import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
@@ -39,6 +40,8 @@ import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixRotation;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.geometricModel.math.Vector;
+import com.kuka.roboticsAPI.motionModel.SmartServo;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
 /**
  * This class helps the building of iiwa_msgs ROS messages,
@@ -64,7 +67,7 @@ public class iiwaMessageGenerator {
 	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot) {
 		return buildCartesianPose(robot, robot.getFlange());
 	}
-	
+
 	/**
 	 * Builds a CartesianPosition message given a LBR iiwa Robot and a frame of reference.<p>
 	 * The Cartesian position will be the obtained from the given Frame,
@@ -96,9 +99,9 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @return built CartesianVelocity message.
 	 */
-	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot) {
-		return buildCartesianVelocity(robot, robot.getFlange());
-	}
+	//	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot) {
+	//		return buildCartesianVelocity(robot, robot.getFlange());
+	//	}
 
 	/**
 	 * Builds a CartesianVelocity message given a LBR iiwa Robot and a frame of reference.<p>
@@ -108,25 +111,25 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame the velocity refers to.
 	 * @return built CartesianVelocity message.
 	 */
-	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot, ObjectFrame frame) {
-//		double[] velocity = new double[9];
-
-		// Velocity is set to zero!
-		// TODO: Compute Cartesian velocity !
-
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(frame.getName());
-		header.setStamp(time.getCurrentTime());
-
-		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
-		
-//		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
-		
-//		cv.setVelocity(velocity);
-		cv.setHeader(header);
-
-		return cv;
-	}
+	//	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot, ObjectFrame frame) {
+	////		double[] velocity = new double[9];
+	//
+	//		// Velocity is set to zero!
+	//		// TODO: Compute Cartesian velocity !
+	//
+	//		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+	//		header.setFrameId(frame.getName());
+	//		header.setStamp(time.getCurrentTime());
+	//
+	//		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
+	//		
+	////		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
+	//		
+	////		cv.setVelocity(velocity);
+	//		cv.setHeader(header);
+	//
+	//		return cv;
+	//	}
 
 	/**
 	 * Builds a CartesianVelocity message given a LBR iiwa Robot.<p>
@@ -188,11 +191,11 @@ public class iiwaMessageGenerator {
 		header.setStamp(time.getCurrentTime());
 
 		iiwa_msgs.JointQuantity a = vectorToJointQuantity(position);
-		
+
 		iiwa_msgs.JointPosition jp = messageFactory.newFromType(iiwa_msgs.JointPosition._TYPE);
 		jp.setHeader(header);
 		jp.setPosition(a);
-		
+
 		return jp;
 	}
 
@@ -203,28 +206,62 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @return built JointStiffness message.
 	 */
-	public iiwa_msgs.JointStiffness buildJointStiffness(LBR robot) {
+	public iiwa_msgs.JointStiffness buildJointStiffness(LBR robot, SmartServo motion) {
+		if (motion == null)
+			return null;
+
 		double[] stiffness = new double[7];
 
-		// this does not fit into our architecture yet
-//		SmartServo motion;
-//		try {
-//			stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
-//		} catch (Exception e) {
-//			// ups, our control mode is not joint impedance
-//			return null;
-//		}
+		try {
+			stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
+		} catch (Exception e) {
+			// ups, our control mode is not joint impedance
+			return null;
+		}
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
-			
+
 		iiwa_msgs.JointQuantity a = vectorToJointQuantity(stiffness);
-		
+
 		iiwa_msgs.JointStiffness js = messageFactory.newFromType(iiwa_msgs.JointStiffness._TYPE);
 		js.setHeader(header);
 		js.setStiffness(a);
-		
+
+		return js;
+	}
+
+	/**
+	 * Builds a JointDamping message given a LBR iiwa Robot.<p>
+	 * The <b>damping will be set to zero</b>,<br>
+	 * the message header is set to current time.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 * @return built JointDamping message.
+	 */
+	public iiwa_msgs.JointDamping buildJointDamping(LBR robot, SmartServo motion) {
+		if (motion == null)
+			return null;
+
+		double[] damping = new double[7];
+
+		try {
+			damping = ((JointImpedanceControlMode) motion.getMode()).getDamping();
+		} catch (Exception e) {
+			// ups, our control mode is not joint impedance
+			return null;
+		}
+
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setFrameId("Robot");
+		header.setStamp(time.getCurrentTime());
+
+		iiwa_msgs.JointQuantity a = vectorToJointQuantity(damping);
+
+		iiwa_msgs.JointDamping js = messageFactory.newFromType(iiwa_msgs.JointDamping._TYPE);
+		js.setHeader(header);
+		js.setDamping(a);
+
 		return js;
 	}
 
@@ -241,13 +278,13 @@ public class iiwaMessageGenerator {
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
 		header.setStamp(time.getCurrentTime());
-		
+
 		iiwa_msgs.JointQuantity a = vectorToJointQuantity(torque);
 
 		iiwa_msgs.JointTorque jt = messageFactory.newFromType(iiwa_msgs.JointTorque._TYPE);
 		jt.setHeader(header);
 		jt.setTorque(a);
-		
+
 		return jt;
 	}
 
@@ -258,27 +295,27 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @return built JointVelocity message.
 	 */
-	public iiwa_msgs.JointVelocity buildJointVelocity(LBR robot) {
-		double[] velocity = new double[7];
-		// TODO: build velocity vector
+	//	public iiwa_msgs.JointVelocity buildJointVelocity(LBR robot) {
+	//		double[] velocity = new double[7];
+	//		// TODO: build velocity vector
+	//
+	//		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+	//		header.setFrameId("Robot");
+	//		header.setStamp(time.getCurrentTime());
+	//		
+	//		iiwa_msgs.JointQuantity a = vectorToJointQuantity(velocity);
+	//		
+	//		iiwa_msgs.JointVelocity jv = messageFactory.newFromType(iiwa_msgs.JointVelocity._TYPE);
+	//		jv.setHeader(header);
+	//		jv.setVelocity(a);
+	//		return jv;
+	//	}
 
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId("Robot");
-		header.setStamp(time.getCurrentTime());
-		
-		iiwa_msgs.JointQuantity a = vectorToJointQuantity(velocity);
-		
-		iiwa_msgs.JointVelocity jv = messageFactory.newFromType(iiwa_msgs.JointVelocity._TYPE);
-		jv.setHeader(header);
-		jv.setVelocity(a);
-		return jv;
-	}
-	
 	// conversions
-	
+
 	public iiwa_msgs.JointQuantity vectorToJointQuantity(double[] torque) {
 		iiwa_msgs.JointQuantity ret = messageFactory.newFromType(iiwa_msgs.JointQuantity._TYPE);
-		
+
 		ret.setA1((float) torque[0]);
 		ret.setA2((float) torque[1]);
 		ret.setA3((float) torque[2]);
@@ -286,13 +323,13 @@ public class iiwaMessageGenerator {
 		ret.setA5((float) torque[4]);
 		ret.setA6((float) torque[5]);
 		ret.setA7((float) torque[6]);
-		
+
 		return ret;
 	}
-	
+
 	public double[]  jointQuantityToVector(iiwa_msgs.JointQuantity a) {
 		double[] ret = new double[7];
-		
+
 		ret[0] = a.getA1();
 		ret[1] = a.getA2();
 		ret[2] = a.getA3();
@@ -300,14 +337,14 @@ public class iiwaMessageGenerator {
 		ret[4] = a.getA5();
 		ret[5] = a.getA6();
 		ret[6] = a.getA7();
-		
+
 		return ret;
 	}
 
 	public static MatrixRotation quatToMatrix(double x, double y, double z, double w) {
 		return quatToMatrix((float) x, (float) y, (float) z, (float) w);
 	}
-	
+
 	public final static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
 		double sqw = w*w;
 		double sqx = x*x;
@@ -414,7 +451,7 @@ public class iiwaMessageGenerator {
 
 		return Transformation.of(transl, rot);
 	}
-	
+
 	public Pose kukaTransformationToRosPose(Transformation kukaTransf) {
 		if (kukaTransf == null)
 			return null;
@@ -436,6 +473,32 @@ public class iiwaMessageGenerator {
 		p.setOrientation(quaternion);
 
 		return p;
+	}
+
+	public JointPosition rosJointPositionToKuka(iiwa_msgs.JointPosition rosJointPos) {
+		return new JointPosition(
+				rosJointPos.getPosition().getA1(),
+				rosJointPos.getPosition().getA2(),
+				rosJointPos.getPosition().getA3(),
+				rosJointPos.getPosition().getA4(),
+				rosJointPos.getPosition().getA5(),
+				rosJointPos.getPosition().getA6(),
+				rosJointPos.getPosition().getA7()
+				);
+	}
+
+	public double[] rosJointQuantityToArray(iiwa_msgs.JointQuantity rosJointQuant) {
+		double[] ret = {
+				rosJointQuant.getA1(),
+				rosJointQuant.getA2(),
+				rosJointQuant.getA3(),
+				rosJointQuant.getA4(),
+				rosJointQuant.getA5(),
+				rosJointQuant.getA6(),
+				rosJointQuant.getA7()
+		};
+		return ret;
+
 	}
 
 }

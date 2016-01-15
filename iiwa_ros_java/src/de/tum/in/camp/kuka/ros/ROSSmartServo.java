@@ -69,6 +69,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private SmartServo motion;
 	private ISmartServoRuntime runtime;
 	
+	private boolean initSuccessful = false;
 	private boolean debug = false;
 	
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
@@ -76,13 +77,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
 	private iiwaConfiguration configuration; //< Configuration via parameters and services.
 
-	// TODO: change the following IP addresses according to your setup.
-	private String masterUri = "http://160.69.69.100:11311";
-	private String host = "160.69.69.69";
-
 	// ROS Configuration and Node execution objects. Two different configurations are needed
 	// for the Publisher and the Subscriber.
-	private URI uri;
 	private NodeConfiguration nodeConfPublisher;
 	private NodeConfiguration nodeConfSubscriber;
 	private NodeConfiguration nodeConfConfiguration;
@@ -135,26 +131,10 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				JointImpedanceControlMode jcm = new JointImpedanceControlMode();
 				
 				JointQuantity stiffness = params.getJointStiffness().getStiffness();
-				jcm.setStiffness(
-						stiffness.getA1(),
-						stiffness.getA2(),
-						stiffness.getA3(),
-						stiffness.getA4(),
-						stiffness.getA5(),
-						stiffness.getA6(),
-						stiffness.getA7()
-				);
+				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
 				
 				JointQuantity damping = params.getJointDamping().getDamping();
-				jcm.setDamping(
-						damping.getA1(),
-						damping.getA2(),
-						damping.getA3(),
-						damping.getA4(),
-						damping.getA5(),
-						damping.getA6(),
-						damping.getA7()
-				);
+				jcm.setDamping(helper.jointQuantityToVector(damping));
 				
 				cm = jcm;
 				break;
@@ -188,26 +168,26 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		helper = new iiwaMessageGenerator();
-		publisher = new iiwaPublisher(robot,"iiwa");
-		subscriber = new iiwaSubscriber(robot,"iiwa");
-		configuration = new iiwaConfiguration("iiwa");
+		configuration = new iiwaConfiguration();
+		publisher = new iiwaPublisher(robot, iiwaConfiguration.getRobotName());
+		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
 
 		try {
 			// Set the configuration parameters of the ROS nodes to create.
-			uri = new URI(masterUri);
+			URI uri = new URI(iiwaConfiguration.getMasterURI());
 
 			// Configuration for the Publisher.
-			nodeConfPublisher = NodeConfiguration.newPublic(host);
-			nodeConfPublisher.setNodeName("publisherNode");
+			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfPublisher.setNodeName("iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 
 			// Configuration for the Subscriber.
-			nodeConfSubscriber = NodeConfiguration.newPublic(host);
-			nodeConfSubscriber.setNodeName("subscriberNode");
+			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfSubscriber.setNodeName("iiwa_subscriber");
 			nodeConfSubscriber.setMasterUri(uri);
 			
-			nodeConfConfiguration = NodeConfiguration.newPublic(host);
-			nodeConfConfiguration.setNodeName("/iiwa/iiwa_configuration");
+			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfConfiguration.setNodeName("iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
 
 			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
@@ -221,11 +201,17 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			getLogger().info(e.toString());
 		}
 
-		if (debug) getLogger().info("ROS Nodes initialized.");
+		if (debug) 
+			getLogger().info("ROS Nodes initialized.");
+		
+		initSuccessful = true;
 	}
 
 	public void run() {
-
+		if (!initSuccessful) {
+			throw new RuntimeException("Could not init the RoboticApplication successfully");
+		}
+		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
@@ -264,9 +250,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				 * Any other of the set methods for iiwa_msgs included in the published can be used at the same time,
 				 * one just needs to build the message and set it to the publisher.
 				 */
-				publisher.setJointPosition(helper.buildJointPosition(robot));
-				publisher.setCartesianPose(helper.buildCartesianPose(robot));
-				publisher.publish();
+				publisher.publishCurrentState(robot, motion);
 				
 				if (subscriber.currentCommandType != null) {
 					switch (subscriber.currentCommandType) {
@@ -284,15 +268,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						 * If the robot can move, then it will move to this new position.
 						 */
 						iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-						JointPosition jp = new JointPosition(
-								commandPosition.getPosition().getA1(),
-								commandPosition.getPosition().getA2(),
-								commandPosition.getPosition().getA3(),
-								commandPosition.getPosition().getA4(),
-								commandPosition.getPosition().getA5(),
-								commandPosition.getPosition().getA6(),
-								commandPosition.getPosition().getA7()
-						);
+						JointPosition jp = helper.rosJointPositionToKuka(commandPosition);
 
 						if (robot.isReadyToMove()) 
 							runtime.setDestination(jp);

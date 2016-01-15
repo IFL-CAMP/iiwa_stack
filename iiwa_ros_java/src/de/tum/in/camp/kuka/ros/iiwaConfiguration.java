@@ -23,10 +23,19 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import org.ros.exception.ParameterNotFoundException;
@@ -43,37 +52,111 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 public class iiwaConfiguration extends AbstractNodeMain {
-	
+
 	// Name to use to build the name of the ROS topics
-	private String iiwaName = "iiwa";
+	private static Map<String, String> config = null;
+	private static String robotName = null;
+	private static String masterIp = null;
+	private static String masterPort = null;
+	private static String masterUri = null; //< IP address of ROS core to talk to.
+	private static String robotIp = null;
+	private static boolean staticConfigurationSuccessful = false;
+
 	private ConnectedNode node;
 	private ParameterTree params;
-	
+
 	// used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
-	
-	public iiwaConfiguration(String robotName) {
-		iiwaName = robotName;
+
+	public iiwaConfiguration() {
+		checkConfiguration();
+	}
+
+	public static void checkConfiguration() {
+		if (!staticConfigurationSuccessful) {
+			configure();
+			if (!staticConfigurationSuccessful) {
+				throw new RuntimeException("Static configuration was not successful");
+			}
+		}
+	}
+
+	private static void parseConfigFile() {
+		config = new HashMap<String, String>();
+		BufferedReader br = new BufferedReader(new InputStreamReader(iiwaConfiguration.class.getResourceAsStream("config.txt")));
+		try {
+			String line = null;
+			while((line = br.readLine()) != null) {
+				String[] lineComponents = line.split(":");
+				if (lineComponents.length != 2)
+					continue;
+
+				config.put(lineComponents[0].trim(), lineComponents[1].trim());
+			}
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+	}
+
+	public static void configure() {
+		parseConfigFile();
+		
+		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
+		System.out.println("robot name: " + robotName);
+
+		// network configuration
+		masterIp = config.get("master_ip");
+		masterPort = config.get("master_port");
+		masterUri = "http://" + masterIp + ":" + masterPort;
+		System.out.println("master uri: " + masterUri);
+
+		String[] master_components = masterIp.split("\\.");
+		String localhostIp = null;
+		Enumeration<NetworkInterface> ifaces = null;
+		try {
+			ifaces = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return;
+		}
+		boolean localhostIpFound = false;
+		while(!localhostIpFound && ifaces.hasMoreElements()) {
+			NetworkInterface n = (NetworkInterface) ifaces.nextElement();
+			Enumeration<InetAddress> ee = n.getInetAddresses();
+			while (ee.hasMoreElements()) {
+				localhostIp = ((InetAddress) ee.nextElement()).getHostAddress();
+				String[] components = localhostIp.split("\\.");
+
+				boolean matches = components[0].equals(master_components[0])
+						&& components[1].equals(master_components[1])
+						&& components[2].equals(master_components[2]);
+				if (matches) {
+					localhostIpFound = true;
+					break;
+				}
+			}
+		}
+		robotIp = localhostIp;
+		System.out.println("robot ip: " + robotIp);
+		
+		staticConfigurationSuccessful = true;
 	}
 	
-	/**
-	 * Set the name to use to compose the ROS topics' names for the publishers. <p>
-	 * e.g. setIIWAName("dummy"), the topics' names will be "dummy/state/...". <br>
-	 * The creation of the nodes is performed when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.
-	 * @param newName : the new name to use for ROS topics.
-	 */
-	public void setIIWAName(String newName) {
-		iiwaName = newName;
+	public static String getMasterURI() {
+		checkConfiguration();
+		return masterUri;
 	}
 	
-	/**
-	 * Returns the current name used to compose the ROS topics' names for the publishers. <p>
-	 * e.g. returning "dummy" means that the topics' names will be "dummy/state/...". <br>
-	 * The creation of the nodes is performed when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.
-	 * @return the current name to use for ROS topics.
-	 */
-	public String getIIWAName() {
-		return iiwaName;
+	public static String getRobotIp() {
+		checkConfiguration();
+		return robotIp;
+	}
+	
+	public static String getRobotName() {
+		checkConfiguration();
+		return robotName;
 	}
 
 	/**
@@ -81,9 +164,9 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	 */
 	@Override
 	public GraphName getDefaultNodeName() {
-		return GraphName.of(iiwaName + "/configuration");
+		return GraphName.of(robotName + "/configuration");
 	}
-	
+
 	/**
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
 	 * Do <b>NOT</b> manually call this. <p> 
@@ -94,26 +177,26 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		node = connectedNode;
 		initSemaphore.release();
 	}
-	
+
 	public void waitForInitialization() throws InterruptedException {
 		initSemaphore.acquire();
 	}
-	
+
 	private ParameterTree getParameterTree() {
 		if (initSemaphore.availablePermits() > 0)
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
-	
+
 	public String getToolName() {
 		return getStringParameter("toolName");
 	}
-	
+
 	public class ToolbarSpecification {
 		public String name;
 		public String[] buttonIDs;
 	}
-	
+
 	public void setupToolbars(IApplicationUI appUI, 
 			final iiwaPublisher publisher, 
 			List<IUserKey> generalKeys, 
@@ -123,14 +206,14 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		if (ts != null) {
 			for (final ToolbarSpecification t: ts) {
 				IUserKeyBar generalKeyBar = appUI.createUserKeyBar(t.name);
-				
+
 				for (int i = 0; i < t.buttonIDs.length; i++) {
 					final String buttonID = t.buttonIDs[i];
 					IUserKey generalKey;
 					if (buttonID.contains(",")) {
 						// double button
 						final String[] singleButtonIDs = buttonID.split(",");
-						
+
 						IUserKeyListener generalKeyList = new IUserKeyListener() {
 							@Override
 							public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
@@ -146,7 +229,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 							}
 						};
 						generalKeyLists.add(generalKeyList);
-						
+
 						generalKey = generalKeyBar.addDoubleUserKey(i, generalKeyList, false);
 						generalKey.setText(UserKeyAlignment.TopMiddle, singleButtonIDs[0]);
 						generalKey.setText(UserKeyAlignment.BottomMiddle, singleButtonIDs[1]);
@@ -164,13 +247,13 @@ public class iiwaConfiguration extends AbstractNodeMain {
 							}
 						};
 						generalKeyLists.add(generalKeyList);
-						
+
 						generalKey = generalKeyBar.addUserKey(i, generalKeyList, false);
 						generalKey.setText(UserKeyAlignment.TopMiddle, buttonID);
 						generalKeys.add(generalKey);
 					}
 				}
-				
+
 				generalKeyBars.add(generalKeyBar);
 			}	
 			for (IUserKeyBar kb  : generalKeyBars)
@@ -182,13 +265,13 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	public List<ToolbarSpecification> getToolbarSpecifications() {
 		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
 		List<?> rawParam = getListParameter("toolbarSpecifications");
-		
+
 		if (rawParam == null)
 			return null;
-		
+
 		@SuppressWarnings("unchecked")
 		List<String> stringParam = new LinkedList<String>((Collection<? extends String>) rawParam);
-		
+
 		while (stringParam.size() > 0 && (stringParam.get(0)).equals("spec")) {
 			ToolbarSpecification ts = new ToolbarSpecification();
 			stringParam.remove(0);
@@ -204,27 +287,27 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			ts.buttonIDs = buttons.toArray(new String[buttons.size()]);
 			ret.add(ts);
 		}
-		
+
 		return ret;
 	}
-	
+
 	public String getStringParameter(String argname) {
 		params = getParameterTree();
 		String ret = null;
 		try {
-			ret = params.getString(iiwaName + "/" + argname, "");			
+			ret = params.getString(robotName + "/" + argname, "");			
 		} catch (ParameterNotFoundException e) {
 			// TODO
 		}
-		
+
 		return ret;
 	}
-	
+
 	public List<?> getListParameter(String argname) {
 		List<?> args = new LinkedList<String>();  // supports remove
 		params = getParameterTree();
 		try {
-			args = params.getList(iiwaName + "/" + argname);
+			args = params.getList(robotName + "/" + argname);
 			if (args == null) {
 				return null;
 			}
