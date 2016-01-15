@@ -23,9 +23,7 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
-import geometry_msgs.Point;
 import geometry_msgs.PoseStamped;
-import geometry_msgs.Quaternion;
 import iiwa_msgs.CartesianDamping;
 import iiwa_msgs.CartesianStiffness;
 import iiwa_msgs.JointQuantity;
@@ -43,9 +41,7 @@ import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.Tool;
-import com.kuka.roboticsAPI.geometricModel.math.MatrixRotation;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
-import com.kuka.roboticsAPI.geometricModel.math.Vector;
 import com.kuka.roboticsAPI.motionModel.ISmartServoRuntime;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
@@ -139,7 +135,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				JointImpedanceControlMode jcm = new JointImpedanceControlMode();
 				
 				JointQuantity stiffness = params.getJointStiffness().getStiffness();
-				jcm.setStiffness(stiffness.getA1(),
+				jcm.setStiffness(
+						stiffness.getA1(),
 						stiffness.getA2(),
 						stiffness.getA3(),
 						stiffness.getA4(),
@@ -149,7 +146,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				);
 				
 				JointQuantity damping = params.getJointDamping().getDamping();
-				jcm.setDamping(damping.getA1(),
+				jcm.setDamping(
+						damping.getA1(),
 						damping.getA2(),
 						damping.getA3(),
 						damping.getA4(),
@@ -273,14 +271,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				if (subscriber.currentCommandType != null) {
 					switch (subscriber.currentCommandType) {
 					case CARTESIAN_POSE: {
-						PoseStamped commandPosition = subscriber.getCartesianPose();
-						Point position = commandPosition.getPose().getPosition();
-						Quaternion orientation = commandPosition.getPose().getOrientation();
-						Vector transl = Vector.of(position.getX(), position.getY(),	position.getZ());
-						
-						MatrixRotation rotmat = iiwaMessageGenerator.quatToMatrix(orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getW());
-						
-						Transformation tr = Transformation.of(transl, rotmat);
+						PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
+						Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
 
 						if (robot.isReadyToMove()) 
 							runtime.setDestination(tr);
@@ -305,7 +297,6 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						if (robot.isReadyToMove()) 
 							runtime.setDestination(jp);
 					}
-						
 						break;
 
 					default:

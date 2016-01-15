@@ -25,8 +25,7 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS import
-import geometry_msgs.PoseStamped;
-
+import geometry_msgs.Pose;
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
@@ -75,22 +74,13 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianPosition message.
 	 */
 	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot, ObjectFrame frame) {
-		geometry_msgs.Point point = messageFactory.newFromType(geometry_msgs.Point._TYPE);
-		point.setX(robot.getCurrentCartesianPosition(robot.getFlange()).getX()/1000);
-		point.setY(robot.getCurrentCartesianPosition(robot.getFlange()).getY()/1000);
-		point.setZ(robot.getCurrentCartesianPosition(robot.getFlange()).getZ()/1000);
-
 		Transformation transform = robot.getCurrentCartesianPosition(robot.getFlange()).transformationFromWorld();
-		Matrix rotationMatrix = transform.getRotationMatrix();
-		geometry_msgs.Quaternion quaternion = matrixToQuat(rotationMatrix);
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId(FLANGE_FRAME_ID);
 		header.setStamp(time.getCurrentTime());
 
-		geometry_msgs.Pose p = messageFactory.newFromType(geometry_msgs.Pose._TYPE);
-		p.setPosition(point);
-		p.setOrientation(quaternion);
+		geometry_msgs.Pose p = kukaTransformationToRosPose(transform);
 
 		geometry_msgs.PoseStamped pps = messageFactory.newFromType(geometry_msgs.PoseStamped._TYPE);
 		pps.setHeader(header);
@@ -107,22 +97,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianVelocity message.
 	 */
 	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot) {
-//		double[] velocity = new double[9];
-
-		// Velocity is set to zero!
-		// TODO: Compute Cartesian velocity !
-
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(FLANGE_FRAME_ID);
-		header.setStamp(time.getCurrentTime());
-
-		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
-		
-//		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
-		
-		cv.setHeader(header);
-
-		return cv;
+		return buildCartesianVelocity(robot, robot.getFlange());
 	}
 
 	/**
@@ -161,29 +136,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianWrench message.
 	 */
 	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot) {
-		geometry_msgs.Vector3 force = messageFactory.newFromType(geometry_msgs.Vector3._TYPE);
-		force.setX(robot.getExternalForceTorque(robot.getFlange()).getForce().getX());
-		force.setY(robot.getExternalForceTorque(robot.getFlange()).getForce().getY());
-		force.setZ(robot.getExternalForceTorque(robot.getFlange()).getForce().getZ());
-
-		geometry_msgs.Vector3 torque = messageFactory.newFromType(geometry_msgs.Vector3._TYPE);
-		torque.setX(robot.getExternalForceTorque(robot.getFlange()).getTorque().getX());
-		torque.setY(robot.getExternalForceTorque(robot.getFlange()).getTorque().getY());
-		torque.setZ(robot.getExternalForceTorque(robot.getFlange()).getTorque().getZ());
-
-		geometry_msgs.Wrench wrench = messageFactory.newFromType(geometry_msgs.Wrench._TYPE);
-		wrench.setForce(force);
-		wrench.setTorque(torque);
-
-		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(FLANGE_FRAME_ID);
-		header.setStamp(time.getCurrentTime());
-
-		geometry_msgs.WrenchStamped ws = messageFactory.newFromType(geometry_msgs.WrenchStamped._TYPE);
-		ws.setWrench(wrench);
-		ws.setHeader(header);
-
-		return ws;
+		return buildCartesianWrench(robot, robot.getFlange());
 	}
 
 	/**
@@ -435,23 +388,46 @@ public class iiwaMessageGenerator {
 		return ret;
 	}
 
-	public Transformation getKukaCartesianGoal(PoseStamped commandCartesianPosition) {
-		if (commandCartesianPosition == null)
+	public Transformation rosPoseToKukaTransformation(Pose rosPose) {
+		if (rosPose == null)
 			return null;
 
-		float tx = (float) commandCartesianPosition.getPose().getPosition().getX();
-		float ty = (float) commandCartesianPosition.getPose().getPosition().getY();
-		float tz = (float) commandCartesianPosition.getPose().getPosition().getZ();
+		float tx = (float) rosPose.getPosition().getX()*1000;
+		float ty = (float) rosPose.getPosition().getY()*1000;
+		float tz = (float) rosPose.getPosition().getZ()*1000;
 
-		float x = (float) commandCartesianPosition.getPose().getOrientation().getX();
-		float y = (float) commandCartesianPosition.getPose().getOrientation().getY();
-		float z = (float) commandCartesianPosition.getPose().getOrientation().getZ();
-		float w = (float) commandCartesianPosition.getPose().getOrientation().getW();
+		float x = (float) rosPose.getOrientation().getX();
+		float y = (float) rosPose.getOrientation().getY();
+		float z = (float) rosPose.getOrientation().getZ();
+		float w = (float) rosPose.getOrientation().getW();
 
 		MatrixRotation rot = iiwaMessageGenerator.quatToMatrix(x, y, z, w);
 		Vector transl = Vector.of(tx, ty, tz);
 
 		return Transformation.of(transl, rot);
+	}
+	
+	public Pose kukaTransformationToRosPose(Transformation kukaTransf) {
+		if (kukaTransf == null)
+			return null;
+
+		geometry_msgs.Point point = messageFactory.newFromType(geometry_msgs.Point._TYPE);
+		point.setX(kukaTransf.getX()/1000); 
+		point.setY(kukaTransf.getY()/1000);
+		point.setZ(kukaTransf.getZ()/1000);
+
+		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
+		geometry_msgs.Quaternion quaternion = matrixToQuat(rotationMatrix);
+
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setFrameId(FLANGE_FRAME_ID);
+		header.setStamp(time.getCurrentTime());
+
+		geometry_msgs.Pose p = messageFactory.newFromType(geometry_msgs.Pose._TYPE);
+		p.setPosition(point);
+		p.setOrientation(quaternion);
+
+		return p;
 	}
 
 }
