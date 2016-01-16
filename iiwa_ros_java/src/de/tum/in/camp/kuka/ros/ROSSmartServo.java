@@ -25,6 +25,7 @@ package de.tum.in.camp.kuka.ros;
 // ROS imports
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.CartesianDamping;
+import iiwa_msgs.CartesianQuantity;
 import iiwa_msgs.CartesianStiffness;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
@@ -113,26 +114,39 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
 			CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
 
-			CartesianStiffness stiffness = params.getCartesianStiffness();
-			ccm.parametrize(CartDOF.X).setStiffness(stiffness.getStiffness().getX());
-			ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getStiffness().getY());
-			ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getStiffness().getZ());
-			ccm.parametrize(CartDOF.A).setStiffness(stiffness.getStiffness().getA());
-			ccm.parametrize(CartDOF.B).setStiffness(stiffness.getStiffness().getB());
-			ccm.parametrize(CartDOF.C).setStiffness(stiffness.getStiffness().getC());
+			CartesianQuantity stiffness = params.getCartesianStiffness().getStiffness();
+			if (stiffness.getX() >= 0)
+				ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
+			if (stiffness.getY() >= 0)
+				ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getY());
+			if (stiffness.getZ() >= 0)
+				ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getZ());
+			if (stiffness.getA() >= 0)
+				ccm.parametrize(CartDOF.A).setStiffness(stiffness.getA());
+			if (stiffness.getB() >= 0)
+				ccm.parametrize(CartDOF.B).setStiffness(stiffness.getB());
+			if (stiffness.getC() >= 0)
+				ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
 
-			CartesianDamping damping = params.getCartesianDamping();
-			ccm.parametrize(CartDOF.X).setDamping(damping.getDamping().getX());
-			ccm.parametrize(CartDOF.Y).setDamping(damping.getDamping().getY());
-			ccm.parametrize(CartDOF.Z).setDamping(damping.getDamping().getZ());
-			ccm.parametrize(CartDOF.A).setDamping(damping.getDamping().getA());
-			ccm.parametrize(CartDOF.B).setDamping(damping.getDamping().getB());
-			ccm.parametrize(CartDOF.C).setDamping(damping.getDamping().getC());
+			CartesianQuantity damping = params.getCartesianDamping().getDamping();
+			if (damping.getX() > 0)
+				ccm.parametrize(CartDOF.X).setDamping(damping.getX());
+			if (damping.getY() > 0)
+				ccm.parametrize(CartDOF.Y).setDamping(damping.getY());
+			if (damping.getZ() > 0)
+				ccm.parametrize(CartDOF.Z).setDamping(damping.getZ());
+			if (damping.getA() > 0)
+				ccm.parametrize(CartDOF.A).setDamping(damping.getA());
+			if (damping.getB() > 0)
+				ccm.parametrize(CartDOF.B).setDamping(damping.getB());
+			if (damping.getC() > 0)
+				ccm.parametrize(CartDOF.C).setDamping(damping.getC());
 			
 			// TODO: add stiffness along axis
-
-			ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
-			ccm.setNullSpaceDamping(params.getNullspaceDamping());
+			if (params.getNullspaceStiffness() >= 0)
+				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
+			if (params.getNullspaceDamping() > 0)
+				ccm.setNullSpaceDamping(params.getNullspaceDamping());
 
 			cm = ccm;
 			break;
@@ -145,7 +159,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			jcm.setStiffness(helper.jointQuantityToVector(stiffness));
 
 			JointQuantity damping = params.getJointDamping().getDamping();
-			jcm.setDamping(helper.jointQuantityToVector(damping));
+			if (damping.getA1() > 0 && damping.getA2() > 0 && damping.getA3() > 0 && damping.getA4() > 0
+					&& damping.getA5() > 0 && damping.getA6() > 0 && damping.getA7() > 0)
+				jcm.setDamping(helper.jointQuantityToVector(damping));
 
 			cm = jcm;
 			break;
@@ -162,6 +178,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
 		mot.setMinimumTrajectoryExecutionTime(8e-3);
+		mot.setTimeoutAfterGoalReach(300);
 		
 		configureSmartServoMotion(ssm, mot);
 		return mot;
@@ -171,7 +188,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (mot == null)
 			return; // TODO: exception?
 
-		mot.setJointVelocityRel(ssm.getRelativeVelocity());
+		if (ssm.getRelativeVelocity() > 0)
+			mot.setJointVelocityRel(ssm.getRelativeVelocity());
 		mot.setMode(buildMotionControlMode(ssm));
 	}
 	
