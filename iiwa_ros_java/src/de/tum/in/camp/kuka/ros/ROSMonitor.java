@@ -232,12 +232,4 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		}
 		super.dispose();
 	}
-
-	/**
-	 * Auto-generated method stub. Do not modify the contents of this method.
-	 */
-	public static void main(String[] args) {
-		ROSMonitor app = new ROSMonitor();
-		app.runApplication();
-	}
 }
