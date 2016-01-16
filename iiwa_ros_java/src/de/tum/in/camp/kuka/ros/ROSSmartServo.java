@@ -24,9 +24,7 @@ package de.tum.in.camp.kuka.ros;
 
 // ROS imports
 import geometry_msgs.PoseStamped;
-import iiwa_msgs.CartesianDamping;
 import iiwa_msgs.CartesianQuantity;
-import iiwa_msgs.CartesianStiffness;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;

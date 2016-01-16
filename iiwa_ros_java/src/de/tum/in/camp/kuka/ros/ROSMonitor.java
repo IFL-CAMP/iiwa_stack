@@ -197,6 +197,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						controlMode.setDampingForAllJoints(0.7);
 						motion.getRuntime().changeControlModeSettings(controlMode);
 					}
+					
 					motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 				} else {
 					if (gravCompSwitched) {
@@ -205,7 +206,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						controlMode.setStiffnessForAllJoints(1500);
 						motion.getRuntime().changeControlModeSettings(controlMode);
 						motion.getRuntime().setDestination(robot.getCurrentJointPosition());
-						robot.moveAsync(motion);
 					}
 				}
 			} 
