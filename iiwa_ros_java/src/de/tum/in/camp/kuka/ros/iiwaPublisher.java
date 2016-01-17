@@ -53,6 +53,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 //	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
 	// UserKey Event Publisher
 	private Publisher<std_msgs.String> iiwaButtonPublisher; // TODO: iiwa_msgs.ButtonEvent
+	// JointState publisher (optional)
+	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
+	private boolean publishJointState = false;
 	
 	// Local iiwa_msgs to publish 
 	// Cartesian Messages
@@ -65,6 +68,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointDamping jd;
 	private iiwa_msgs.JointTorque jt;
 //	private iiwa_msgs.JointVelocity jv;
+	private sensor_msgs.JointState joint_states;
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
@@ -187,6 +191,14 @@ public class iiwaPublisher extends AbstractNodeMain {
 //	public void setJointVelocity(iiwa_msgs.JointVelocity velocity) {
 //		jv = velocity;
 //	}
+	
+	public void setJointState(sensor_msgs.JointState state) {
+		joint_states = state;
+	}
+	
+	public void setPublishJointStates(boolean b) {
+		publishJointState = b;
+	}
 
 	/**
 	 * Set the name to use to compose the ROS topics' names for the publishers. <p>
@@ -234,6 +246,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 //		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 		
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
+		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 	}
 	
 	public void publishCurrentState(LBR robot, SmartServo motion) throws InterruptedException {
@@ -244,6 +257,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		setJointTorque(helper.buildJointTorque(robot));
 		setJointStiffness(helper.buildJointStiffness(robot, motion));
 		setJointDamping(helper.buildJointDamping(robot, motion));
+		setJointState(helper.buildJointState(robot, motion));
 		publish();
 	}
 
@@ -266,6 +280,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 		publishIfSubscriber(jointDampingPublisher, jd);
 		publishIfSubscriber(jointTorquePublisher, jt);
 //		publishIfSubscriber(jointVelocityPublisher, jv);
+		if (publishJointState)
+			publishIfSubscriber(jointStatesPublisher, joint_states);
 	}
 
 	<T> void publishIfSubscriber(Publisher<T> p, T m) {

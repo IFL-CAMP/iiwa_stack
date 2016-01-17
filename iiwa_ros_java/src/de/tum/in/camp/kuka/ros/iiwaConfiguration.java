@@ -191,6 +191,10 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	public String getToolName() {
 		return getStringParameter("toolName");
 	}
+	
+	public boolean getPublishJointStates() {
+		return getBooleanParameter("publishJointStates", false);
+	}
 
 	public class ToolbarSpecification {
 		public String name;
@@ -286,6 +290,18 @@ public class iiwaConfiguration extends AbstractNodeMain {
 				continue;
 			ts.buttonIDs = buttons.toArray(new String[buttons.size()]);
 			ret.add(ts);
+		}
+
+		return ret;
+	}
+	
+	public boolean getBooleanParameter(String argname, boolean def) {
+		params = getParameterTree();
+		boolean ret = false;
+		try {
+			ret = params.getBoolean(robotName + "/" + argname, def);			
+		} catch (ParameterNotFoundException e) {
+			// TODO
 		}
 
 		return ret;

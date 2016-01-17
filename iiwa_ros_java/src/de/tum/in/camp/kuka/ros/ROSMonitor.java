@@ -107,10 +107,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		try {
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
 			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setNodeName("iiwa_publisher");
+			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setNodeName("iiwa_configuration");
+			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
 		}
 		catch (Exception e) {
@@ -169,6 +169,9 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		} else {
 			getLogger().info("no tool attached");
 		}
+		
+		// publish joint state?
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
 		
 		if (!SmartServo.validateForImpedanceMode(robot))
 			getLogger().error("Too much external torque on the robot! Is it a singular position?");

@@ -25,6 +25,8 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS import
+import java.util.Arrays;
+
 import geometry_msgs.Pose;
 
 import org.ros.message.MessageFactory;
@@ -51,6 +53,16 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMo
  */
 public class iiwaMessageGenerator {
 	private static final String FLANGE_FRAME_ID = "iiwa_link_7";
+	
+	String[] joint_names = {
+			  "iiwa_joint_1", 
+			  "iiwa_joint_2",
+			  "iiwa_joint_3",
+			  "iiwa_joint_4",
+			  "iiwa_joint_5",
+			  "iiwa_joint_6",
+			  "iiwa_joint_7"
+			};
 
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
@@ -183,8 +195,7 @@ public class iiwaMessageGenerator {
 	 * @return built JointPosition message.
 	 */
 	public iiwa_msgs.JointPosition buildJointPosition(LBR robot) {
-		double[] position = new double[7];
-		position = robot.getCurrentJointPosition().getInternalArray();
+		double[] position = robot.getCurrentJointPosition().getInternalArray();
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
@@ -272,8 +283,7 @@ public class iiwaMessageGenerator {
 	 * @return built JointTorque message.
 	 */
 	public iiwa_msgs.JointTorque buildJointTorque(LBR robot) {
-		double[] torque = new double[7];
-		torque = robot.getMeasuredTorque().getTorqueValues(); // TODO: check if correct values
+		double[] torque = robot.getMeasuredTorque().getTorqueValues();
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
 		header.setFrameId("Robot");
@@ -310,6 +320,24 @@ public class iiwaMessageGenerator {
 	//		jv.setVelocity(a);
 	//		return jv;
 	//	}
+	
+	public sensor_msgs.JointState buildJointState(LBR robot, SmartServo motion) {
+		sensor_msgs.JointState ret = messageFactory.newFromType(sensor_msgs.JointState._TYPE);
+		
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setStamp(time.getCurrentTime());
+		ret.setHeader(header);
+		 
+		ret.setName(Arrays.asList(joint_names));
+		
+		ret.setPosition(robot.getCurrentJointPosition().getInternalArray());
+		
+		ret.setEffort(robot.getMeasuredTorque().getTorqueValues());
+		
+		// TODO: velocity
+		
+		return ret;
+	}
 
 	// conversions
 

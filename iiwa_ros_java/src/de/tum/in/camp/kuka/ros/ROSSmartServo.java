@@ -257,16 +257,16 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 			// Configuration for the Publisher.
 			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setNodeName("iiwa_publisher");
+			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 
 			// Configuration for the Subscriber.
 			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfSubscriber.setNodeName("iiwa_subscriber");
+			nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
 			nodeConfSubscriber.setMasterUri(uri);
 
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setNodeName("iiwa_configuration");
+			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
 
 			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
@@ -315,6 +315,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		} else {
 			getLogger().info("no tool attached");
 		}
+		
+		// publish joint state?
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		robot.moveAsync(motion);
 
