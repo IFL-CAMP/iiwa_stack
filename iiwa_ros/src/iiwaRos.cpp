@@ -45,36 +45,41 @@ void iiwaRos::init(bool initRos)
         
     robot_is_connected_ = false;
     
-    holder_state_pose.init("command/CartesianPose");
-    holder_state_joint_position.init("command/JointPosition");
-    holder_state_joint_torque.init("command/JointTorque");
-//     holder_state_wrench.init("command/CartesianWrench");
-//     holder_state_joint_stiffness.init("command/JointStiffness");
+    holder_state_pose.init("state/CartesianPose");
+    holder_state_joint_position.init("state/JointPosition");
+    holder_state_joint_torque.init("state/JointTorque");
+//     holder_state_wrench.init("state/CartesianWrench");
+//     holder_state_joint_stiffness.init("state/JointStiffness");
     
-    holder_command_pose.init("state/CartesianPose");
-    holder_command_joint_position.init("state/JointPosition");
-//     holder_command_wrench.init("state/CartesianWrench");
-//     holder_command_joint_stiffness.init("state/JointStiffness");
-//     holder_command_joint_torque.init("state/JointTorque");
+    holder_command_pose.init("command/CartesianPose");
+    holder_command_joint_position.init("command/JointPosition");
+//     holder_command_wrench.init("command/CartesianWrench");
+//     holder_command_joint_stiffness.init("command/JointStiffness");
+//     holder_command_joint_torque.init("command/JointTorque");
 }
 
 
 
 iiwaRos::~iiwaRos() { }
 
+// bool iiwaRos::getRobotIsConnected() {
+//     static int counter = 0;
+//     if (!(counter++ % 1000)) {
+//         bool is_connected = (ros::Time::now() - last_update_time) < ros::Duration(0.1);
+//         if (is_connected != robot_is_connected_)
+//             if (is_connected)
+//                 ROS_INFO("IIWA robot is connected.");
+//             else 
+//                 ROS_WARN("IIWA robot is NOT connected.");
+//         robot_is_connected_ = is_connected;
+//     }
+//     return robot_is_connected_;
+// }
+
 bool iiwaRos::getRobotIsConnected() {
-    static int counter = 0;
-    if (!(counter++ % 1000)) {
-        bool is_connected = (ros::Time::now() - last_update_time) < ros::Duration(0.1);
-        if (is_connected != robot_is_connected_)
-            if (is_connected)
-                ROS_INFO("IIWA robot is connected.");
-            else 
-                ROS_WARN("IIWA robot is NOT connected.");
-        robot_is_connected_ = is_connected;
-    }
-    return robot_is_connected_;
+    return (ros::Time::now() - last_update_time) < ros::Duration(0.1);
 }
+
 
 bool iiwaRos::getReceivedCartesianPose(geometry_msgs::PoseStamped& value) {
     return holder_state_pose.get(value);
