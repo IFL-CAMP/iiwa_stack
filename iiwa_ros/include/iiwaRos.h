@@ -47,6 +47,8 @@ extern ros::Time last_update_time;
 template <typename ROSMSG>
 class iiwaHolder {
 public:
+    iiwaHolder() : is_new(false) {}
+    
     void set_value(const ROSMSG& value) {
         mutex.lock();
         data = value;
@@ -55,14 +57,15 @@ public:
     }
     
     bool get_value(ROSMSG& value) {
-        bool will_be_new = false;
+        bool was_new = false;
         
         mutex.lock();
         value = data;
-        std::swap(will_be_new, is_new); // we put false into is_new since we just read it 
+        was_new = is_new;
+        is_new = false;
         mutex.unlock();
         
-        return will_be_new; // return the old value of is_new
+        return was_new;
     }
     
     bool has_new_value() {
