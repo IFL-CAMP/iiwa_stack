@@ -44,168 +44,173 @@
 #include <mutex>
 #include <time.h>
 
+template <typename ROSMSG>
+class iiwaStateHolder;
+
+template <typename ROSMSG>
+class iiwaCommandHolder;
+
 class iiwaRos {
 public:
-  /**
-   * Class constructor
-   */
-  iiwaRos();
-  
-  /**
-   * Class destructor
-   */
-  virtual ~iiwaRos();
-  
-  /** 
-   * Init
-   */
-  void init(bool initRos = false);
-  
-  /**
-   * Getters
-   */
-  geometry_msgs::PoseStamped getReceivedCartesianPosition();
-  iiwa_msgs::CartesianRotation getReceivedCartesianRotation();
-  iiwa_msgs::CartesianVelocity getReceivedCartesianVelocity();
-  geometry_msgs::WrenchStamped getReceivedCartesianWrench();
-  
-  iiwa_msgs::JointPosition getReceivedJointPosition();
-  iiwa_msgs::JointStiffness getReceivedJointStiffness();
-  iiwa_msgs::JointTorque getReceivedJointTorque();
-  iiwa_msgs::JointVelocity getReceivedJointVelocity();
-  
-  geometry_msgs::PoseStamped getCommandCartesianPosition();
-  iiwa_msgs::CartesianRotation getCommandCartesianRotation();
-  iiwa_msgs::CartesianVelocity getCommandCartesianVelocity();
-  geometry_msgs::WrenchStamped getCommandCartesianWrench();
-  
-  iiwa_msgs::JointPosition getCommandJointPosition();
-  iiwa_msgs::JointStiffness getCommandJointStiffness();
-  iiwa_msgs::JointTorque getCommandJointTorque();
-  iiwa_msgs::JointVelocity getCommandJointVelocity();
-  
-  /*
-   * 
-   */
-  void setCommandCartesianPosition(const geometry_msgs::PoseStamped& position);
-  void setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation);
-  void setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
-  void setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench);
-  
-  void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
-  void setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness);
-  void setCommandJointTorque(const iiwa_msgs::JointTorque& torque);
-  void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
-  
-  /**
-   * \brief Sends a control state to the connected IIWA robot 
-   */
-  bool publish();
-  
-  
-  /**
-   * TODO
-   * \brief
-   */
-  bool isCartesianPositionAvailable();
-  bool isCartesianRotationAvailable();
-  bool isCartesianVelocityAvailable();
-  bool isCartesianWrenchAvailable();
-  bool isJointPositionAvailable();
-  bool isJointStiffnessAvailable();
-  bool isJointTorqueAvailable();
-  bool isJointVelocityAvailable();
-  
-  
-  /**
-   * \brief Returns the current connection status of an IIWA robot.
-   */
-  bool getRobotIsConnected();
-  
+    /**
+     * Class constructor
+     */
+    iiwaRos();
+    
+    /**
+     * Class destructor
+     */
+    virtual ~iiwaRos();
+    
+    /** 
+     * Init
+     */
+    void init(bool initRos = false);
+    
+    /**
+     * Getters
+     */
+    geometry_msgs::PoseStamped getReceivedCartesianPosition();
+    iiwa_msgs::CartesianRotation getReceivedCartesianRotation();
+    iiwa_msgs::CartesianVelocity getReceivedCartesianVelocity();
+    geometry_msgs::WrenchStamped getReceivedCartesianWrench();
+    
+    iiwa_msgs::JointPosition getReceivedJointPosition();
+    iiwa_msgs::JointStiffness getReceivedJointStiffness();
+    iiwa_msgs::JointTorque getReceivedJointTorque();
+    iiwa_msgs::JointVelocity getReceivedJointVelocity();
+    
+    geometry_msgs::PoseStamped getCommandCartesianPosition();
+    iiwa_msgs::CartesianRotation getCommandCartesianRotation();
+    iiwa_msgs::CartesianVelocity getCommandCartesianVelocity();
+    geometry_msgs::WrenchStamped getCommandCartesianWrench();
+    
+    iiwa_msgs::JointPosition getCommandJointPosition();
+    iiwa_msgs::JointStiffness getCommandJointStiffness();
+    iiwa_msgs::JointTorque getCommandJointTorque();
+    iiwa_msgs::JointVelocity getCommandJointVelocity();
+    
+    /*
+     * 
+     */
+    void setCommandCartesianPosition(const geometry_msgs::PoseStamped& position);
+    void setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation);
+    void setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
+    void setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench);
+    
+    void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
+    void setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness);
+    void setCommandJointTorque(const iiwa_msgs::JointTorque& torque);
+    void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
+    
+    /**
+     * \brief Sends new commands to the connected IIWA robot, if any
+     */
+    bool publish();
+    
+    
+    /**
+     * TODO
+     * \brief
+     */
+    bool isCartesianPositionAvailable();
+    bool isCartesianRotationAvailable();
+    bool isCartesianVelocityAvailable();
+    bool isCartesianWrenchAvailable();
+    bool isJointPositionAvailable();
+    bool isJointStiffnessAvailable();
+    bool isJointTorqueAvailable();
+    bool isJointVelocityAvailable();
+    
+    
+    /**
+     * \brief Returns the current connection status of an IIWA robot.
+     */
+    bool getRobotIsConnected();
+    
 private:
-  /**
-   * Callback for the ROS Subscribers
-   */	
-  void cartesianPositionCallback(const geometry_msgs::PoseStamped& position);
-  void cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation);
-  void cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity);
-  void cartesianWrenchCallback(const geometry_msgs::WrenchStamped& wrench);
-  
-  void jointPositionCallback(const iiwa_msgs::JointPosition& position);
-  void jointStiffnessCallback(const iiwa_msgs::JointStiffness& stiffness);
-  void jointTorqueCallback(const iiwa_msgs::JointTorque& torque);
-  void jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity);
-  
-  template <typename T> 
-  bool publishIfSubscriber(const ros::Publisher& p, const T& message);
-  
-  void robotConnected();
-  
-  /**< ROS Publishers  */
-  ros::Publisher cartesian_position_pub_;  
-  ros::Publisher cartesian_rotation_pub_;
-  ros::Publisher cartesian_velocity_pub_;
-  ros::Publisher cartesian_wrench_pub_;
-  
-  ros::Publisher joint_position_pub_;
-  ros::Publisher joint_stiffness_pub_;
-  ros::Publisher joint_torque_pub_;
-  ros::Publisher joint_velocity_pub_;
-  
-  /**< ROS Subscribers */
-  ros::Subscriber cartesian_position_sub_;
-  ros::Subscriber cartesian_rotation_sub_;
-  ros::Subscriber cartesian_velocity_sub_;
-  ros::Subscriber cartesian_wrench_sub_;
-  
-  ros::Subscriber joint_position_sub_;
-  ros::Subscriber joint_stiffness_sub_;
-  ros::Subscriber joint_torque_sub_;
-  ros::Subscriber joint_velocity_sub_;
-  
-  /*
-   * Messages received from the robot
-   */
-  geometry_msgs::PoseStamped received_cartesian_position_;
-  iiwa_msgs::CartesianRotation received_cartesian_rotation_;
-  iiwa_msgs::CartesianVelocity received_cartesian_velocity_;
-  geometry_msgs::WrenchStamped received_cartesian_wrench_;
-  iiwa_msgs::JointPosition received_joint_position_;
-  iiwa_msgs::JointStiffness received_joint_stiffness_;
-  iiwa_msgs::JointTorque received_joint_torque_;
-  iiwa_msgs::JointVelocity received_joint_velocity_;
-  
-  /*
-   * Messages that will be sent to the robot
-   */
-  geometry_msgs::PoseStamped command_cartesian_position_;
-  iiwa_msgs::CartesianRotation command_cartesian_rotation_;
-  iiwa_msgs::CartesianVelocity command_cartesian_velocity_;
-  geometry_msgs::WrenchStamped command_cartesian_wrench_;
-  iiwa_msgs::JointPosition command_joint_position_;
-  iiwa_msgs::JointStiffness command_joint_stiffness_;
-  iiwa_msgs::JointTorque command_joint_torque_;
-  iiwa_msgs::JointVelocity command_joint_velocity_;
-  
-  bool new_cartesian_position_;
-  bool new_cartesian_rotation_;
-  bool new_cartesian_velocity_;
-  bool new_cartesian_wrench_;
-  bool new_joint_position_;
-  bool new_joint_stiffness_;
-  bool new_joint_torque_;
-  bool new_joint_velocity_;
-  
-  bool robot_is_connected_; /**< Stores the current connection state */
-  
-  std::mutex cp_mutex_;
-  std::mutex cr_mutex_;
-  std::mutex cv_mutex_;
-  std::mutex cw_mutex_;
-  std::mutex jp_mutex_;
-  std::mutex js_mutex_;
-  std::mutex jt_mutex_;
-  std::mutex jv_mutex_;
+    
+    
+    void robotHasConnected();
+    bool robot_is_connected_; /**< Stores the current connection state */
+};
+
+template <typename ROSMSG>
+class iiwaHolder {
+public:
+    void set_value(const ROSMSG& value) {
+        mutex.lock();
+        data = value;
+        is_new = true;
+        mutex.unlock();
+    }
+    
+    bool get_value(ROSMSG& value) {
+        bool will_be_new = false;
+        
+        mutex.lock();
+        value = data;
+        std::swap(will_be_new, is_new); // we put false into is_new since we just read it 
+        mutex.unlock();
+        
+        return will_be_new; // return the old value of is_new
+    }
+    
+    ROSMSG get_value_unsynchronized() {
+        return data;
+    }
+    
+private:
+    ROSMSG data;
+    bool is_new;
+    std::mutex mutex;
+};
+
+template <typename ROSMSG>
+class iiwaStateHolder {
+public:
+    iiwaStateHolder<ROSMSG>(const std::string& topic) {
+        ros::NodeHandle nh;
+        subscriber = nh.subscribe(topic, 1, iiwaStateHolder< ROSMSG >::set, this);
+    }
+    
+    void set(const ROSMSG& value) {
+        holder.set_value(value);
+    }
+    
+    bool get(ROSMSG& value) {
+        return holder.get_value(value);        
+    }
+private:
+    iiwaHolder<ROSMSG> holder;
+    ros::Subscriber<ROSMSG> subscriber;
+};
+
+
+template <typename ROSMSG>
+class iiwaCommandHolder {
+public:
+    iiwaCommandHolder<ROSMSG>(const std::string& topic) {
+        ros::NodeHandle nh;
+        publisher = nh.advertise<ROSMSG>(topic, 1);
+    }
+    
+    void set(const ROSMSG& value) {
+        holder.set_value(value);
+    }
+    
+    ROSMSG get() {
+        return holder.get_value_unsynchronized();
+    }
+    
+    void publishIfNew() {
+        static ROSMSG msg;
+        if (publisher.getNumSubscribers() && holder.get_value(msg))
+            publisher.publish(msg);
+    }
+private:
+    ros::Publisher<ROSMSG> publisher;
+    iiwaHolder<ROSMSG> holder;
 };
 
 #endif //IIWAROCONNS_H_

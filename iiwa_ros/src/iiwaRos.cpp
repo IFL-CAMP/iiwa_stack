@@ -76,12 +76,7 @@ void iiwaRos::init(bool initRos) {
     joint_velocity_sub_ = node_handle.subscribe("state/JointVelocity", 1, &iiwaRos::jointVelocityCallback, this);
 }
 
-void iiwaRos::robotConnected() {
-    if (!robot_is_connected_) {
-        ROS_INFO("IIWA robot is connected.");
-        robot_is_connected_ = true;
-    }
-}
+
 
 iiwaRos::~iiwaRos() { }
 
@@ -225,82 +220,11 @@ void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity) 
 }
 
 
-void iiwaRos::cartesianPositionCallback(const geometry_msgs::PoseStamped& position) {
-    cp_mutex_.lock();
-    received_cartesian_position_ = position;
-    cp_mutex_.unlock();
-    new_cartesian_position_ = true;
-    robotConnected();
-}
-void iiwaRos::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
-    cr_mutex_.lock();
-    received_cartesian_rotation_ = rotation;  
-    cr_mutex_.unlock();
-    new_cartesian_rotation_  = true;
-    robotConnected();
-}
-void iiwaRos::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
-    cv_mutex_.lock();
-    received_cartesian_velocity_ = velocity;
-    cv_mutex_.unlock();
-    new_cartesian_velocity_  = true;
-    robotConnected();
-}
-void iiwaRos::cartesianWrenchCallback(const geometry_msgs::WrenchStamped& wrench) {
-    cw_mutex_.lock();
-    received_cartesian_wrench_ = wrench;
-    cw_mutex_.unlock();
-    new_cartesian_wrench_  = true;
-    robotConnected();
-}
-void iiwaRos::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
-    jp_mutex_.lock();
-    received_joint_position_ = position;
-    jp_mutex_.unlock();
-    new_joint_position_  = true;
-    robotConnected();
-}
-void iiwaRos::jointStiffnessCallback(const iiwa_msgs::JointStiffness& stiffness) {
-    js_mutex_.lock();
-    received_joint_stiffness_ = stiffness;
-    js_mutex_.unlock();
-    new_joint_stiffness_  = true;
-    robotConnected();
-}
-void iiwaRos::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
-    jt_mutex_.lock();
-    received_joint_torque_ = torque;
-    jt_mutex_.unlock();
-    new_joint_torque_  = true;
-    robotConnected();
-}
-void iiwaRos::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
-    jv_mutex_.lock();
-    received_joint_velocity_ = velocity;
-    jv_mutex_.unlock();
-    new_joint_velocity_  = true;
-    robotConnected();
-}
-
-bool iiwaRos::publish() {
-    if (robot_is_connected_) {
-        publishIfSubscriber(cartesian_position_pub_, command_cartesian_position_);
-        publishIfSubscriber(cartesian_rotation_pub_, command_cartesian_rotation_);
-        publishIfSubscriber(cartesian_velocity_pub_, command_cartesian_velocity_);
-        publishIfSubscriber(cartesian_wrench_pub_, command_cartesian_wrench_);
-        
-        publishIfSubscriber(joint_position_pub_, command_joint_position_);
-        publishIfSubscriber(joint_stiffness_pub_, command_joint_stiffness_);
-        publishIfSubscriber(joint_torque_pub_, command_joint_torque_);
-        publishIfSubscriber(joint_velocity_pub_, command_joint_velocity_);
-        
-        return 1;
+void iiwaRos::robotHasConnected() {
+    if (!robot_is_connected_) {
+        ROS_INFO("IIWA robot is connected.");
+        robot_is_connected_ = true;
     }
-    return 0;
 }
 
-template <class T>
-bool iiwaRos::publishIfSubscriber(const ros::Publisher& p, const T& message) {
-    if (p.getNumSubscribers())
-        p.publish(message);
-}
+
