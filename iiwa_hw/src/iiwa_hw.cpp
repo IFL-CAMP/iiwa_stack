@@ -209,8 +209,8 @@ bool IIWA_HW::read(ros::Duration period)
     
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         
-        joint_position_ = iiwa_ros_conn_.getReceivedJointPosition();
-        joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
+        iiwa_ros_conn_.getReceivedJointPosition(joint_position_);
+        iiwa_ros_conn_.getReceivedJointTorque(joint_torque_);
         
         device_->joint_position_prev = device_->joint_position;
         iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
