@@ -37,7 +37,9 @@
 
 using namespace std;
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh) {
+IIWA_HW::IIWA_HW(ros::NodeHandle nh) 
+: last_joint_position_command_(7, 0)
+{
     nh_ = nh;
     
     timer_ = ros::Time::now();
@@ -248,6 +250,10 @@ bool IIWA_HW::write(ros::Duration period) {
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         // Joint Position Control
         if (interface_ == interface_type_.at(0)) {
+            if (device_->joint_position_command == last_joint_position_command_)  // avoid sending the same joint command over and over
+                return 0;
+            
+            last_joint_position_command_ = device_->joint_position_command;
             
             // Building the message
             vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);

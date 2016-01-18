@@ -26,7 +26,6 @@
 #ifndef IIWAROS_H_
 #define IIWAROS_H_
 
-#include <iiwa_msgs/CartesianRotation.h>
 #include <iiwa_msgs/CartesianVelocity.h>
 #include <iiwa_msgs/JointPosition.h>
 #include <iiwa_msgs/JointStiffness.h>
