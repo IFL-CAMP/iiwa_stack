@@ -82,9 +82,9 @@ int main( int argc, char** argv ) {
         if (iiwa_ros.getRobotIsConnected()) {
             
             // Check if a new JointPosition message is available
-            if (iiwa_ros.isJointPositionAvailable())
-                receiveMessage = iiwa_ros.getReceivedJointPosition();
+            if (iiwa_ros.getReceivedJointPosition(receiveMessage)) {
             // You received a new IIWA state message, do something with it.
+            }
             
         }
         

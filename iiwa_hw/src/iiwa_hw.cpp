@@ -37,7 +37,9 @@
 
 using namespace std;
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh) {
+IIWA_HW::IIWA_HW(ros::NodeHandle nh) 
+: last_joint_position_command_(7, 0)
+{
     nh_ = nh;
     
     timer_ = ros::Time::now();
@@ -124,15 +126,13 @@ bool IIWA_HW::start() {
         
         // position command handle
         hardware_interface::JointHandle position_joint_handle = hardware_interface::JointHandle(
-            state_interface_.getHandle(device_->joint_names[i]),
-                                                                                                &device_->joint_position_command[i]);
+            state_interface_.getHandle(device_->joint_names[i]), &device_->joint_position_command[i]);
         
         position_interface_.registerHandle(position_joint_handle);
         
         // effort command handle
         hardware_interface::JointHandle joint_handle = hardware_interface::JointHandle(
-            state_interface_.getHandle(device_->joint_names[i]),
-                                                                                       &device_->joint_effort_command[i]);
+            state_interface_.getHandle(device_->joint_names[i]), &device_->joint_effort_command[i]);
         
         effort_interface_.registerHandle(joint_handle);
         
@@ -207,14 +207,24 @@ bool IIWA_HW::read(ros::Duration period)
 {
     ros::Duration delta = ros::Time::now() - timer_;
     
+    static bool was_connected = false;
+    
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         
-        joint_position_ = iiwa_ros_conn_.getReceivedJointPosition();
-        joint_torque_ = iiwa_ros_conn_.getReceivedJointTorque();
+        iiwa_ros_conn_.getReceivedJointPosition(joint_position_);
+        iiwa_ros_conn_.getReceivedJointTorque(joint_torque_);
         
         device_->joint_position_prev = device_->joint_position;
         iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
         iiwaMsgsJointToVector(joint_torque_.torque, device_->joint_effort);
+        
+        // if there is no controller active the robot goes to zero position 
+        if (!was_connected) {
+            for (int j = 0; j < IIWA_JOINTS; j++)
+                device_->joint_position_command[j] = device_->joint_position[j];
+            
+            was_connected = true;
+        }
         
         for (int j = 0; j < IIWA_JOINTS; j++)
             device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), 
@@ -222,7 +232,7 @@ bool IIWA_HW::read(ros::Duration period)
         
         return 1;
     } else if (delta.toSec() >= 10) {
-        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect ...");
+        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before reading ...");
         timer_ = ros::Time::now();
     }
     return 0;
@@ -240,6 +250,10 @@ bool IIWA_HW::write(ros::Duration period) {
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         // Joint Position Control
         if (interface_ == interface_type_.at(0)) {
+            if (device_->joint_position_command == last_joint_position_command_)  // avoid sending the same joint command over and over
+                return 0;
+            
+            last_joint_position_command_ = device_->joint_position_command;
             
             // Building the message
             vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
@@ -258,7 +272,7 @@ bool IIWA_HW::write(ros::Duration period) {
         
         iiwa_ros_conn_.publish();
     } else if (delta.toSec() >= 10) {
-        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect ...");
+        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
     }
     

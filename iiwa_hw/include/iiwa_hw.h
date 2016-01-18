@@ -208,6 +208,8 @@ private:
     iiwa_msgs::JointPosition command_joint_position_;
     iiwa_msgs::JointTorque command_joint_torque_;
     
+    std::vector<double> last_joint_position_command_;
+    
     std::vector<std::string> interface_type_; /**< Contains the strings defining the possible hardware interfaces. */
 };
 
