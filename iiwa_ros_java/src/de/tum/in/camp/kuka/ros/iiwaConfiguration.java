@@ -216,7 +216,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return getStringParameter("toolName");
 	}
 	
-	public boolean getPublishJointStates() {
+	public Boolean getPublishJointStates() {
 		return getBooleanParameter("publishJointStates");
 	}
 

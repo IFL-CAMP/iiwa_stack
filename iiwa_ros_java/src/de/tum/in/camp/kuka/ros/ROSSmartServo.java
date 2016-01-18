@@ -307,7 +307,10 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		Double defaultRelativeJointSpeed = configuration.getDefaultRelativeJointSpeed();
+		if (defaultRelativeJointSpeed == null)
+			defaultRelativeJointSpeed = 0.2;
+		motion.setJointVelocityRel(defaultRelativeJointSpeed);
 		motion.setTimeoutAfterGoalReach(300);
 
 		// configurable toolbars to publish events on topics
@@ -323,7 +326,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 		
 		// publish joint state?
-		publisher.setPublishJointStates(configuration.getPublishJointStates());
+		Boolean publishJointStates = configuration.getPublishJointStates();
+		if (publishJointStates != null)
+			publisher.setPublishJointStates(publishJointStates);
 
 		robot.moveAsync(motion);
 
