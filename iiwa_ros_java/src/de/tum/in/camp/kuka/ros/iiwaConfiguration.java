@@ -173,6 +173,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		checkConfiguration();
 		return robotName;
 	}
+	
+	public static boolean getShouldUseNtp() {
+		checkConfiguration();
+		return ntpWithHost;
+	}
 
 	/**
 	 * @see org.ros.node.NodeMain#getDefaultNodeName()
@@ -202,13 +207,17 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
+	
+	public Double getDefaultRelativeJointSpeed() {
+		return getDoubleParameter("defaultRelativeJointSpeed");
+	}
 
 	public String getToolName() {
 		return getStringParameter("toolName");
 	}
 	
 	public boolean getPublishJointStates() {
-		return getBooleanParameter("publishJointStates", false);
+		return getBooleanParameter("publishJointStates");
 	}
 
 	public class ToolbarSpecification {
@@ -223,6 +232,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 	
 	private static TimeProvider setupTimeProvider() {
+		checkConfiguration();
 		if (ntpWithHost) {
 			try {
 				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), Executors.newScheduledThreadPool(1));
@@ -332,11 +342,23 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return ret;
 	}
 	
-	public boolean getBooleanParameter(String argname, boolean def) {
+	public Double getDoubleParameter(String argname) {
 		params = getParameterTree();
-		boolean ret = false;
+		Double ret = null;
 		try {
-			ret = params.getBoolean(robotName + "/" + argname, def);			
+			ret = params.getDouble(robotName + "/" + argname);			
+		} catch (ParameterNotFoundException e) {
+			// TODO
+		}
+
+		return ret;
+	}
+	
+	public Boolean getBooleanParameter(String argname) {
+		params = getParameterTree();
+		Boolean ret = null;
+		try {
+			ret = params.getBoolean(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 			// TODO
 		}
@@ -348,7 +370,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		params = getParameterTree();
 		String ret = null;
 		try {
-			ret = params.getString(robotName + "/" + argname, "");			
+			ret = params.getString(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 			// TODO
 		}

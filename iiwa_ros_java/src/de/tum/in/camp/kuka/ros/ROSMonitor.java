@@ -144,11 +144,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
-		motion.setJointVelocityRel(0.2);
-		motion.setTimeoutAfterGoalReach(300);
 		
 		try {
 			configuration.waitForInitialization();
@@ -156,6 +151,13 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			e1.printStackTrace();
 			return;
 		}
+		
+		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
+
+		motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		motion.setTimeoutAfterGoalReach(300);
 		
 		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
