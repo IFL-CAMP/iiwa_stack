@@ -255,19 +255,23 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			// Set the configuration parameters of the ROS nodes to create.
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
 
+			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
+			nodeConfConfiguration.setMasterUri(uri);
+			
 			// Configuration for the Publisher.
 			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
+			
 
 			// Configuration for the Subscriber.
 			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfSubscriber.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
 			nodeConfSubscriber.setMasterUri(uri);
-
-			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
-			nodeConfConfiguration.setMasterUri(uri);
 
 			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
 			nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
@@ -291,6 +295,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
+		
+		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);

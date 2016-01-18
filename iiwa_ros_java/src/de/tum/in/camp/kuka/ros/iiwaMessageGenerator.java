@@ -25,14 +25,13 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS import
-import java.util.Arrays;
-
 import geometry_msgs.Pose;
+
+import java.util.Arrays;
 
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
-import org.ros.time.WallTimeProvider;
 
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -67,7 +66,7 @@ public class iiwaMessageGenerator {
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
-	private TimeProvider time = new WallTimeProvider();
+	private TimeProvider time = iiwaConfiguration.getTimeProvider();
 
 	/**
 	 * Builds a CartesianPosition message given a LBR iiwa Robot.<p>

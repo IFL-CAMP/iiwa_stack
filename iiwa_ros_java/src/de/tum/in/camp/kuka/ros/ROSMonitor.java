@@ -106,12 +106,14 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		// ROS initialization
 		try {
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
-			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
-			nodeConfPublisher.setMasterUri(uri);
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
+			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
+			nodeConfPublisher.setMasterUri(uri);
 		}
 		catch (Exception e) {
 			if (debug) getLogger().info("Node Configuration failed; please check the ROS master IP in the Sunrise app source code");
@@ -142,7 +144,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-		
+
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
 		motion.setJointVelocityRel(0.2);
