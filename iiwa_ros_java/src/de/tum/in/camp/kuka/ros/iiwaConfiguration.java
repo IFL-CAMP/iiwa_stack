@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -36,13 +37,18 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.ros.exception.ParameterNotFoundException;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.parameter.ParameterTree;
+import org.ros.time.NtpTimeProvider;
+import org.ros.time.TimeProvider;
+import org.ros.time.WallTimeProvider;
 
 import com.kuka.roboticsAPI.uiModel.IApplicationUI;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
@@ -61,6 +67,8 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	private static String masterUri = null; //< IP address of ROS core to talk to.
 	private static String robotIp = null;
 	private static boolean staticConfigurationSuccessful = false;
+	private static boolean ntpWithHost = false;
+	private static TimeProvider timeProvider = null;
 
 	private ConnectedNode node;
 	private ParameterTree params;
@@ -104,6 +112,8 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		
 		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
 		System.out.println("robot name: " + robotName);
+		
+		ntpWithHost  = config.get("ntp_with_host").equals("true");
 
 		// network configuration
 		masterIp = config.get("master_ip");
@@ -149,6 +159,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return masterUri;
 	}
 	
+	public static String getMasterIp() {
+		checkConfiguration();
+		return masterIp;
+	}
+	
 	public static String getRobotIp() {
 		checkConfiguration();
 		return robotIp;
@@ -157,6 +172,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	public static String getRobotName() {
 		checkConfiguration();
 		return robotName;
+	}
+	
+	public static boolean getShouldUseNtp() {
+		checkConfiguration();
+		return ntpWithHost;
 	}
 
 	/**
@@ -187,14 +207,45 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
+	
+	public Double getDefaultRelativeJointSpeed() {
+		return getDoubleParameter("defaultRelativeJointSpeed");
+	}
 
 	public String getToolName() {
 		return getStringParameter("toolName");
+	}
+	
+	public boolean getPublishJointStates() {
+		return getBooleanParameter("publishJointStates");
 	}
 
 	public class ToolbarSpecification {
 		public String name;
 		public String[] buttonIDs;
+	}
+	
+	public static TimeProvider getTimeProvider() {
+		if (timeProvider == null)
+			setupTimeProvider();
+		return timeProvider;
+	}
+	
+	private static TimeProvider setupTimeProvider() {
+		checkConfiguration();
+		if (ntpWithHost) {
+			try {
+				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), Executors.newScheduledThreadPool(1));
+				provider.startPeriodicUpdates(100, TimeUnit.MILLISECONDS);
+				timeProvider = provider;
+			} catch (UnknownHostException e) {
+				System.err.println("Could not setup NTP time provider!");
+			}
+		} else {
+			timeProvider = new  WallTimeProvider();
+		}
+		
+		return timeProvider;
 	}
 
 	public void setupToolbars(IApplicationUI appUI, 
@@ -290,12 +341,36 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 		return ret;
 	}
+	
+	public Double getDoubleParameter(String argname) {
+		params = getParameterTree();
+		Double ret = null;
+		try {
+			ret = params.getDouble(robotName + "/" + argname);			
+		} catch (ParameterNotFoundException e) {
+			// TODO
+		}
+
+		return ret;
+	}
+	
+	public Boolean getBooleanParameter(String argname) {
+		params = getParameterTree();
+		Boolean ret = null;
+		try {
+			ret = params.getBoolean(robotName + "/" + argname);			
+		} catch (ParameterNotFoundException e) {
+			// TODO
+		}
+
+		return ret;
+	}
 
 	public String getStringParameter(String argname) {
 		params = getParameterTree();
 		String ret = null;
 		try {
-			ret = params.getString(robotName + "/" + argname, "");			
+			ret = params.getString(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 			// TODO
 		}

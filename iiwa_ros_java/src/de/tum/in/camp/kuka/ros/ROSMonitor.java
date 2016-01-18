@@ -106,12 +106,14 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		// ROS initialization
 		try {
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
-			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setNodeName("iiwa_publisher");
-			nodeConfPublisher.setMasterUri(uri);
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setNodeName("iiwa_configuration");
+			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
+			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
+			nodeConfPublisher.setMasterUri(uri);
 		}
 		catch (Exception e) {
 			if (debug) getLogger().info("Node Configuration failed; please check the ROS master IP in the Sunrise app source code");
@@ -143,17 +145,19 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
 		
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
-		motion.setJointVelocityRel(0.2);
-		motion.setTimeoutAfterGoalReach(300);
-		
 		try {
 			configuration.waitForInitialization();
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 			return;
 		}
+		
+		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
+
+		motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		motion.setTimeoutAfterGoalReach(300);
 		
 		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
@@ -169,6 +173,9 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		} else {
 			getLogger().info("no tool attached");
 		}
+		
+		// publish joint state?
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
 		
 		if (!SmartServo.validateForImpedanceMode(robot))
 			getLogger().error("Too much external torque on the robot! Is it a singular position?");

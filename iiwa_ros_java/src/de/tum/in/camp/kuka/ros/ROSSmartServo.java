@@ -255,19 +255,23 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			// Set the configuration parameters of the ROS nodes to create.
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
 
+			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
+			nodeConfConfiguration.setMasterUri(uri);
+			
 			// Configuration for the Publisher.
 			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setNodeName("iiwa_publisher");
+			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
+			
 
 			// Configuration for the Subscriber.
 			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfSubscriber.setNodeName("iiwa_subscriber");
+			nodeConfSubscriber.setTimeProvider(iiwaConfiguration.getTimeProvider());
+			nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
 			nodeConfSubscriber.setMasterUri(uri);
-
-			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setNodeName("iiwa_configuration");
-			nodeConfConfiguration.setMasterUri(uri);
 
 			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
 			nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
@@ -291,11 +295,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
-		motion.setJointVelocityRel(0.2);
-		motion.setTimeoutAfterGoalReach(300);
+			
+		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
 		try {
 			configuration.waitForInitialization();
@@ -303,6 +304,11 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 			e1.printStackTrace();
 			return;
 		}
+		
+		motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		motion.setTimeoutAfterGoalReach(300);
 
 		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
@@ -315,6 +321,9 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		} else {
 			getLogger().info("no tool attached");
 		}
+		
+		// publish joint state?
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		robot.moveAsync(motion);
 
