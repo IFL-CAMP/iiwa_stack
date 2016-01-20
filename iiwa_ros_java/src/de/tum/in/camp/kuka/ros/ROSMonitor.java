@@ -31,6 +31,7 @@ import java.util.List;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
+import org.ros.time.NtpTimeProvider;
 
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -186,6 +187,10 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		try {
 			while(true) { 
 
+				if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
+				}
+				
 				/*
 				 * This will build a JointPosition message with the current robot state.
 				 * Set that message to be published and then publish it if there's a subscriber listening.
@@ -215,7 +220,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				}
 			} 
 		}
-		catch (InterruptedException e) {
+		catch (Exception e) {
 			getLogger().info("ROS loop aborted. " + e.toString());
 		} finally {
 			if (nodeExecutor != null) {

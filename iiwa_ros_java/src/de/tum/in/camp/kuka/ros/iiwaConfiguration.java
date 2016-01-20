@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import org.ros.exception.ParameterNotFoundException;
 import org.ros.namespace.GraphName;
@@ -245,7 +244,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		if (ntpWithHost) {
 			try {
 				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), Executors.newScheduledThreadPool(1));
-				provider.startPeriodicUpdates(10, TimeUnit.SECONDS);
 				timeProvider = provider;
 			} catch (UnknownHostException e) {
 				System.err.println("Could not setup NTP time provider!");
