@@ -307,17 +307,14 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(8e-3);
-		Double defaultRelativeJointSpeed = configuration.getDefaultRelativeJointSpeed();
-		if (defaultRelativeJointSpeed == null)
-			defaultRelativeJointSpeed = 0.2;
-		motion.setJointVelocityRel(defaultRelativeJointSpeed);
+		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 
 		// configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 
 		String toolFromConfig = configuration.getToolName();
-		if (toolFromConfig != null && toolFromConfig != "") {
+		if (toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
 			tool.attachTo(robot.getFlange());
@@ -326,9 +323,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 		
 		// publish joint state?
-		Boolean publishJointStates = configuration.getPublishJointStates();
-		if (publishJointStates != null)
-			publisher.setPublishJointStates(publishJointStates);
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		robot.moveAsync(motion);
 

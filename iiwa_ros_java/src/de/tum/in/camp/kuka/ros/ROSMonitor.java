@@ -164,8 +164,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		
 		// Tool to attach
 		String toolFromConfig = configuration.getToolName();
-		if (toolFromConfig == null) 
-			getLogger().error("no Sunrise tool name specified!");
 		if (toolFromConfig != "") {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);

@@ -209,15 +209,24 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 	
 	public Double getDefaultRelativeJointSpeed() {
-		return getDoubleParameter("defaultRelativeJointSpeed");
+		Double defaultRelativeJointSpeed = getDoubleParameter("defaultRelativeJointSpeed");
+		if (defaultRelativeJointSpeed == null)
+			defaultRelativeJointSpeed = 0.5;
+		return defaultRelativeJointSpeed;
 	}
 
 	public String getToolName() {
-		return getStringParameter("toolName");
+		String toolName = getStringParameter("toolName");
+		if (toolName == null)
+			toolName = "";
+		return toolName;
 	}
 	
-	public Boolean getPublishJointStates() {
-		return getBooleanParameter("publishJointStates");
+	public boolean getPublishJointStates() {
+		Boolean publishStates = getBooleanParameter("publishJointStates");
+		if (publishStates == null)
+			publishStates = false;
+		return publishStates;
 	}
 
 	public class ToolbarSpecification {
@@ -236,7 +245,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		if (ntpWithHost) {
 			try {
 				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), Executors.newScheduledThreadPool(1));
-				provider.startPeriodicUpdates(100, TimeUnit.MILLISECONDS);
+				provider.startPeriodicUpdates(10, TimeUnit.SECONDS);
 				timeProvider = provider;
 			} catch (UnknownHostException e) {
 				System.err.println("Could not setup NTP time provider!");
