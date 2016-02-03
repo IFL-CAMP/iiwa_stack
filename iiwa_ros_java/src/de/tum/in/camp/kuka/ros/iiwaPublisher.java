@@ -260,6 +260,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 		setJointState(helper.buildJointState(robot, motion));
 		publish();
 	}
+	
+	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
+		setCartesianPose(helper.buildCartesianPose(robot, frame));
+		setCartesianWrench(helper.buildCartesianWrench(robot, frame));
+		
+		setJointPosition(helper.buildJointPosition(robot));
+		setJointTorque(helper.buildJointTorque(robot));
+		setJointStiffness(helper.buildJointStiffness(robot, motion));
+		setJointDamping(helper.buildJointDamping(robot, motion));
+		setJointState(helper.buildJointState(robot, motion));
+		publish();
+	}
 
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>

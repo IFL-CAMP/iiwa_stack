@@ -35,6 +35,7 @@ import org.ros.time.NtpTimeProvider;
 
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.motionModel.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
@@ -53,6 +54,8 @@ public class ROSMonitor extends RoboticsAPIApplication {
 
 	private LBR robot;
 	private Tool tool;
+	private String toolFrameID;
+	private ObjectFrame toolFrame;
 	private SmartServo motion;
 	
 	private boolean initSuccessful = false;
@@ -169,8 +172,12 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			getLogger().info("attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
 			tool.attachTo(robot.getFlange());
+			toolFrameID = toolFromConfig + "_link_ee_kuka";
+			toolFrame = tool.getFrame("/" + toolFrameID);
 		} else {
 			getLogger().info("no tool attached");
+			toolFrameID = "iiwa_link_ee_kuka";
+			toolFrame = robot.getFlange();
 		}
 		
 		// publish joint state?
@@ -197,7 +204,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 				 * Any other of the set methods for iiwa_msgs included in the published can be used at the same time,
 				 * one just needs to build the message and set it to the publisher.
 				 */
-				publisher.publishCurrentState(robot, motion);
+				publisher.publishCurrentState(robot, motion, toolFrame);
 				
 				if (gravCompEnabled) {
 					if (gravCompSwitched) {

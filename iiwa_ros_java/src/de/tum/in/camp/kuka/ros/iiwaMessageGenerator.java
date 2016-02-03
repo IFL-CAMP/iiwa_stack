@@ -51,7 +51,7 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMo
  * If no reference frames is passed, the flange frame is used.
  */
 public class iiwaMessageGenerator {
-	private static final String FLANGE_FRAME_ID = "iiwa_link_7";
+	private static String toolFrameID = "iiwa_link_ee_kuka";
 	
 	String[] joint_names = {
 			  "iiwa_joint_1", 
@@ -67,6 +67,12 @@ public class iiwaMessageGenerator {
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
 	private TimeProvider time = iiwaConfiguration.getTimeProvider();
+	
+	public iiwaMessageGenerator() {}
+	
+	public iiwaMessageGenerator(String toolFrame) {
+		toolFrameID = toolFrame;
+	}
 
 	/**
 	 * Builds a CartesianPosition message given a LBR iiwa Robot.<p>
@@ -91,7 +97,7 @@ public class iiwaMessageGenerator {
 		Transformation transform = robot.getCurrentCartesianPosition(robot.getFlange()).transformationFromWorld();
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(FLANGE_FRAME_ID);
+		header.setFrameId(toolFrameID);
 		header.setStamp(time.getCurrentTime());
 
 		geometry_msgs.Pose p = kukaTransformationToRosPose(transform);
@@ -492,7 +498,7 @@ public class iiwaMessageGenerator {
 		geometry_msgs.Quaternion quaternion = matrixToQuat(rotationMatrix);
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(FLANGE_FRAME_ID);
+		header.setFrameId(toolFrameID);
 		header.setStamp(time.getCurrentTime());
 
 		geometry_msgs.Pose p = messageFactory.newFromType(geometry_msgs.Pose._TYPE);
