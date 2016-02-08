@@ -2,14 +2,47 @@
 ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
 ___
 ### Features
-- obtain the current state of a KUKA IIWA LWR and command the robot using ROS Messages (either custom - like iiwa_msgs - or standard ones).
-- make use of the functionalities of Moveit! with a KUKA IIWA LWR. 
-- Gazebo simulation.
+- rosjava node running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, actions
+- SmartServo integration
+  - default: position control (joint or cartesian)
+  - joint or cartesian impedance control reconfigurable through a ROS service
+  - Sunrise tool can be attached to the flange in order to consider its mass for impedance control
+- monitor mode with gravity compensation, enabled through SmartPad keys
+- optional autonomous publication of joint_states topic
+- NTP synchronization if server is running on ROS master
+- full MoveIt! integration
+- Gazebo support
 
-The communication with the robot is implemented through ROS topics: a rosjava node runs in the context of a Sunrise application on the robot cabinet, which in turn performs a SmartServo motion. This approach allows great flexibility; we also plan to offer a service to reconfigure the ServoMotion at runtime (e.g. stiffness of certain joints or around cartesian axes). Though not real-time, we never incurred in any communication problems on our setup.
+There are two RoboticApplications included in our software stack: 
+- ROSMonitor does not perform any motion, but it constantly publishes the current 
+state of the robot. This is suitable for procedures in the native teaching mode 
+or in the custom-made gravity compensation mode.
+- ROSSmartServo allows to use the Sunrise SmartServo control modes to move the robot. 
+The motion is fully reconfigurable at runtime, allowing to switch from any control 
+strategy to any other, and to change the respective parameters at runtime through a 
+ROS service.
 
-We also plan to offer FRI as a communication option as soon as it is stable. 
+Both applications look for ROS parameters at startup, including the ID of the Sunrise 
+tool to attach to the flange. The IP of the robot is automatically discovered, while 
+the ROS master IP should be set in the configuration file included in the project.
 
+The communication with the robot is implemented through ROS topics: a rosjava node 
+runs in the context of a Sunrise application on the robot cabinet, which in turn 
+performs a SmartServo motion. This approach allows great flexibility, as we can 
+use a ROS service to reconfigure the ServoMotion at runtime (e.g. stiffness of 
+certain joints or around cartesian axes). Even if not real-time, we never incurred 
+in any communication problems on our setup: the TCP topics could scale up to 4 KHz 
+without compromising the ordering of the received packets. However, we also plan 
+to offer FRI as a drop-in replacement for ROS-topic communication as soon as it is stable. 
+
+The state of the robot is published through a set of topics, and optionally through 
+the joint_states topic for compatibility with the robot_state_publisher even when 
+not using MoveIt!. The timestamps are correct if an NTP server runs on the ROS master, 
+such that the system can also be used for latency-sensitive application.
+
+The impedance control can be configured with respect to the stiffness and damping 
+for each joint, or for each and about each direction in the cartesian space. It is 
+possible to switch the control mode at runtime safely.
 ___
 ### Usage
 __The features and usage of the stack are described in depth on its  [WIKI][8].__  
