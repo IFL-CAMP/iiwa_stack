@@ -195,7 +195,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		mot.setMode(buildMotionControlMode(ssm));
 	}
 	
-	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
+	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {		
 		String roscmname = null;
 		switch (roscm.getMode()) {
 		case SmartServoMode.CARTESIAN_IMPEDANCE:
@@ -226,8 +226,12 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				// we can change the parameters if it is the same type of control strategy
 				// otherwise we have to stop the motion, replace it and start it again
 				try {
-					if (motion.getMode() != null && isSameControlMode(motion.getMode(), req.getMode())) {
-						motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+					if (req.getMode().getMode() == -1
+							|| (motion.getMode() != null	&& isSameControlMode(motion.getMode(), req.getMode()))) {
+						if (req.getMode().getMode() != -1)
+							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+						if (req.getMode().getRelativeVelocity() > 0)
+							motion.setJointVelocityRel(req.getMode().getRelativeVelocity());
 					} else {
 						configureSmartServoLock.lock();
 						
@@ -334,7 +338,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		// publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
-		robot.moveAsync(motion);
+		toolFrame.moveAsync(motion);
 
 		// The run loop
 		getLogger().info("Starting the ROS Command loop...");
