@@ -44,9 +44,11 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 
-	// TODO: change the following IP addresses according to your setup.
-	private String masterUri = "http://160.69.69.100:11311"; //< IP address of ROS core to talk to.
-	private String host = "160.69.69.69"; //< IP address of the IIWA Cabinet.
+	
+	private String __controllingLaptopIPAddress; //< IP address of ROS core to talk to. Can be changed on tablet. Was "http://160.69.69.100:11311"
+	private String _RobotIPAddress;  //< IP address of the IIWA Cabinet. Can be changed on tablet. Was "160.69.69.69"
+	private String _FRI_KONI_LaptopIPAddress;
+	private String _FRI_KONI_RobotIPAddress;
 
 	// ROS Configuration and Node execution objects.
 	private URI uri;
@@ -62,11 +64,35 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 		helper = new iiwaMessageGenerator();
 		publisher = new iiwaPublisher(robot,"iiwa");
+		
+		
+        // **********************************************************************
+        // *** change next line to the FRIClient's IP address                 ***
+        // **********************************************************************
+        __controllingLaptopIPAddress = getApplicationData().getProcessData("Laptop_IP").getValue(); //"192.170.10.100";
+
+        
+        // **********************************************************************
+        // *** change next line to the KUKA address and Port Number           ***
+        // **********************************************************************
+        _RobotIPAddress = getApplicationData().getProcessData("Robot_IP").getValue(); //"tcp://172.31.1.100:30010";
+
+        // **********************************************************************
+        // *** change next line to the FRIClient's IP address                 ***
+        // **********************************************************************
+        _FRI_KONI_LaptopIPAddress = getApplicationData().getProcessData("Laptop_KONI_FRI_IP").getValue(); //"192.170.10.100";
+
+        
+        // **********************************************************************
+        // *** change next line to the KUKA address and Port Number           ***
+        // **********************************************************************
+        _FRI_KONI_RobotIPAddress = getApplicationData().getProcessData("Robot_KONI_FRI_IP").getValue(); //"tcp://172.31.1.100:30010";
+        
 
 		try {
 			// Set the configuration parameters of the ROS node to create.
-			uri = new URI(masterUri);
-			nodeConfPublisher = NodeConfiguration.newPublic(host);
+			uri = new URI(__controllingLaptopIPAddress);
+			nodeConfPublisher = NodeConfiguration.newPublic(_RobotIPAddress);
 			nodeConfPublisher.setNodeName("iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 		}
