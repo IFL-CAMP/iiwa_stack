@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<RoboticsAPIData version="3">
+    <world>
+        <gravitation x="0.0" y="0.0" z="9.81"/>
+    </world>
+    <objectTemplates>
+        <toolTemplate class="" name="FlangeAttachment">
+            <loadData cogA="0.0" cogB="0.0" cogC="0.0" cogX="0.0" cogY="0.0" cogZ="0.0" inertiaX="0.0" inertiaY="0.0" inertiaZ="0.0" mass="0.0"/>
+        </toolTemplate>
+    </objectTemplates>
+    <processDataContainer>
+        <processData dataType="java.lang.Double" defaultValue="0.2" displayName="Joint Velocity Relative" id="jointVelRel" max="1.0" min="0.01" unit="%/100" value="0.2"/>
+        <processData dataType="java.lang.Double" defaultValue="0.2" displayName="Joint Acceleration Relative" id="jointAccRel" max="1.0" min="0.01" unit="%/100" value="0.2"/>
+        <processData dataType="java.lang.String" defaultValue="tcp://172.31.1.147:30010" displayName="Robot JAVA IPv4" id="Robot_IP" unit="IP4 Address" value="tcp://172.31.1.147:30010"/>
+        <processData dataType="java.lang.String" defaultValue="tcp://172.31.1.100:30010" displayName="Laptop JAVA IPv4" id="Laptop_IP" unit="IP4 Address" value="tcp://172.31.1.100:30010"/>
+        <processData dataType="java.lang.String" defaultValue="192.170.10.100" displayName="Laptop KONI FRI IPv4" id="Laptop_KONI_FRI_IP" unit="IP4 Address" value="192.170.10.100"/>
+        <processData dataType="java.lang.String" defaultValue="192.170.10.2" displayName="Robot KONI FRI IPv4" id="Robot_KONI_FRI_IP" unit="IP4 Address" value="192.170.10.2"/>
+    </processDataContainer>
+</RoboticsAPIData>

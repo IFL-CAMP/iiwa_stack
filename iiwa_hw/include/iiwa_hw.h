@@ -58,6 +58,12 @@
 #include "iiwa_msgs/JointTorque.h"
 #include "iiwaRos.h"
 
+
+// source: https://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
+#ifdef __APPLE__
+struct timespec orwl_gettime(void);
+#endif
+
 #define DEFAULTCONTROLFREQUENCY 1000 // Hz
 
 class IIWA_HW : public hardware_interface::RobotHW

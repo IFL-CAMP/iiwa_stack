@@ -77,8 +77,16 @@ int main( int argc, char** argv )
   // run as fast as possible
   while( !g_quit ) 
   {
+     
+     int error_code;
+ #ifdef __APPLE__
+      ts = orwl_gettime();
+      error_code = 0; // assume success
+ #else
+ 	 error_code = clock_gettime(CLOCK_REALTIME, &ts);
+ #endif
     // get the time / period
-    if (!clock_gettime(CLOCK_REALTIME, &ts)) 
+    if (!error_code) 
     {
       now.sec = ts.tv_sec;
       now.nsec = ts.tv_nsec;
