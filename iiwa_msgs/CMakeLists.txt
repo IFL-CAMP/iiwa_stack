@@ -30,7 +30,6 @@ add_service_files(DIRECTORY srv
     ConfigureSmartServo.srv
 )
         
-        
 # Actually generate the language-specific message and service files
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 

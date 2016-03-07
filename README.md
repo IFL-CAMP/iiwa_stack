@@ -69,6 +69,10 @@ This packages contained in this repository are :
 - __iiwa_ros__: an interface to send and receive messages defined in iiwa_msgs to and from a real robot.
 - __iiwa_ros_java__: the ROSJava interface to use on SunriseApplications - it allows to send and receive messages defined in iiwa_msgs.
 
+### Contacts
+Salvatore Virga : salvo.virga@tum.de
+Marco Esposito : marco.esposito@tum.de
+
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
 [2]: https://bitbucket.org/khansari/iiwa.git
 [3]: https://bitbucket.org/khansari/iiwa/src/c4578460d79d5d24f58bf94bd97fb6cb0b6f280f/msg/IIWAMsg.msg
