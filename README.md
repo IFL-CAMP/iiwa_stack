@@ -1,5 +1,7 @@
 ## IIWA STACK
 ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
+
+**Current version : v-1.7.0**
 ___
 ### Features
 - rosjava node running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, actions
