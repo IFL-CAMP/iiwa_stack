@@ -1,0 +1,4 @@
+iiwa_msgs/SmartServoMode mode
+---
+bool success
+string error

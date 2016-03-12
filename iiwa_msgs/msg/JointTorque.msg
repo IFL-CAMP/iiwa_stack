@@ -1,2 +1,2 @@
 Header header
-float64[] torque
+JointQuantity torque

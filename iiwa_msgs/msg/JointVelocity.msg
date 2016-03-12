@@ -1,2 +1,2 @@
 Header header
-float64[] velocity
+JointQuantity velocity

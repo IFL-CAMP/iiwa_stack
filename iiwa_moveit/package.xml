@@ -3,16 +3,12 @@
   <name>iiwa_moveit</name>
   <version>1.4.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the iiwa with the MoveIt Motion Planning Framework
+	  A package with all the configuration and launch files for using the KUKA LBR IIWA with the MoveIt Motion Planning Framework
   </description>
-  <author email="assistant@moveit.ros.org">MoveIt Setup Assistant</author>
-  <maintainer email="assistant@moveit.ros.org">MoveIt Setup Assistant</maintainer>
+  <author email="salvo.virga@tum.de">Salvo Virga</author>
+  <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
 
-  <license>GPLv3</license>
-
-  <url type="website">http://moveit.ros.org/</url>
-  <url type="bugtracker">https://github.com/ros-planning/moveit_setup_assistant/issues</url>
-  <url type="repository">https://github.com/ros-planning/moveit_setup_assistant</url>
+  <license>BSD</license>
 
   <run_depend>moveit_ros_move_group</run_depend>
   <run_depend>moveit_setup_assistant</run_depend>
@@ -31,7 +27,6 @@
   <run_depend>xacro</run_depend>
   <build_depend>iiwa_description</build_depend>
   <run_depend>iiwa_description</run_depend>
-
 
   <buildtool_depend>catkin</buildtool_depend>
   
