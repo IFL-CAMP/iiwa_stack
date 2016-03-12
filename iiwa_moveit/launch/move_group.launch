@@ -6,6 +6,7 @@
   <arg name="model" default="iiwa14"/>
 
   <include file="$(find iiwa_moveit)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
     <arg name="hardware_interface" value="$(arg hardware_interface)"/>
     <arg name="robot_name" value="$(arg robot_name)"/>
     <arg name="model" value="$(arg model)"/>
@@ -51,11 +52,6 @@
   <node name="move_group" launch-prefix="$(arg launch_prefix)" pkg="moveit_ros_move_group" type="move_group" respawn="false" output="screen" args="$(arg command_args)">
     <!-- Set the display variable, in case OpenGL code is used internally -->
     <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
-    
-    <!-- Remapping to work with difference namespaces -->
-    <remap from="/joint_states" to="/$(arg robot_name)/joint_states" />
-    <remap from="/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" to="/$(arg robot_name)/$(arg hardware_interface)_trajectory_controller/follow_joint_trajectory" />
-    <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
 
     <param name="allow_trajectory_execution" value="$(arg allow_trajectory_execution)"/>
     <param name="max_safe_path_cost" value="$(arg max_safe_path_cost)"/>

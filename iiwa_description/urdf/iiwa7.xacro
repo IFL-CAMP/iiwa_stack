@@ -209,7 +209,7 @@
 
     <joint name="${robot_name}_joint_5" type="revolute">
       <parent link="${robot_name}_link_4"/>
-      <child link="${robot_name}_link_5"/>-169
+      <child link="${robot_name}_link_5"/>
       <origin xyz="0 0.21 0" rpy="${-PI / 2} ${PI} 0"/>
       <axis xyz="0 0 1"/>
       <limit lower="${-175 * PI / 180}" upper="${175 * PI / 180}"
@@ -322,9 +322,18 @@
     </link>
     <joint name="${robot_name}_joint_ee" type="fixed">
       <parent link="${robot_name}_link_7"/>
-      <child link="${robot_name}_link_ee"/>
+      <child link="${robot_name}_link_ee_kuka"/>
       <origin xyz="0 0 0.045" rpy="${PI} ${PI} ${PI}"/>
       <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="${robot_name}_link_ee_kuka">
+    </link>
+    
+    <joint name="tool0_joint" type="fixed">
+      <parent link="${robot_name}_link_7"/>
+      <child link="${robot_name}_link_ee"/>
+      <origin xyz="0 0 0.045" rpy="0 -${PI/2} 0"/>
     </joint>
 
     <link name="${robot_name}_link_ee">

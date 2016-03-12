@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Status1
       Splitter Ratio: 0.74256
     Tree Height: 532
   - Class: rviz/Help
@@ -96,6 +97,10 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -184,6 +189,10 @@ Visualization Manager:
             Show Trail: false
             Value: true
           iiwa_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          tool0:
             Alpha: 1
             Show Axes: false
             Show Trail: false

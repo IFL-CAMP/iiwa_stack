@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+    <!--
+    Setting this parameter to create a toolbar of name "handeye with a double button, take and remove,
+    and another one with name foo, a single button spam and a double button, bar and baz
+    -->
+    <rosparam ns="iiwa" param="toolbarSpecifications" >
+        ['spec','handeye','take,remove', 'spec', 'foo', 'spam', 'bar,baz']
+    </rosparam>
+    <node ns="iiwa" name="toolbar_mapper" pkg="iiwa_ros" type="toolbar_event_publisher" />
+</launch>

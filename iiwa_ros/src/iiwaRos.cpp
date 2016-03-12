@@ -1,326 +1,141 @@
-/** Copyright (C) 2015 Salvatore Virga - salvo.virga@tum.de
+/**  
+ * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
+ * All rights reserved.
  * 
- * LICENSE :
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- *   You should have received a copy of the GNU General Public License
- *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+ * THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * \author Salvatore Virga
  * \version 2.0.0
- * \date 26/10/2015
+ * \date 07/03/2016
  */
 
 #include "iiwaRos.h"
 
 using namespace std;
 
-iiwaRos::iiwaRos()
-{
-}
+ros::Time last_update_time;
 
-void iiwaRos::init(bool initRos, std::string iiwaName)
-{
-  // hide ROS away for non-ROS applications
-  if (initRos) {
-    int argc = 1;
-    char *argv[1];
-    argv[0] = "iiwaRos";
-    ros::init(argc, argv, "iiwaRos");
-  }
-  
-  ros::NodeHandle node_handle;
-  
-  received_cartesian_rotation_.rotation.resize(9);
-  received_cartesian_velocity_.velocity.resize(9);
-  received_joint_position_.position.resize(IIWA_JOINTS);
-  received_joint_stiffness_.stiffness.resize(IIWA_JOINTS);
-  received_joint_torque_.torque.resize(IIWA_JOINTS);
-  received_joint_velocity_.velocity.resize(IIWA_JOINTS);
-  
-  command_cartesian_rotation_.rotation.resize(9);
-  command_cartesian_velocity_.velocity.resize(9);
-  command_joint_position_.position.resize(IIWA_JOINTS);
-  command_joint_stiffness_.stiffness.resize(IIWA_JOINTS);
-  command_joint_torque_.torque.resize(IIWA_JOINTS);
-  command_joint_velocity_.velocity.resize(IIWA_JOINTS);
-  
-  new_cartesian_position_ = false;
-  new_cartesian_rotation_  = false;
-  new_cartesian_velocity_  = false;
-  new_cartesian_wrench_  = false;
-  new_joint_position_  = false;
-  new_joint_stiffness_ = false;
-  new_joint_torque_  = false;
-  new_joint_velocity_  = false;
-  robot_is_connected_ = false;
-  
-  cartesian_position_pub_ = node_handle.advertise<iiwa_msgs::CartesianPosition>("/" + iiwaName +"/command/CartesianPosition",1);
-  cartesian_rotation_pub_ = node_handle.advertise<iiwa_msgs::CartesianRotation>("/" + iiwaName +"/command/CartesianRotation",1);
-  cartesian_velocity_pub_ = node_handle.advertise<iiwa_msgs::CartesianVelocity>("/" + iiwaName +"/command/CartesianVelocity",1);
-  cartesian_wrench_pub_ = node_handle.advertise<iiwa_msgs::CartesianWrench>("/" + iiwaName +"/command/CartesianWrench",1);
-  
-  joint_position_pub_ = node_handle.advertise<iiwa_msgs::JointPosition>("/" + iiwaName +"/command/JointPosition",1);
-  joint_stiffness_pub_ = node_handle.advertise<iiwa_msgs::JointStiffness>("/" + iiwaName +"/command/JointStiffness",1);
-  joint_torque_pub_ = node_handle.advertise<iiwa_msgs::JointTorque>("/" + iiwaName +"/command/JointTorque",1);
-  joint_velocity_pub_ = node_handle.advertise<iiwa_msgs::JointVelocity>("/" + iiwaName +"/command/JointVelocity",1);
-  
-  
-  cartesian_position_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianPosition", 1, &iiwaRos::cartesianPositionCallback, this);
-  cartesian_rotation_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianRotation", 1, &iiwaRos::cartesianRotationCallback, this);
-  cartesian_velocity_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianVelocity", 1, &iiwaRos::cartesianVelocityCallback, this);
-  cartesian_wrench_sub_ = node_handle.subscribe("/" + iiwaName +"/state/CartesianWrench", 1, &iiwaRos::cartesianWrenchCallback, this);
-  
-  joint_position_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointPosition", 1, &iiwaRos::jointPositionCallback, this);
-  joint_stiffness_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointStiffness", 1, &iiwaRos::jointStiffnessCallback, this);
-  joint_torque_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointTorque", 1, &iiwaRos::jointTorqueCallback, this);
-  joint_velocity_sub_ = node_handle.subscribe("/" + iiwaName +"/state/JointVelocity", 1, &iiwaRos::jointVelocityCallback, this);
-}
+iiwaRos::iiwaRos() { }
 
-void iiwaRos::robotConnected()
+void iiwaRos::init(bool initRos) 
 {
-    if (!robot_is_connected_) {
-	{
-	  cout << "IIWA robot is connected." << endl;
-	  robot_is_connected_ = true;
-	}
+    // hide ROS away for non-ROS applications
+    if (initRos) {
+        int argc = 1;
+        char *argv[1];
+        argv[0] = "iiwaRos";
+        ros::init(argc, argv, "iiwaRos");
     }
+    
+    ros::NodeHandle node_handle;
+        
+    robot_is_connected_ = false;
+    
+    holder_state_pose.init("state/CartesianPose");
+    holder_state_joint_position.init("state/JointPosition");
+    holder_state_joint_torque.init("state/JointTorque");
+//     holder_state_wrench.init("state/CartesianWrench");
+//     holder_state_joint_stiffness.init("state/JointStiffness");
+    
+    holder_command_pose.init("command/CartesianPose");
+    holder_command_joint_position.init("command/JointPosition");
+//     holder_command_wrench.init("command/CartesianWrench");
+//     holder_command_joint_stiffness.init("command/JointStiffness");
+//     holder_command_joint_torque.init("command/JointTorque");
 }
 
-iiwaRos::~iiwaRos()
-{
-  
-}
 
-bool iiwaRos::isCartesianPositionAvailable() {
-  return new_cartesian_position_;
-}
-bool iiwaRos::isCartesianRotationAvailable() {
-  return new_cartesian_rotation_;
-}
-bool iiwaRos::isCartesianVelocityAvailable() {
-  return new_cartesian_velocity_;
-}
-bool iiwaRos::isCartesianWrenchAvailable() {
-  return new_cartesian_wrench_;
-}
-bool iiwaRos::isJointPositionAvailable() {
-  return new_joint_position_;
-}
-bool iiwaRos::isJointStiffnessAvailable() {
-  return new_joint_stiffness_;
-}
-bool iiwaRos::isJointTorqueAvailable() {
-  return new_joint_torque_;
-}
-bool iiwaRos::isJointVelocityAvailable() {
-  return new_joint_velocity_;
-}
+
+iiwaRos::~iiwaRos() { }
+
+// bool iiwaRos::getRobotIsConnected() {
+//     static int counter = 0;
+//     if (!(counter++ % 1000)) {
+//         bool is_connected = (ros::Time::now() - last_update_time) < ros::Duration(0.1);
+//         if (is_connected != robot_is_connected_)
+//             if (is_connected)
+//                 ROS_INFO("IIWA robot is connected.");
+//             else 
+//                 ROS_WARN("IIWA robot is NOT connected.");
+//         robot_is_connected_ = is_connected;
+//     }
+//     return robot_is_connected_;
+// }
 
 bool iiwaRos::getRobotIsConnected() {
-  return robot_is_connected_;
+    return (ros::Time::now() - last_update_time) < ros::Duration(0.1);
 }
 
-iiwa_msgs::CartesianPosition iiwaRos::getReceivedCartesianPosition() {
-  new_cartesian_position_ = false;
-  cp_mutex_.lock();
-  iiwa_msgs::CartesianPosition cp = received_cartesian_position_;
-  cp_mutex_.unlock();
-  return cp;
-}
-iiwa_msgs::CartesianRotation iiwaRos::getReceivedCartesianRotation(){
-  new_cartesian_rotation_  = false;
-  cr_mutex_.lock();
-  iiwa_msgs::CartesianRotation cr = received_cartesian_rotation_;
-  cr_mutex_.unlock();
-  return cr;
-}
-iiwa_msgs::CartesianVelocity iiwaRos::getReceivedCartesianVelocity(){
-  new_cartesian_velocity_  = false;
-  cv_mutex_.lock();
-  iiwa_msgs::CartesianVelocity cv = received_cartesian_velocity_;
-  cv_mutex_.unlock();
-  return cv;
-}
-iiwa_msgs::CartesianWrench iiwaRos::getReceivedCartesianWrench(){
-  new_cartesian_wrench_  = false;
-  cw_mutex_.lock();
-  iiwa_msgs::CartesianWrench cw = received_cartesian_wrench_;
-  cw_mutex_.unlock();
-  return cw;
-}
-iiwa_msgs::JointPosition iiwaRos::getReceivedJointPosition(){
-  new_joint_position_  = false;
-  jp_mutex_.lock();
-  iiwa_msgs::JointPosition jp = received_joint_position_;
-  jp_mutex_.unlock();
-  return jp;
-}
-iiwa_msgs::JointStiffness iiwaRos::getReceivedJointStiffness(){
-  new_joint_stiffness_  = false;
-  js_mutex_.lock();
-  iiwa_msgs::JointStiffness js = received_joint_stiffness_;
-  js_mutex_.unlock();
-  return js;
-}
-iiwa_msgs::JointTorque iiwaRos::getReceivedJointTorque(){
-  new_joint_torque_  = false;
-  jt_mutex_.lock();
-  iiwa_msgs::JointTorque jt = received_joint_torque_;
-  jt_mutex_.unlock();
-  return jt;
-}
-iiwa_msgs::JointVelocity iiwaRos::getReceivedJointVelocity(){
-  new_joint_velocity_  = false;
-  jv_mutex_.lock();
-  iiwa_msgs::JointVelocity jv = received_joint_velocity_;
-  jv_mutex_.unlock();
-  return jv;
+
+bool iiwaRos::getReceivedCartesianPose(geometry_msgs::PoseStamped& value) {
+    return holder_state_pose.get(value);
 }
 
-iiwa_msgs::CartesianPosition iiwaRos::getCommandCartesianPosition() {
-  return command_cartesian_position_;
+bool iiwaRos::getReceivedJointPosition(iiwa_msgs::JointPosition& value) {
+    return holder_state_joint_position.get(value);
 }
-iiwa_msgs::CartesianRotation iiwaRos::getCommandCartesianRotation(){
-  return command_cartesian_rotation_;
+
+bool iiwaRos::getReceivedJointTorque(iiwa_msgs::JointTorque& value) {
+    return holder_state_joint_torque.get(value);
 }
-iiwa_msgs::CartesianVelocity iiwaRos::getCommandCartesianVelocity(){
-  return command_cartesian_velocity_;
+
+geometry_msgs::PoseStamped iiwaRos::getCommandCartesianPose() {
+    return holder_command_pose.get();
 }
-iiwa_msgs::CartesianWrench iiwaRos::getCommandCartesianWrench(){
-  return command_cartesian_wrench_;
-}
+
 iiwa_msgs::JointPosition iiwaRos::getCommandJointPosition(){
-  return command_joint_position_;
+    return holder_command_joint_position.get();
 }
-iiwa_msgs::JointStiffness iiwaRos::getCommandJointStiffness(){
-  return command_joint_stiffness_;
-}
-iiwa_msgs::JointTorque iiwaRos::getCommandJointTorque(){
-  return command_joint_torque_;
-}
-iiwa_msgs::JointVelocity iiwaRos::getCommandJointVelocity(){
-  return command_joint_velocity_;
-}
+// geometry_msgs::WrenchStamped iiwaRos::getCommandCartesianWrench(){
+//     return command_cartesian_wrench_;
+// }
+// iiwa_msgs::JointStiffness iiwaRos::getCommandJointStiffness(){
+//     return command_joint_stiffness_;
+// }
+// iiwa_msgs::JointTorque iiwaRos::getCommandJointTorque(){
+//     return command_joint_torque_;
+// }
 
 /*
  * Setters for command messages - set the message that you want to send
  */
-void iiwaRos::setCommandCartesianPosition(const iiwa_msgs::CartesianPosition& position) {
-  command_cartesian_position_ = position;
-}
-void iiwaRos::setCommandCartesianRotation(const iiwa_msgs::CartesianRotation& rotation) {
-  command_cartesian_rotation_ = rotation;
-}
-void iiwaRos::setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity) {
-  command_cartesian_velocity_ = velocity;
-}
-void iiwaRos::setCommandCartesianWrench(const iiwa_msgs::CartesianWrench& wrench) {
-  command_cartesian_wrench_ = wrench;
+void iiwaRos::setCommandCartesianPose(const geometry_msgs::PoseStamped& position) {
+    holder_command_pose.set(position);
 }
 void iiwaRos::setCommandJointPosition(const iiwa_msgs::JointPosition& position)  {
-  command_joint_position_ = position;  
+    holder_command_joint_position.set(position);
 }
-void iiwaRos::setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness)  {
-  command_joint_stiffness_ = stiffness;  
-}
-void iiwaRos::setCommandJointTorque(const iiwa_msgs::JointTorque& torque)  {
-  command_joint_torque_ = torque;
-}
-void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity)  {
-  command_joint_velocity_ = velocity;
-}
-
-
-void iiwaRos::cartesianPositionCallback(const iiwa_msgs::CartesianPosition& position) {
-  cp_mutex_.lock();
-  received_cartesian_position_ = position;
-  cp_mutex_.unlock();
-  new_cartesian_position_ = true;
-  robotConnected();
-}
-void iiwaRos::cartesianRotationCallback(const iiwa_msgs::CartesianRotation& rotation) {
-  cr_mutex_.lock();
-  received_cartesian_rotation_ = rotation;  
-  cr_mutex_.unlock();
-  new_cartesian_rotation_  = true;
-  robotConnected();
-}
-void iiwaRos::cartesianVelocityCallback(const iiwa_msgs::CartesianVelocity& velocity) {
-  cv_mutex_.lock();
-  received_cartesian_velocity_ = velocity;
-  cv_mutex_.unlock();
-  new_cartesian_velocity_  = true;
-  robotConnected();
-}
-void iiwaRos::cartesianWrenchCallback(const iiwa_msgs::CartesianWrench& wrench) {
-  cw_mutex_.lock();
-  received_cartesian_wrench_ = wrench;
-  cw_mutex_.unlock();
-  new_cartesian_wrench_  = true;
-  robotConnected();
-}
-void iiwaRos::jointPositionCallback(const iiwa_msgs::JointPosition& position) {
-  jp_mutex_.lock();
-  received_joint_position_ = position;
-  jp_mutex_.unlock();
-  new_joint_position_  = true;
-  robotConnected();
-}
-void iiwaRos::jointStiffnessCallback(const iiwa_msgs::JointStiffness& stiffness) {
-  js_mutex_.lock();
-  received_joint_stiffness_ = stiffness;
-  js_mutex_.unlock();
-  new_joint_stiffness_  = true;
-  robotConnected();
-}
-void iiwaRos::jointTorqueCallback(const iiwa_msgs::JointTorque& torque) {
-  jt_mutex_.lock();
-  received_joint_torque_ = torque;
-  jt_mutex_.unlock();
-  new_joint_torque_  = true;
-  robotConnected();
-}
-void iiwaRos::jointVelocityCallback(const iiwa_msgs::JointVelocity& velocity) {
-  jv_mutex_.lock();
-  received_joint_velocity_ = velocity;
-  jv_mutex_.unlock();
-  new_joint_velocity_  = true;
-  robotConnected();
-}
+// void iiwaRos::setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench) {
+//     command_cartesian_wrench_ = wrench;
+// }
+// 
+// void iiwaRos::setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness)  {
+//     command_joint_stiffness_ = stiffness;  
+// }
+// void iiwaRos::setCommandJointTorque(const iiwa_msgs::JointTorque& torque)  {
+//     command_joint_torque_ = torque;
+// }
+// void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity)  {
+//     command_joint_velocity_ = velocity;
+// }
 
 bool iiwaRos::publish() {
-  if (robot_is_connected_)
-  {
-    publishIfSubscriber(cartesian_position_pub_, command_cartesian_position_);
-    publishIfSubscriber(cartesian_rotation_pub_, command_cartesian_rotation_);
-    publishIfSubscriber(cartesian_velocity_pub_, command_cartesian_velocity_);
-    publishIfSubscriber(cartesian_wrench_pub_, command_cartesian_wrench_);
-    
-    publishIfSubscriber(joint_position_pub_, command_joint_position_);
-    publishIfSubscriber(joint_stiffness_pub_, command_joint_stiffness_);
-    publishIfSubscriber(joint_torque_pub_, command_joint_torque_);
-    publishIfSubscriber(joint_velocity_pub_, command_joint_velocity_);
-    
-    return 1;
-  }
-  return 0;
-}
-
-template <class T>
-bool iiwaRos::publishIfSubscriber(const ros::Publisher& p, const T& message) {
-  if (p.getNumSubscribers())
-    p.publish(message);
+    holder_command_pose.publishIfNew();
+    holder_command_joint_position.publishIfNew();
 }

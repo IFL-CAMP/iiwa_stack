@@ -1,40 +1,38 @@
 <?xml version="1.0"?>
 <launch>
-  
-  <!-- Loads thee iiwa.world environment in Gazebo. -->
-  
-  <!-- These are the arguments you can pass this launch file, for example paused:=true -->
-  <arg name="paused" default="false"/>
-  <arg name="use_sim_time" default="true"/>
-  <arg name="gui" default="true"/>
-  <arg name="headless" default="false"/>
-  <arg name="debug" default="false"/>
-  <arg name="hardware_interface" default="PositionJointInterface"/>
-  <arg name="robot_name" default="iiwa" />
-  <arg name="model" default="iiwa7"/>
-  
-  <remap from="robot_description" to="/$(arg robot_name)/robot_description" /> 
-  
-  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find iiwa_gazebo)/worlds/iiwa.world"/>
-    <arg name="debug" value="$(arg debug)" />
-    <arg name="gui" value="$(arg gui)" />
-    <arg name="paused" value="$(arg paused)"/>
-    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
-    <arg name="headless" value="$(arg headless)"/>
-  </include>
-  
-  <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
-  <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
-    <arg name="hardware_interface" value="$(arg hardware_interface)"/>
-    <arg name="robot_name" value="$(arg robot_name)" />
-  </include>
-  
-  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
-  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-	args="-urdf -model iiwa -param $(arg robot_name)/robot_description"/>
-  
-  
-  </launch>
-  
+    
+    <!-- Loads thee iiwa.world environment in Gazebo. -->
+    
+    <!-- These are the arguments you can pass this launch file, for example paused:=true -->
+    <arg name="paused" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
+    <arg name="hardware_interface" default="PositionJointInterface"/>
+    <arg name="robot_name" default="iiwa" />
+    <arg name="model" default="iiwa7"/>
+    
+    <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find iiwa_gazebo)/worlds/iiwa.world"/>
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="headless" value="$(arg headless)"/>
+    </include>
+    
+    <!-- Load the URDF with the given hardware interface into the ROS Parameter Server -->
+    <include file="$(find iiwa_description)/launch/$(arg model)_upload.launch">
+        <arg name="hardware_interface" value="$(arg hardware_interface)"/>
+        <arg name="robot_name" value="$(arg robot_name)" />
+    </include>
+    
+    <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -model iiwa -param robot_description"/>
+    
+    
+    </launch>
+    
