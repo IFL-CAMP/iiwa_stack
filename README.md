@@ -70,7 +70,7 @@ This packages contained in this repository are :
 - __iiwa_ros_java__: the ROSJava interface to use on SunriseApplications - it allows to send and receive messages defined in iiwa_msgs.
 
 ### Contacts
-Salvatore Virga : salvo.virga@tum.de
+Salvatore Virga : salvo.virga@tum.de     
 Marco Esposito : marco.esposito@tum.de
 
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
