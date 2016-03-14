@@ -6,8 +6,8 @@
     
     <!-- Load Gazebo lib and set the robot namespace -->
     <gazebo>
-      <plugin name="gazebo_ros_controller" filename="libgazebo_ros_control.so">
-	<robotNamespace>/${robot_name}</robotNamespace>
+      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <robotNamespace>/${robot_name}</robotNamespace>
       </plugin>
     </gazebo>
 
