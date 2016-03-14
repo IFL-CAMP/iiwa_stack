@@ -20,7 +20,7 @@
     <remap from="/get_planning_scene" to="/$(arg robot_name)/get_planning_scene" /> 
     
     <!-- Run the robot within a Gazebo simulation. -->
-    <group ns="$(arg robot_name)" if="$(arg sim)">
+    <group if="$(arg sim)">
         
         <!-- Load Gazebo with given values -->
         <include file="$(find iiwa_gazebo)/launch/iiwa_gazebo.launch">
