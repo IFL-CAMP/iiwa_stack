@@ -36,7 +36,7 @@
     </group>
     
     <!-- Spawn controllers - it uses an Effort Controller for each joint -->
-    <group unless="$(arg trajectory)">
+    <group ns="$(arg robot_name)" unless="$(arg trajectory)">
         
         <include file="$(find iiwa_control)/launch/iiwa_control.launch">
             <arg name="hardware_interface" value="$(arg hardware_interface)" />
