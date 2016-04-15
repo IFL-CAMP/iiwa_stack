@@ -13,8 +13,8 @@
         <robotNamespace>~</robotNamespace>
         <sceneName>${robot_name}_scene</sceneName>
         <updatePeriod>0.033</updatePeriod>
-        <robotName>${robot_name}</robotName>
-        <topicName>planning_scene</topicName>
+        <robotName>iiwa</robotName>
+        <topicName>/${robot_name}/planning_scene</topicName>
       </plugin>
     </gazebo>
 
