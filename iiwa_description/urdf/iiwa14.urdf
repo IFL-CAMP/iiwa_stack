@@ -143,7 +143,7 @@
     <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0.2045 0"/>
     <axis xyz="0 0 1"/>
     <limit effort="300" lower="-2.96705972839" upper="2.96705972839" velocity="10"/>
-    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.05948851735" soft_upper_limit="2.05948851735"/>
+    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
     <dynamics damping="0.5"/>
   </joint>
   <link name="iiwa_link_3">
@@ -205,7 +205,7 @@
     <origin rpy="-1.57079632679 3.14159265359 0" xyz="0 0.1845 0"/>
     <axis xyz="0 0 1"/>
     <limit effort="300" lower="-2.96705972839" upper="2.96705972839" velocity="10"/>
-    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.05948851735" soft_upper_limit="2.05948851735"/>
+    <safety_controller k_position="100" k_velocity="2" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
     <dynamics damping="0.5"/>
   </joint>
   <link name="iiwa_link_5">
@@ -309,7 +309,7 @@
   <!--Extensions -->
   <!-- Load Gazebo lib and set the robot namespace -->
   <gazebo>
-    <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_controller">
+    <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
       <robotNamespace>/iiwa</robotNamespace>
     </plugin>
   </gazebo>
