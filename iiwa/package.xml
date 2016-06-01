@@ -2,15 +2,11 @@
 <package>
   <name>iiwa</name>
   <version>1.4.0</version>
-  <description>
-    Collection of ROS packages for the KUKA LBR IIWA
-  </description>
-  
+  <description>Collection of ROS packages for the KUKA LBR IIWA</description>
+  <author email="salvo.virga@tum.de">Salvo Virga</author>
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
   
-  <license>GPLv3</license>
-  
-  <author email="salv.virga@tum.de">Salvo Virga</author>
+  <license>BSD</license>
   
   <buildtool_depend>catkin</buildtool_depend>
   
@@ -22,7 +18,9 @@
   <run_depend>iiwa_moveit</run_depend>
   <run_depend>iiwa_msg</run_depend>
   <run_depend>iiwa_ros</run_depend>
+  
   <export>
     <metapackage/>
   </export>
+  
 </package>
