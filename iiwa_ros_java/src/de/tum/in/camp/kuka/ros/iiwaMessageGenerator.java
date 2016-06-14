@@ -214,6 +214,31 @@ public class iiwaMessageGenerator {
 
 		return jp;
 	}
+	
+	/**
+	 * Builds a JointPositionVelocity message given a LBR iiwa Robot.<p>
+	 * The message header is set to current time.<br>
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 * @return built JointPositionVelocity message.
+	 */
+	public iiwa_msgs.JointPositionVelocity buildJointPositionVelocity(LBR robot) {
+		double[] position = robot.getCurrentJointPosition().getInternalArray();
+		double[] velocity = new double[7];  // TODO: read current joint velocity
+
+		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
+		header.setFrameId("Robot");
+		header.setStamp(time.getCurrentTime());
+
+		iiwa_msgs.JointQuantity pos = vectorToJointQuantity(position);
+		iiwa_msgs.JointQuantity vel = vectorToJointQuantity(velocity);
+
+		iiwa_msgs.JointPositionVelocity jpv = messageFactory.newFromType(iiwa_msgs.JointPositionVelocity._TYPE);
+		jpv.setHeader(header);
+		jpv.setPosition(pos);
+		jpv.setVelocity(vel);
+
+		return jpv;
+	}
 
 	/**
 	 * Builds a JointStiffness message given a LBR iiwa Robot.<p>
@@ -508,15 +533,16 @@ public class iiwaMessageGenerator {
 		return p;
 	}
 
-	public JointPosition rosJointPositionToKuka(iiwa_msgs.JointPosition rosJointPos) {
+	// KUKA uses JointPosition for speed also...
+	public JointPosition rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos) {
 		return new JointPosition(
-				rosJointPos.getPosition().getA1(),
-				rosJointPos.getPosition().getA2(),
-				rosJointPos.getPosition().getA3(),
-				rosJointPos.getPosition().getA4(),
-				rosJointPos.getPosition().getA5(),
-				rosJointPos.getPosition().getA6(),
-				rosJointPos.getPosition().getA7()
+				rosJointPos.getA1(),
+				rosJointPos.getA2(),
+				rosJointPos.getA3(),
+				rosJointPos.getA4(),
+				rosJointPos.getA5(),
+				rosJointPos.getA6(),
+				rosJointPos.getA7()
 				);
 	}
 

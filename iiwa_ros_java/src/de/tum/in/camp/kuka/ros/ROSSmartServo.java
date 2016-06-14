@@ -375,10 +375,23 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						 * If the robot can move, then it will move to this new position.
 						 */
 						iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-						JointPosition jp = helper.rosJointPositionToKuka(commandPosition);
+						JointPosition jp = helper.rosJointQuantityToKuka(commandPosition.getPosition());
 
 						if (robot.isReadyToMove()) 
 							motion.getRuntime().setDestination(jp);
+					}
+					break;
+					case JOINT_POSITION_VELOCITY: {
+						/*
+						 * This will acquire the last received JointPositionVelocity command from the commanding ROS node.
+						 * If the robot can move, then it will move to this new position.
+						 */
+						iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
+						JointPosition jp = helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition());
+						JointPosition jv = helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity());
+
+						if (robot.isReadyToMove()) 
+							motion.getRuntime().setDestination(jp, jv);
 					}
 					break;
 

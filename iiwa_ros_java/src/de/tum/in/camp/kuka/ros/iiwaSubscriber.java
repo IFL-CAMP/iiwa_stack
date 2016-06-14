@@ -51,7 +51,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		CARTESIAN_POSE,
 		CARTESIAN_VELOCITY,
 		JOINT_POSITION,
-		JOINT_VELOCITY
+		JOINT_VELOCITY,
+		JOINT_POSITION_VELOCITY
 	}
 	
 	private ConnectedNode node = null;
@@ -68,6 +69,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Subscriber<geometry_msgs.WrenchStamped> cartesianWrenchSubscriber;
 	// Joint Message Publishers
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
+	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointStiffness> jointStiffnessSubscriber;
 	private Subscriber<iiwa_msgs.JointTorque> jointTorqueSubscriber;
 //	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
@@ -79,6 +81,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private geometry_msgs.WrenchStamped cw;
 	// Joint Messages
 	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointStiffness js;
 	private iiwa_msgs.JointTorque jt;
 //	private iiwa_msgs.JointVelocity jv;
@@ -105,6 +108,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cw = helper.buildCartesianWrench(robot);
 
 		jp = helper.buildJointPosition(robot);
+		jpv = helper.buildJointPositionVelocity(robot);
 		js = helper.buildJointStiffness(robot, null);
 		jt = helper.buildJointTorque(robot);
 //		jv = helper.buildJointVelocity(robot);
@@ -166,6 +170,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwa_msgs.JointPosition getJointPosition() {
 		return jp;
+	}
+	
+	/**
+	 * Returns the last received Joint Position-Velocity message. <p>
+	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
+	 * @return the received Joint Position-Velocity message.
+	 */
+	public iiwa_msgs.JointPositionVelocity getJointPositionVelocity() {
+		return jpv;
 	}
 	
 	/**
@@ -237,6 +250,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianWrenchSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
+		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointStiffnessSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointTorqueSubscriber = connectedNode.newSubscriber(iiwaName + "/commmand/JointTorque", iiwa_msgs.JointTorque._TYPE);
 //		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
@@ -269,6 +283,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			public void onNewMessage(iiwa_msgs.JointPosition position){
 				jp = position;
 				currentCommandType = CommandType.JOINT_POSITION;
+			}
+		});
+		
+		jointPositionVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPositionVelocity>() {
+			@Override
+			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity){
+				jpv = positionVelocity;
+				currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
 			}
 		});
 		
