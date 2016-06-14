@@ -349,6 +349,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
 				}
 				
+				motion.getRuntime().activateVelocityPlanning(true);
+				
 				/*
 				 * This will build a JointPosition message with the current robot state.
 				 * Set that message to be published and then publish it if there's a subscriber listening.
@@ -390,7 +392,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						JointPosition jp = helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition());
 						JointPosition jv = helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity());
 
-						if (robot.isReadyToMove()) 
+						if (robot.isReadyToMove() && !jp.isNearlyEqual(cjp) && !jp.isNearlyEqual(debugjp)) 
 							motion.getRuntime().setDestination(jp, jv);
 					}
 					break;
