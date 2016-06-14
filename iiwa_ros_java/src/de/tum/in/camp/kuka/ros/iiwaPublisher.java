@@ -56,19 +56,6 @@ public class iiwaPublisher extends AbstractNodeMain {
 	// JointState publisher (optional)
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
-	
-	// Local iiwa_msgs to publish 
-	// Cartesian Messages
-	private geometry_msgs.PoseStamped cp;
-//	private iiwa_msgs.CartesianVelocity cv;
-	private geometry_msgs.WrenchStamped cw;
-	// Joint Messages
-	private iiwa_msgs.JointPosition jp;
-	private iiwa_msgs.JointStiffness js;
-	private iiwa_msgs.JointDamping jd;
-	private iiwa_msgs.JointTorque jt;
-//	private iiwa_msgs.JointVelocity jv;
-	private sensor_msgs.JointState joint_states;
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
@@ -78,122 +65,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 
 	/**
 	 * Constructs a series of ROS publishers for messages defined by the iiwa_msgs ROS package. <p>
-	 * The initial values of the messages are all set to zeros.
-	 */
-	public iiwaPublisher(String robotName) {
-		cp = cartesianPosePublisher.newMessage();
-//		cv = cartesianVelocityPublisher.newMessage();
-		cw = cartesianWrenchPublisher.newMessage();
-
-		jp = jointPositionPublisher.newMessage();
-		js = jointStiffnessPublisher.newMessage();
-		jd = jointDampingPublisher.newMessage();
-		jt = jointTorquePublisher.newMessage();
-//		jv = jointVelocityPublisher.newMessage();
-		
-		iiwaName = robotName;
-	}
-
-	/**
-	 * Constructs a series of ROS publishers for messages defined by the iiwa_msgs ROS package. <p>
 	 * The initial values of the messages are set using the current state of the iiwa robot passed.
 	 * Except for Velocity messages, those will be initialized to zero.<br>
 	 * For Cartesian messages, the initial values will refer to the frame of the robot's Flange.
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
-	public iiwaPublisher(LBR robot, String robotName) {
-		cp = helper.buildCartesianPose(robot);
-//		cv = helper.buildCartesianVelocity(robot);
-		cw = helper.buildCartesianWrench(robot);
-
-		jp = helper.buildJointPosition(robot);
-		js = helper.buildJointStiffness(robot, null);
-		jt = helper.buildJointTorque(robot);
-//		jv = helper.buildJointVelocity(robot);
-		
+	public iiwaPublisher(String robotName) {
 		iiwaName = robotName;
-	}
-
-	/**
-	 * Constructs a series of ROS publishers for messages defined by the iiwa_msgs package. <p>
-	 * The initial values of the messages are set using the current state of the iiwa robot passed.
-	 * Except for Velocity messages, those will be initialized to zero.<br>
-	 * For Cartesian messages, the initial values will refer to the given frame.
-	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
-	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
-	 */
-	public iiwaPublisher(LBR robot, ObjectFrame frame, String robotName) {
-		cp = helper.buildCartesianPose(robot, frame);
-//		cv = helper.buildCartesianVelocity(robot, frame);
-		cw = helper.buildCartesianWrench(robot, frame);
-
-		jp = helper.buildJointPosition(robot);
-		js = helper.buildJointStiffness(robot, null);
-		jt = helper.buildJointTorque(robot);
-//		jv = helper.buildJointVelocity(robot);
-		
-		iiwaName = robotName;
-	}
-
-	/**
-	 * Set the CartesianPosition message to be published.<p>
-	 * @param pose : CartesianPosition message to publish.
-	 */
-	public void setCartesianPose(geometry_msgs.PoseStamped pose) {
-		cp = pose;
-	}
-	/**
-	 * Set the CartesianVelocity message to be published.<p>
-	 * @param velocity : CartesianVelocity message to publish.
-	 */
-//	public void setCartesianVelocity(iiwa_msgs.CartesianVelocity velocity) {
-//		cv = velocity;
-//	}
-	/**
-	 * Set the CartesianWrench message to be published.<p>
-	 * @param wrench : CartesianWrench message to publish.
-	 */
-	public void setCartesianWrench(geometry_msgs.WrenchStamped wrench) {
-		cw = wrench;
-	}
-	/**
-	 * Set the JointPosition message to be published.<p>
-	 * @param position : JointPosition message to publish.
-	 */
-	public void setJointPosition(iiwa_msgs.JointPosition position) {
-		jp = position;
-	}
-	/**
-	 * Set the JointStiffness message to be published.<p>
-	 * @param position : JointStiffness message to publish.
-	 */
-	public void setJointStiffness(iiwa_msgs.JointStiffness stiffness) {
-		js = stiffness;
-	}
-	/**
-	 * Set the JointDamping message to be published.<p>
-	 * @param position : JointDamping message to publish.
-	 */
-	public void setJointDamping(iiwa_msgs.JointDamping damping) {
-		jd = damping;
-	}
-	/**
-	 * Set the JointTorque message to be published.<p>
-	 * @param torque : JointTorque message to publish.
-	 */
-	public void setJointTorque(iiwa_msgs.JointTorque torque) {
-		jt = torque;
-	}
-	/**
-	 * Set the JointVelocity message to be published.<p>
-	 * @param velocity : JointVelocity message to publish.
-	 */
-//	public void setJointVelocity(iiwa_msgs.JointVelocity velocity) {
-//		jv = velocity;
-//	}
-	
-	public void setJointState(sensor_msgs.JointState state) {
-		joint_states = state;
 	}
 	
 	public void setPublishJointStates(boolean b) {
@@ -250,57 +128,30 @@ public class iiwaPublisher extends AbstractNodeMain {
 	}
 	
 	public void publishCurrentState(LBR robot, SmartServo motion) throws InterruptedException {
-		setCartesianPose(helper.buildCartesianPose(robot));
-		setCartesianWrench(helper.buildCartesianWrench(robot));
-		
-		setJointPosition(helper.buildJointPosition(robot));
-		setJointTorque(helper.buildJointTorque(robot));
-		setJointStiffness(helper.buildJointStiffness(robot, motion));
-		setJointDamping(helper.buildJointDamping(robot, motion));
-		setJointState(helper.buildJointState(robot, motion));
-		publish();
+		publishCurrentState(robot, motion, robot.getFlange());
 	}
 	
-	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
-		setCartesianPose(helper.buildCartesianPose(robot, frame));
-		setCartesianWrench(helper.buildCartesianWrench(robot, frame));
-		
-		setJointPosition(helper.buildJointPosition(robot));
-		setJointTorque(helper.buildJointTorque(robot));
-		setJointStiffness(helper.buildJointStiffness(robot, motion));
-		setJointDamping(helper.buildJointDamping(robot, motion));
-		setJointState(helper.buildJointState(robot, motion));
-		publish();
-	}
-
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * To set the messages to be published use their set methods.<br>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
 	 * @throws InterruptedException
 	 */
-	public void publish() throws InterruptedException {
-		/*
-		 * For each message, it's checked whether there is a subscriber waiting for a message
-		 * or not, if so the message is published.
-		 */
-		publishIfSubscriber(cartesianPosePublisher, cp);
-//		publishIfSubscriber(cartesianVelocityPublisher, cv);
-		publishIfSubscriber(cartesianWrenchPublisher, cw);
-		publishIfSubscriber(jointPositionPublisher, jp);
-		publishIfSubscriber(jointStiffnessPublisher, js);
-		publishIfSubscriber(jointDampingPublisher, jd);
-		publishIfSubscriber(jointTorquePublisher, jt);
-//		publishIfSubscriber(jointVelocityPublisher, jv);
-		if (publishJointState)
-			publishIfSubscriber(jointStatesPublisher, joint_states);
-	}
-
-	<T> void publishIfSubscriber(Publisher<T> p, T m) {
-		if (p != null && m != null) {
-			if (p.getNumberOfSubscribers() > 0)
-				p.publish(m);
-		}
+	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
+		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) 
+			cartesianPosePublisher.publish(helper.buildCartesianPose(robot, frame));
+		if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0)
+			cartesianWrenchPublisher.publish(helper.buildCartesianWrench(robot, frame));
+		if (jointPositionPublisher.getNumberOfSubscribers() > 0)
+			jointPositionPublisher.publish(helper.buildJointPosition(robot));
+		if (jointTorquePublisher.getNumberOfSubscribers() > 0)
+			jointTorquePublisher.publish(helper.buildJointTorque(robot));
+		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0)
+			jointStiffnessPublisher.publish(helper.buildJointStiffness(robot, motion));
+		if (jointDampingPublisher.getNumberOfSubscribers() > 0)
+			jointDampingPublisher.publish(helper.buildJointDamping(robot, motion));
+		if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0)
+			jointStatesPublisher.publish(helper.buildJointState(robot, motion));
 	}
 	
 	public void publishButtonPressed(String name) {

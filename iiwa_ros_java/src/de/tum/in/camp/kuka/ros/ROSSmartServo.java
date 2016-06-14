@@ -214,7 +214,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 		helper = new iiwaMessageGenerator();
 		configuration = new iiwaConfiguration();
-		publisher = new iiwaPublisher(robot, iiwaConfiguration.getRobotName());
+		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
 		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
 
 		// SmartServo configuration service callback

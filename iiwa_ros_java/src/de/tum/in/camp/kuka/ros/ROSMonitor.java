@@ -86,7 +86,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		
 		// standard stuff
 		configuration = new iiwaConfiguration();
-		publisher = new iiwaPublisher(robot, iiwaConfiguration.getRobotName());
+		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
 		
 		// gravity compensation - only in ROSMonitor for safety
 		gravcompKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
