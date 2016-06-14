@@ -392,7 +392,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						JointPosition jp = helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition());
 						JointPosition jv = helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity());
 
-						if (robot.isReadyToMove() && !jp.isNearlyEqual(cjp) && !jp.isNearlyEqual(debugjp)) 
+						if (robot.isReadyToMove()) 
 							motion.getRuntime().setDestination(jp, jv);
 					}
 					break;
