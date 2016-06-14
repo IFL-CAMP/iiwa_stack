@@ -80,6 +80,8 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private IUserKeyListener gravCompKeyList;
 	private boolean gravCompEnabled = false;
 	private boolean gravCompSwitched = false;
+	int gravityCompDecimationCounter = 0; 
+	final int gravityCompDecimation = 10;
 	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
@@ -215,7 +217,8 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						motion.getRuntime().changeControlModeSettings(controlMode);
 					}
 					
-					motion.getRuntime().setDestination(robot.getCurrentJointPosition());
+					if ((gravityCompDecimationCounter++ % gravityCompDecimation) == 0)
+						motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 				} else {
 					if (gravCompSwitched) {
 						gravCompSwitched = false;
