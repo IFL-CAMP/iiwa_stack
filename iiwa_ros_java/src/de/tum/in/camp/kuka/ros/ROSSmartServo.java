@@ -179,7 +179,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(0.1);
+		mot.setMinimumTrajectoryExecutionTime(20e-3);
 		mot.setTimeoutAfterGoalReach(300);
 		
 		configureSmartServoMotion(ssm, mot);
@@ -314,7 +314,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 		
 		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 
@@ -351,12 +351,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				
 				motion.getRuntime().activateVelocityPlanning(true);
 				
-				/*
-				 * This will build a JointPosition message with the current robot state.
-				 * Set that message to be published and then publish it if there's a subscriber listening.
-				 * Any other of the set methods for iiwa_msgs included in the published can be used at the same time,
-				 * one just needs to build the message and set it to the publisher.
-				 */
+				// This will publich the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 
 				if (subscriber.currentCommandType != null) {

@@ -86,11 +86,11 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 		
-		// standard stuff
+		// Standard stuff
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
 		
-		// gravity compensation - only in ROSMonitor for safety
+		// Gravity compensation - only in ROSMonitor for safety
 		gravcompKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
 		gravCompKeyList = new IUserKeyListener() {
 			@Override
@@ -165,7 +165,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 		
-		// configurable toolbars to publish events on topics
+		// Configurable toolbars to publish events on topics
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 		
 		// Tool to attach
@@ -182,13 +182,13 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			toolFrame = robot.getFlange();
 		}
 		
-		// publish joint state?
+		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 		
 		if (!SmartServo.validateForImpedanceMode(robot))
 			getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		
-		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(7); // TODO!!
+		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(robot.getJointCount()); // TODO!!
 		robot.moveAsync(motion.setMode(controlMode));
 		
 		// The run loop
@@ -200,12 +200,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
 				}
 				
-				/*
-				 * This will build a JointPosition message with the current robot state.
-				 * Set that message to be published and then publish it if there's a subscriber listening.
-				 * Any other of the set methods for iiwa_msgs included in the published can be used at the same time,
-				 * one just needs to build the message and set it to the publisher.
-				 */
+				// This will publich the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 				
 				if (gravCompEnabled) {
