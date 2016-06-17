@@ -156,30 +156,37 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
 		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentCartesianPose(cp, robot, frame);
+			helper.incrementSeqNumber(cp.getHeader());
 			cartesianPosePublisher.publish(cp);
 		}
 		if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentCartesianWrench(cw, robot, frame);
+			helper.incrementSeqNumber(cw.getHeader());
 			cartesianWrenchPublisher.publish(cw);
 		}
 		if (jointPositionPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointPosition(jp, robot);
+			helper.incrementSeqNumber(jp.getHeader());
 			jointPositionPublisher.publish(jp);
 		}
 		if (jointTorquePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointTorque(jt, robot);
+			helper.incrementSeqNumber(jt.getHeader());
 			jointTorquePublisher.publish(jt);
 		}
 		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointStiffness(jst, robot, motion);
+			helper.incrementSeqNumber(jst.getHeader());
 			jointStiffnessPublisher.publish(jst);
 		}
 		if (jointDampingPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointDamping(jd, robot, motion);
+			helper.incrementSeqNumber(jp.getHeader());
 			jointDampingPublisher.publish(jd);
 		}
 		if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointState(js, robot, motion);
+			helper.incrementSeqNumber(js.getHeader());
 			jointStatesPublisher.publish(js);
 		}
 	}

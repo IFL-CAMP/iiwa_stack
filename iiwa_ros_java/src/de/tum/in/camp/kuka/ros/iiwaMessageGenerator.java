@@ -476,5 +476,9 @@ public class iiwaMessageGenerator {
 	public <T extends org.ros.internal.message.Message> T buildMessage(String typeString) {
 		return messageFactory.newFromType(typeString);
 	}
+	
+	public void incrementSeqNumber(std_msgs.Header h) {
+		h.setSeq(h.getSeq()+1);
+	}
 
 }
