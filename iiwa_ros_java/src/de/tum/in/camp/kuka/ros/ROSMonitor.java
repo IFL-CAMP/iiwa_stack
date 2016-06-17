@@ -82,8 +82,17 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private IUserKeyListener gravCompKeyList;
 	private boolean gravCompEnabled = false;
 	private boolean gravCompSwitched = false;
-	int gravityCompDecimationCounter = 0; 
-	final int gravityCompDecimation = 10;
+	
+	/*
+	 * Performing NTP synchronization and SmartServo control makes the control loop very slow
+	 * These variables are used to run them every *decimation* times, 
+	 * In order to balance the load, they alternate at *decimationCounter* % *decimation* == 0 and
+	 * *decimationCounter* % *decimation* == *decimation* / 2
+	 */
+	 
+	int decimationCounter = 0; 
+	final int positionDecimation = 10;
+	final int ntpDecimation = 100;
 	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
@@ -197,13 +206,14 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		// The run loop
 		getLogger().info("Starting the ROS Monitor loop...");
 		try {
-			while(true) { 
-
-				if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+			while(running) { 
+				decimationCounter++;
+				
+				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) && iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
 					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
 				}
 				
-				// This will publich the current robot state on the various ROS topics.
+				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 				
 				if (gravCompEnabled) {
@@ -215,7 +225,12 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						motionRuntime.changeControlModeSettings(controlMode);
 					}
 					
-					if ((gravityCompDecimationCounter++ % gravityCompDecimation) == 0)
+					/*
+					 * Continuously updating the commanded position to the current robot position
+					 * If this is not done, when setting the stiffness back to a high value the robot will 
+					 * go back to that position at full speed: do not try that at home!!
+					 */
+					if ((decimationCounter % positionDecimation) == 0)
 						motionRuntime.setDestination(robot.getCurrentJointPosition());
 				} else {
 					if (gravCompSwitched) {
