@@ -24,6 +24,12 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
+import geometry_msgs.PoseStamped;
+import geometry_msgs.WrenchStamped;
+import iiwa_msgs.JointPosition;
+import iiwa_msgs.JointStiffness;
+import iiwa_msgs.JointTorque;
+
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
@@ -56,9 +62,19 @@ public class iiwaPublisher extends AbstractNodeMain {
 	// JointState publisher (optional)
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
-
+	
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
+	
+	// Cache objects
+	private geometry_msgs.PoseStamped cp = helper.buildMessage(PoseStamped._TYPE);
+//	private iiwa_msgs.CartesianVelocity cv = helper.buildMessage(CartesianVelocity._TYPE);
+	private geometry_msgs.WrenchStamped cw = helper.buildMessage(WrenchStamped._TYPE);
+	private iiwa_msgs.JointPosition jp = helper.buildMessage(JointPosition._TYPE);
+	private iiwa_msgs.JointStiffness jst = helper.buildMessage(JointStiffness._TYPE);
+	private iiwa_msgs.JointDamping jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
+	private iiwa_msgs.JointTorque jt = helper.buildMessage(JointTorque._TYPE);
+	private sensor_msgs.JointState js = helper.buildMessage(sensor_msgs.JointState._TYPE);
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
@@ -138,20 +154,34 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @throws InterruptedException
 	 */
 	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
-		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) 
-			cartesianPosePublisher.publish(helper.buildCartesianPose(robot, frame));
-		if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0)
-			cartesianWrenchPublisher.publish(helper.buildCartesianWrench(robot, frame));
-		if (jointPositionPublisher.getNumberOfSubscribers() > 0)
-			jointPositionPublisher.publish(helper.buildJointPosition(robot));
-		if (jointTorquePublisher.getNumberOfSubscribers() > 0)
-			jointTorquePublisher.publish(helper.buildJointTorque(robot));
-		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0)
-			jointStiffnessPublisher.publish(helper.buildJointStiffness(robot, motion));
-		if (jointDampingPublisher.getNumberOfSubscribers() > 0)
-			jointDampingPublisher.publish(helper.buildJointDamping(robot, motion));
-		if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0)
-			jointStatesPublisher.publish(helper.buildJointState(robot, motion));
+		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentCartesianPose(cp, robot, frame);
+			cartesianPosePublisher.publish(cp);
+		}
+		if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentCartesianWrench(cw, robot, frame);
+			cartesianWrenchPublisher.publish(cw);
+		}
+		if (jointPositionPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointPosition(jp, robot);
+			jointPositionPublisher.publish(jp);
+		}
+		if (jointTorquePublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointTorque(jt, robot);
+			jointTorquePublisher.publish(jt);
+		}
+		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointStiffness(jst, robot, motion);
+			jointStiffnessPublisher.publish(jst);
+		}
+		if (jointDampingPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointDamping(jd, robot, motion);
+			jointDampingPublisher.publish(jd);
+		}
+		if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointState(js, robot, motion);
+			jointStatesPublisher.publish(js);
+		}
 	}
 	
 	public void publishButtonPressed(String name) {

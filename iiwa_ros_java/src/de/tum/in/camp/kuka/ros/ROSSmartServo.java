@@ -100,6 +100,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
+	private JointPosition jp;
+	private JointPosition jv;
 
 	public static class UnsupportedControlModeException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
@@ -372,7 +374,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						 * If the robot can move, then it will move to this new position.
 						 */
 						iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-						JointPosition jp = helper.rosJointQuantityToKuka(commandPosition.getPosition());
+						helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
 
 						if (robot.isReadyToMove()) 
 							motion.getRuntime().setDestination(jp);
@@ -384,8 +386,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						 * If the robot can move, then it will move to this new position.
 						 */
 						iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
-						JointPosition jp = helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition());
-						JointPosition jv = helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity());
+						helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
+						helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
 
 						if (robot.isReadyToMove()) 
 							motion.getRuntime().setDestination(jp, jv);

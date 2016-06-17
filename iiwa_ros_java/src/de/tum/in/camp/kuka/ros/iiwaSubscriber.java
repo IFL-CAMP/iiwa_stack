@@ -24,8 +24,15 @@
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
+import geometry_msgs.PoseStamped;
+import geometry_msgs.WrenchStamped;
+import iiwa_msgs.CartesianVelocity;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
+import iiwa_msgs.JointPosition;
+import iiwa_msgs.JointPositionVelocity;
+import iiwa_msgs.JointStiffness;
+import iiwa_msgs.JointTorque;
 
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
@@ -74,23 +81,25 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Subscriber<iiwa_msgs.JointTorque> jointTorqueSubscriber;
 //	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
 
+	// Object to easily build iiwa_msgs from the current robot state
+	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
+		
 	// Local iiwa_msgs to store received messages 
 	// Cartesian Messages
-	private geometry_msgs.PoseStamped cp;
-	private iiwa_msgs.CartesianVelocity cv;
-	private geometry_msgs.WrenchStamped cw;
+	private geometry_msgs.PoseStamped cp = helper.buildMessage(PoseStamped._TYPE);
+	private iiwa_msgs.CartesianVelocity cv = helper.buildMessage(CartesianVelocity._TYPE);
+	private geometry_msgs.WrenchStamped cw = helper.buildMessage(WrenchStamped._TYPE);
 	// Joint Messages
-	private iiwa_msgs.JointPosition jp;
-	private iiwa_msgs.JointPositionVelocity jpv;
-	private iiwa_msgs.JointStiffness js;
-	private iiwa_msgs.JointTorque jt;
+	private iiwa_msgs.JointPosition jp = helper.buildMessage(JointPosition._TYPE);
+	private iiwa_msgs.JointPositionVelocity jpv = helper.buildMessage(JointPositionVelocity._TYPE);
+	private iiwa_msgs.JointStiffness js = helper.buildMessage(JointStiffness._TYPE);
+	private iiwa_msgs.JointTorque jt = helper.buildMessage(JointTorque._TYPE);
 //	private iiwa_msgs.JointVelocity jv;
 	
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
 	CommandType currentCommandType = CommandType.JOINT_POSITION;
 
-	// Object to easily build iiwa_msgs from the current robot state
-	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
+	
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
@@ -103,17 +112,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 */
 	public iiwaSubscriber(LBR robot, String robotName) {
-		cp = helper.buildCartesianPose(robot);
-//		cv = helper.buildCartesianVelocity(robot);
-		cw = helper.buildCartesianWrench(robot);
-
-		jp = helper.buildJointPosition(robot);
-		jpv = helper.buildJointPositionVelocity(robot);
-		js = helper.buildJointStiffness(robot, null);
-		jt = helper.buildJointTorque(robot);
-//		jv = helper.buildJointVelocity(robot);
-		
-		iiwaName = robotName;
+		this(robot, robot.getFlange(), robotName);
 	}
 
 	/**
@@ -125,13 +124,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
-		cp = helper.buildCartesianPose(robot, frame);
+		helper.getCurrentCartesianPose(cp, robot, frame);
 //		cv = helper.buildCartesianVelocity(robot, frame);
-		cw = helper.buildCartesianWrench(robot, frame);
+		helper.getCurrentCartesianWrench(cw, robot, frame);
 
-		jp = helper.buildJointPosition(robot);
-		js = helper.buildJointStiffness(robot, null);
-		jt = helper.buildJointTorque(robot);
+		helper.getCurrentJointPosition(jp, robot);
+		helper.getCurrentJointStiffness(js, robot, null);
+		helper.getCurrentJointTorque(jt, robot);
 //		jv = helper.buildJointVelocity(robot);
 		
 		iiwaName = robotName;
