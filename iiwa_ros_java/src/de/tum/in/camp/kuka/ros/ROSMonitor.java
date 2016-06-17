@@ -266,6 +266,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		if (nodeExecutor != null) {
 			getLogger().info("Stopping ROS nodes");
 			nodeExecutor.shutdown();	
+			nodeExecutor.getScheduledExecutorService().shutdownNow();
 		}
 		getLogger().info("Stopped ROS nodes");
 	}
