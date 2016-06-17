@@ -36,6 +36,7 @@ import org.ros.time.NtpTimeProvider;
 import com.kuka.connectivity.motionModel.smartServo.ISmartServoRuntime;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
+import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
@@ -62,6 +63,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	
 	private boolean initSuccessful = false;
 	private boolean debug = false;
+	private boolean running = true;
 	
 	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaConfiguration configuration; //< Configuration via parameters and services.
@@ -246,23 +248,37 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		catch (Exception e) {
 			getLogger().info("ROS loop aborted. " + e.toString());
 		} finally {
-			if (nodeExecutor != null) {
-				nodeExecutor.shutdownNodeMain(publisher);
-				nodeExecutor.shutdownNodeMain(configuration);
-				if (debug)getLogger().info("ROS Node terminated.");
-			}
+			cleanup();
 			getLogger().info("ROS loop has ended. Application terminated.");
+			printThreads();
 		}
 	}
-
-	@Override
-	public void dispose() {
-		// The Publisher node is killed.
-		if (nodeExecutor != null) {
-			nodeExecutor.shutdownNodeMain(publisher);
-			nodeExecutor.shutdownNodeMain(configuration);
-			getLogger().info("ROS nodes have been terminated by Garbage Collection.");
+	
+	@Override 
+	public void onApplicationStateChanged(com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState state) {
+		if (state == RoboticsAPIApplicationState.STOPPING) {
+			running = false;
 		}
-		super.dispose();
+		super.onApplicationStateChanged(state);
+	};
+	
+	void cleanup() {
+		running = false;
+		if (nodeExecutor != null) {
+			getLogger().info("Stopping ROS nodes");
+			nodeExecutor.shutdown();	
+		}
+		getLogger().info("Stopped ROS nodes");
+	}
+	
+	void printThreads() {
+		ThreadGroup currentGroup = 
+			      Thread.currentThread().getThreadGroup();
+			      int noThreads = currentGroup.activeCount();
+			      Thread[] lstThreads = new Thread[noThreads];
+			      currentGroup.enumerate(lstThreads);
+			      for (int i = 0; i < noThreads; i++)
+			      System.out.println("Thread No:" + i + " = "
+			      + lstThreads[i].getName());
 	}
 }
