@@ -93,8 +93,8 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	 */
 	 
 	int decimationCounter = 0; 
-	final int positionDecimation = 10;
-	final int ntpDecimation = 100;
+	final int positionDecimation = 8;
+	final int ntpDecimation = 1024;
 	
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
