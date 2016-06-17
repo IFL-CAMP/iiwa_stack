@@ -20,6 +20,7 @@
  * @author Salvatore Virga
  * 
  */
+
 package de.tum.in.camp.kuka.ros;
 
 // ROS imports
@@ -33,33 +34,22 @@ import iiwa_msgs.SmartServoMode;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.ros.exception.ServiceException;
-import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
-import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
-import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
-import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
-import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
-import com.kuka.roboticsAPI.geometricModel.Tool;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 
 /*
  * This example shows how to monitor and change the state of the robot.
@@ -72,36 +62,87 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
  * but any other of its property included in the iiwa_msgs ROS package can be published
  * and received in the same way.
  */
-public class ROSSmartServo extends RoboticsAPIApplication {
+public class ROSSmartServo extends ROSBaseApplication {
 
-	private LBR robot;
-	private Tool tool;
-	private String toolFrameID;
-	private ObjectFrame toolFrame;
-	private SmartServo motion;
 	private Lock configureSmartServoLock = new ReentrantLock();
 
-	private boolean initSuccessful = false;
-	private boolean debug = false;
-
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
-	private iiwaPublisher publisher; //< IIWARos Publisher.
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
-	private iiwaConfiguration configuration; //< Configuration via parameters and services.
 
 	// ROS Configuration and Node execution objects. Two different configurations are needed
 	// for the Publisher and the Subscriber.
-	private NodeConfiguration nodeConfPublisher;
 	private NodeConfiguration nodeConfSubscriber;
-	private NodeConfiguration nodeConfConfiguration;
-	private NodeMainExecutor nodeMainExecutor;
-
-	// configurable toolbars
-	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
-	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
-	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
+	
 	private JointPosition jp = new JointPosition(7);
 	private JointPosition jv = new JointPosition(7);
+	
+	@Override
+	protected void configureNodes(URI uri) {
+		// Configuration for the Subscriber.
+		nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
+		nodeConfSubscriber.setTimeProvider(iiwaConfiguration.getTimeProvider());
+		nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
+		nodeConfSubscriber.setMasterUri(uri);
+	}
+	
+	@Override
+	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
+		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
+		
+		// SmartServo configuration service callback
+		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, 
+																			 iiwa_msgs.ConfigureSmartServoResponse>() {
+			@Override
+			public void build(ConfigureSmartServoRequest req,
+					ConfigureSmartServoResponse resp) throws ServiceException {
+				// we can change the parameters if it is the same type of control strategy
+				// otherwise we have to stop the motion, replace it and start it again
+				try {
+					if (req.getMode().getMode() == -1
+							|| (motion.getMode() != null	&& isSameControlMode(motion.getMode(), req.getMode()))) {
+						if (req.getMode().getMode() != -1)
+							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+						if (req.getMode().getRelativeVelocity() > 0)
+							motion.setJointVelocityRel(req.getMode().getRelativeVelocity());
+					} else {
+						configureSmartServoLock.lock();
+						
+						SmartServo oldmotion = motion;
+						ServoMotion.validateForImpedanceMode(robot);
+						motion = configureSmartServoMotion(req.getMode());
+						robot.moveAsync(motion);  // TODO: use toolFrame.moveAsync()
+						oldmotion.getRuntime().stopMotion();
+						
+						configureSmartServoLock.unlock();
+					}
+				} catch (Exception e) {
+					resp.setSuccess(false);
+					if (e.getMessage() != null) {
+						StringWriter sw = new StringWriter();
+						PrintWriter pw = new PrintWriter(sw);
+						e.printStackTrace(pw);
+						resp.setError(e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
+					} else {
+						resp.setError("because I hate you :)");
+					}
+					return;
+				}
+				resp.setSuccess(true);
+				
+				getLogger().info("Changed SmartServo configuration!");
+				getLogger().info("Mode: "+motion.toString());
+			}
+		});
+		
+		nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
+	}
+
+	@Override
+	protected void initializeApp() {
+		helper = new iiwaMessageGenerator();
+
+		
+	}
 
 	public static class UnsupportedControlModeException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
@@ -183,6 +224,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
 		mot.setMinimumTrajectoryExecutionTime(20e-3);
 		mot.setTimeoutAfterGoalReach(300);
+		motion.getRuntime().activateVelocityPlanning(true);
 		
 		configureSmartServoMotion(ssm, mot);
 		return mot;
@@ -211,222 +253,58 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		
 		return roscmname.equals(kukacmname);
 	}
-
-	public void initialize() {
-		robot = getContext().getDeviceFromType(LBR.class);
-		helper = new iiwaMessageGenerator();
-		configuration = new iiwaConfiguration();
-		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
-		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
-
-		// SmartServo configuration service callback
-		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
-
-			@Override
-			public void build(ConfigureSmartServoRequest req,
-					ConfigureSmartServoResponse resp) throws ServiceException {
-				// we can change the parameters if it is the same type of control strategy
-				// otherwise we have to stop the motion, replace it and start it again
-				try {
-					if (req.getMode().getMode() == -1
-							|| (motion.getMode() != null	&& isSameControlMode(motion.getMode(), req.getMode()))) {
-						if (req.getMode().getMode() != -1)
-							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
-						if (req.getMode().getRelativeVelocity() > 0)
-							motion.setJointVelocityRel(req.getMode().getRelativeVelocity());
-					} else {
-						configureSmartServoLock.lock();
-						
-						SmartServo oldmotion = motion;
-						ServoMotion.validateForImpedanceMode(robot);
-						motion = configureSmartServoMotion(req.getMode());
-						robot.moveAsync(motion);
-						oldmotion.getRuntime().stopMotion();
-						
-						configureSmartServoLock.unlock();
-					}
-				} catch (Exception e) {
-					resp.setSuccess(false);
-					if (e.getMessage() != null) {
-						StringWriter sw = new StringWriter();
-						PrintWriter pw = new PrintWriter(sw);
-						e.printStackTrace(pw);
-						resp.setError(e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
-					} else {
-						resp.setError("because I hate you :)");
-					}
-					return;
-				}
-				resp.setSuccess(true);
-			}
-		});
-
-		try {
-			// Set the configuration parameters of the ROS nodes to create.
-			URI uri = new URI(iiwaConfiguration.getMasterURI());
-
-			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
-			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
-			nodeConfConfiguration.setMasterUri(uri);
-			
-			// Configuration for the Publisher.
-			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
-			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
-			nodeConfPublisher.setMasterUri(uri);
-			
-
-			// Configuration for the Subscriber.
-			nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfSubscriber.setTimeProvider(iiwaConfiguration.getTimeProvider());
-			nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
-			nodeConfSubscriber.setMasterUri(uri);
-
-			// Publisher and Subscriber nodes are executed. Their onStart method is called here.
-			nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
-			nodeMainExecutor.execute(publisher, nodeConfPublisher);
-			nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
-			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
-
-		}
-		catch (Exception e) {
-			if (debug) getLogger().info("Node Configuration failed.");
-			getLogger().info(e.toString());
-		}
-
-		if (debug) 
-			getLogger().info("ROS Nodes initialized.");
-
-		initSuccessful = true;
-	}
-
-	public void run() {
-		if (!initSuccessful) {
-			throw new RuntimeException("Could not init the RoboticApplication successfully");
-		}
-			
-		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
-
-		try {
-			configuration.waitForInitialization();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-			return;
-		}
-		
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3);
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
-		motion.setTimeoutAfterGoalReach(300);
-
-		// configurable toolbars to publish events on topics
-		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
-		
-		// Tool to attach
-		String toolFromConfig = configuration.getToolName();
-		if (toolFromConfig != "") {
-			getLogger().info("attaching tool " + toolFromConfig);
-			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
-			tool.attachTo(robot.getFlange());
-			toolFrameID = toolFromConfig + "_link_ee_kuka";
-			toolFrame = tool.getFrame("/" + toolFrameID);
-		} else {
-			getLogger().info("no tool attached");
-			toolFrameID = "iiwa_link_ee_kuka";
-			toolFrame = robot.getFlange();
-		}
-		
-		// publish joint state?
-		publisher.setPublishJointStates(configuration.getPublishJointStates());
-
-		toolFrame.moveAsync(motion);
-
-		// The run loop
-		getLogger().info("Starting the ROS Command loop...");
-		try {   
-			while (true) {
-
-				if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
-				}
-				
-				motion.getRuntime().activateVelocityPlanning(true);
-				
-				// This will publich the current robot state on the various ROS topics.
-				publisher.publishCurrentState(robot, motion, toolFrame);
-
-				if (subscriber.currentCommandType != null) {
-					configureSmartServoLock.lock(); // the service could stop the motion and restart it
-					
-					switch (subscriber.currentCommandType) {
-					case CARTESIAN_POSE: {
-						PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
-						Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
-
-						if (robot.isReadyToMove()) 
-							motion.getRuntime().setDestination(tr);
-					}
-					break;
-					case JOINT_POSITION: {
-						/*
-						 * This will acquire the last received JointPosition command from the commanding ROS node.
-						 * If the robot can move, then it will move to this new position.
-						 */
-						iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-						helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
-
-						if (robot.isReadyToMove()) 
-							motion.getRuntime().setDestination(jp);
-					}
-					break;
-					case JOINT_POSITION_VELOCITY: {
-						/*
-						 * This will acquire the last received JointPositionVelocity command from the commanding ROS node.
-						 * If the robot can move, then it will move to this new position.
-						 */
-						iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
-						helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
-						helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
-
-						if (robot.isReadyToMove()) 
-							motion.getRuntime().setDestination(jp, jv);
-					}
-					break;
-
-					default:
-						throw new UnsupportedControlModeException();
-					}
-
-					configureSmartServoLock.unlock();
-				}
-
-			}
-		} catch (Exception ex) {
-			getLogger().info("ROS loop aborted. " + ex.toString());
-		}
-		finally {
-			// The ROS nodes are killed.
-			if (nodeMainExecutor != null) {
-				nodeMainExecutor.shutdownNodeMain(publisher);
-				nodeMainExecutor.shutdownNodeMain(subscriber);
-				nodeMainExecutor.shutdownNodeMain(configuration);
-			}
-			motion.getRuntime().stopMotion();
-			if (debug)getLogger().info("ROS Node terminated.");
-		}
-		getLogger().info("ROS loop has ended. Application terminated.");
+	
+	@Override
+	protected void beforeControlLoop() { 
+		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
 	}
 
 	@Override
-	public void dispose() {
-		// The ROS nodes are killed.
-		if (nodeMainExecutor != null && publisher != null && subscriber != null) {
-			nodeMainExecutor.shutdownNodeMain(publisher);
-			nodeMainExecutor.shutdownNodeMain(subscriber);
-			nodeMainExecutor.shutdownNodeMain(configuration);
-			getLogger().info("ROS nodes have been terminated by Garbage Collection.");
+	protected void controlLoop() {
+		if (subscriber.currentCommandType != null) {
+			configureSmartServoLock.lock(); // the service could stop the motion and restart it
+			
+			switch (subscriber.currentCommandType) {
+			case CARTESIAN_POSE: {
+				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
+				Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
+
+				if (robot.isReadyToMove()) 
+					motion.getRuntime().setDestination(tr);
+			}
+			break;
+			case JOINT_POSITION: {
+				/*
+				 * This will acquire the last received JointPosition command from the commanding ROS node.
+				 * If the robot can move, then it will move to this new position.
+				 */
+				iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
+				helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
+
+				if (robot.isReadyToMove()) 
+					motion.getRuntime().setDestination(jp);
+			}
+			break;
+			case JOINT_POSITION_VELOCITY: {
+				/*
+				 * This will acquire the last received JointPositionVelocity command from the commanding ROS node.
+				 * If the robot can move, then it will move to this new position.
+				 */
+				iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
+				helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
+				helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
+
+				if (robot.isReadyToMove()) 
+					motion.getRuntime().setDestination(jp, jv);
+			}
+			break;
+
+			default:
+				throw new UnsupportedControlModeException();
+			}
+
+			configureSmartServoLock.unlock();
 		}
-		super.dispose();
+		
 	}
 }
