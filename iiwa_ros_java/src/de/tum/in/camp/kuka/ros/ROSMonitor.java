@@ -250,7 +250,6 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		} finally {
 			cleanup();
 			getLogger().info("ROS loop has ended. Application terminated.");
-			printThreads();
 		}
 	}
 	
@@ -269,16 +268,5 @@ public class ROSMonitor extends RoboticsAPIApplication {
 			nodeExecutor.shutdown();	
 		}
 		getLogger().info("Stopped ROS nodes");
-	}
-	
-	void printThreads() {
-		ThreadGroup currentGroup = 
-			      Thread.currentThread().getThreadGroup();
-			      int noThreads = currentGroup.activeCount();
-			      Thread[] lstThreads = new Thread[noThreads];
-			      currentGroup.enumerate(lstThreads);
-			      for (int i = 0; i < noThreads; i++)
-			      System.out.println("Thread No:" + i + " = "
-			      + lstThreads[i].getName());
 	}
 }
