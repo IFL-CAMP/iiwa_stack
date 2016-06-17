@@ -33,6 +33,7 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.time.NtpTimeProvider;
 
+import com.kuka.connectivity.motionModel.smartServo.ISmartServoRuntime;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -57,6 +58,7 @@ public class ROSMonitor extends RoboticsAPIApplication {
 	private String toolFrameID;
 	private ObjectFrame toolFrame;
 	private SmartServo motion;
+	private ISmartServoRuntime motionRuntime;
 	
 	private boolean initSuccessful = false;
 	private boolean debug = false;
@@ -188,8 +190,9 @@ public class ROSMonitor extends RoboticsAPIApplication {
 		if (!SmartServo.validateForImpedanceMode(robot))
 			getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		
-		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(robot.getJointCount()); // TODO!!
+		JointImpedanceControlMode controlMode = new JointImpedanceControlMode(robot.getJointCount());
 		robot.moveAsync(motion.setMode(controlMode));
+		motionRuntime = motion.getRuntime();
 		
 		// The run loop
 		getLogger().info("Starting the ROS Monitor loop...");
@@ -209,18 +212,18 @@ public class ROSMonitor extends RoboticsAPIApplication {
 						getLogger().warn("Enabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(0);
 						controlMode.setDampingForAllJoints(0.7);
-						motion.getRuntime().changeControlModeSettings(controlMode);
+						motionRuntime.changeControlModeSettings(controlMode);
 					}
 					
 					if ((gravityCompDecimationCounter++ % gravityCompDecimation) == 0)
-						motion.getRuntime().setDestination(robot.getCurrentJointPosition());
+						motionRuntime.setDestination(robot.getCurrentJointPosition());
 				} else {
 					if (gravCompSwitched) {
 						gravCompSwitched = false;
 						getLogger().warn("Disabling gravity compensation");
 						controlMode.setStiffnessForAllJoints(1500);
-						motion.getRuntime().changeControlModeSettings(controlMode);
-						motion.getRuntime().setDestination(robot.getCurrentJointPosition());
+						motionRuntime.changeControlModeSettings(controlMode);
+						motionRuntime.setDestination(robot.getCurrentJointPosition());
 					}
 				}
 			} 
