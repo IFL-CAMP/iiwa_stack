@@ -100,8 +100,8 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 	private List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	private List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	private List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
-	private JointPosition jp;
-	private JointPosition jv;
+	private JointPosition jp = new JointPosition(7);
+	private JointPosition jv = new JointPosition(7);
 
 	public static class UnsupportedControlModeException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
