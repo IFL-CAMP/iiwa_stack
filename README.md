@@ -48,7 +48,7 @@ possible to switch the control mode at runtime safely.
 ___
 ### Usage
 __The features and usage of the stack are described in depth on its  [WIKI][8].__  
-We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
+We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.     
 Do you have problems? First, please check the [**FAQs**](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ). Issues or emails are always welcome.
 
 ___
