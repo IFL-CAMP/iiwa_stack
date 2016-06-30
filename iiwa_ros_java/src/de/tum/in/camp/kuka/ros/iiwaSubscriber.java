@@ -123,10 +123,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot : an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
-		cp = helper.buildCartesianPose(robot, frame);
+	public iiwaSubscriber(LBR robot, String robotName,  ObjectFrame frame, String frameID) {
+		cp = helper.buildCartesianPose(robot, frame, frameID);
 //		cv = helper.buildCartesianVelocity(robot, frame);
-		cw = helper.buildCartesianWrench(robot, frame);
+		cw = helper.buildCartesianWrench(robot, frame, frameID);
 
 		jp = helper.buildJointPosition(robot);
 		js = helper.buildJointStiffness(robot, null);

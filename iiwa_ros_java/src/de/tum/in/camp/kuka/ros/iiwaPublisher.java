@@ -126,9 +126,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param frame : reference frame to use to set up initial values for Cartesian messages.
 	 */
 	public iiwaPublisher(LBR robot, ObjectFrame frame, String robotName) {
-		cp = helper.buildCartesianPose(robot, frame);
+		cp = helper.buildCartesianPose(robot, frame, "iiwa_link_ee_kuka");
 //		cv = helper.buildCartesianVelocity(robot, frame);
-		cw = helper.buildCartesianWrench(robot, frame);
+		cw = helper.buildCartesianWrench(robot, frame, "iiwa_link_ee_kuka");
 
 		jp = helper.buildJointPosition(robot);
 		js = helper.buildJointStiffness(robot, null);
@@ -264,9 +264,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 		publish();
 	}
 
-	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
-		setCartesianPose(helper.buildCartesianPose(robot, frame));
-		setCartesianWrench(helper.buildCartesianWrench(robot, frame));
+	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame, String frameID) throws InterruptedException {
+		setCartesianPose(helper.buildCartesianPose(robot, frame, frameID));
+		setCartesianWrench(helper.buildCartesianWrench(robot, frame, frameID));
 		
 		setJointPosition(helper.buildJointPosition(robot));
 		setJointTorque(helper.buildJointTorque(robot));

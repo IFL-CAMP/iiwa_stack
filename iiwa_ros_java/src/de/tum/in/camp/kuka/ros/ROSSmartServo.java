@@ -371,7 +371,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 				 * Any other of the set methods for iiwa_msgs included in the published can be used at the same time,
 				 * one just needs to build the message and set it to the publisher.
 				 */
-				publisher.publishCurrentState(robot, motion, toolFrame);
+				publisher.publishCurrentState(robot, motion, toolFrame, toolFrameID);
 
 				if (subscriber.currentCommandType != null) {
 					configureSmartServoLock.lock(); // the service could stop the motion and restart it

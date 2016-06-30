@@ -85,7 +85,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianPosition message.
 	 */
 	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot) {
-		return buildCartesianPose(robot, robot.getFlange());
+		return buildCartesianPose(robot, robot.getFlange(), "iiwa_link_ee_kuka");
 	}
 
 	/**
@@ -96,11 +96,11 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame to set the values of the Cartesian position.
 	 * @return built CartesianPosition message.
 	 */
-	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot, ObjectFrame frame) {
-		Transformation transform = robot.getCurrentCartesianPosition(robot.getFlange()).transformationFromWorld();
+	public geometry_msgs.PoseStamped buildCartesianPose(LBR robot, ObjectFrame frame, String frameID) {
+		Transformation transform = robot.getCurrentCartesianPosition(frame).transformationFromWorld();
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(toolFrameID);
+		header.setFrameId(frameID);
 		header.setStamp(time.getCurrentTime());
 
 		geometry_msgs.Pose p = kukaTransformationToRosPose(transform);
@@ -159,7 +159,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianWrench message.
 	 */
 	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot) {
-		return buildCartesianWrench(robot, robot.getFlange());
+		return buildCartesianWrench(robot, robot.getFlange(), "iiwa_link_ee_kuka");
 	}
 
 	/**
@@ -170,7 +170,7 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame the wrench refers to.
 	 * @return built CartesianWrench message.
 	 */
-	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot, ObjectFrame frame) {
+	public geometry_msgs.WrenchStamped buildCartesianWrench(LBR robot, ObjectFrame frame, String frameID) {
 		geometry_msgs.Vector3 force = messageFactory.newFromType(geometry_msgs.Vector3._TYPE);
 		force.setX(robot.getExternalForceTorque(frame).getForce().getX());
 		force.setY(robot.getExternalForceTorque(frame).getForce().getY());
@@ -186,7 +186,7 @@ public class iiwaMessageGenerator {
 		wrench.setTorque(torque);
 
 		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-		header.setFrameId(frame.getName());
+		header.setFrameId(frameID);
 		header.setStamp(time.getCurrentTime());
 
 		geometry_msgs.WrenchStamped ws = messageFactory.newFromType(geometry_msgs.WrenchStamped._TYPE);
