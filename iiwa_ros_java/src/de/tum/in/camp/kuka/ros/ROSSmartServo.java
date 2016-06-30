@@ -192,7 +192,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 
 	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(8e-3);
+		mot.setMinimumTrajectoryExecutionTime(20e-3);
 		mot.setTimeoutAfterGoalReach(300);
 		
 		configureSmartServoMotion(ssm, mot);
@@ -252,7 +252,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 						configureSmartServoLock.lock();
 						
 						SmartServo oldmotion = motion;
-						ServoMotion.validateForImpedanceMode(robot);
+						ServoMotion.validateForImpedanceMode(tool);
 						motion = configureSmartServoMotion(req.getMode());
 						toolFrame.moveAsync(motion);
 						oldmotion.getRuntime().stopMotion();
@@ -330,7 +330,7 @@ public class ROSSmartServo extends RoboticsAPIApplication {
 		}
 		
 		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 
