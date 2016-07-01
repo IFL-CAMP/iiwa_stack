@@ -110,7 +110,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 						SmartServo oldmotion = motion;
 						ServoMotion.validateForImpedanceMode(robot);
 						motion = configureSmartServoMotion(req.getMode());
-						robot.moveAsync(motion);  // TODO: use toolFrame.moveAsync()
+						toolFrame.moveAsync(motion);
 						oldmotion.getRuntime().stopMotion();
 						
 						configureSmartServoLock.unlock();
@@ -130,7 +130,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				resp.setSuccess(true);
 				
 				getLogger().info("Changed SmartServo configuration!");
-				getLogger().info("Mode: "+motion.toString());
+				getLogger().info("Mode: " + motion.toString());
 			}
 		});
 		
@@ -140,8 +140,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void initializeApp() {
 		helper = new iiwaMessageGenerator();
-
-		
 	}
 
 	public static class UnsupportedControlModeException extends RuntimeException {
@@ -211,6 +209,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 			cm = jcm;
 			break;
 		}
+		
+		// TODO : case CONSTANT_FORCE
 
 		default: {
 			throw new UnsupportedControlModeException();  // this should just not happen
@@ -248,6 +248,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		case SmartServoMode.JOINT_IMPEDANCE:
 			roscmname = "JointImpedanceControlMode";
 			break;
+		// TODO : case CONSTANT_FORCE
 		}
 		String kukacmname = kukacm.getClass().getSimpleName();
 		
@@ -285,7 +286,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 					motion.getRuntime().setDestination(jp);
 			}
 			break;
-			case JOINT_POSITION_VELOCITY: {
+			case JOINT_POSITION_VELOCITY: { // TODO : do we want to keep this?
 				/*
 				 * This will acquire the last received JointPositionVelocity command from the commanding ROS node.
 				 * If the robot can move, then it will move to this new position.

@@ -85,11 +85,11 @@ public class ROSMonitor extends ROSBaseApplication {
 	protected void beforeControlLoop() {
 		SmartServo oldmotion = motion;
 		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(8e-3);
+		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
-		robot.moveAsync(motion.setMode(controlMode));
+		toolFrame.moveAsync(motion.setMode(controlMode));
 		oldmotion.getRuntime().stopMotion();
 
 	}

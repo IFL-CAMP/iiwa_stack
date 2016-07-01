@@ -91,7 +91,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianPosition message.
 	 */
 	public void getCurrentCartesianPose(geometry_msgs.PoseStamped pps, LBR robot, ObjectFrame frame) {
-		Transformation transform = robot.getCurrentCartesianPosition(robot.getFlange()).transformationFromWorld();
+		Transformation transform = robot.getCurrentCartesianPosition(frame).transformationFromWorld();
 
 		pps.getHeader().setFrameId(baseFrameID);  
 		pps.getHeader().setStamp(time.getCurrentTime());
@@ -158,7 +158,7 @@ public class iiwaMessageGenerator {
 	 * @return built CartesianWrench message.
 	 */
 	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped ws, LBR robot, ObjectFrame frame) {
-		ws.getHeader().setFrameId(frame.getName());
+		ws.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
 		ws.getHeader().setStamp(time.getCurrentTime());
 		
 		ws.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
@@ -289,6 +289,7 @@ public class iiwaMessageGenerator {
 	//		return jv;
 	//	}
 	
+	// TODO : doc
 	public void getCurrentJointState(sensor_msgs.JointState js, LBR robot, SmartServo motion) {
 		
 		js.getHeader().setStamp(time.getCurrentTime());
@@ -302,7 +303,7 @@ public class iiwaMessageGenerator {
 		// TODO: velocity
 	}
 
-	// conversions
+	// Conversions
 
 	public void vectorToJointQuantity(double[] torque, iiwa_msgs.JointQuantity q) {
 		q.setA1((float) torque[0]);

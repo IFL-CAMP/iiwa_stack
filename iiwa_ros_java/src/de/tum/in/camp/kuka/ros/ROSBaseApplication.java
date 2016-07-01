@@ -53,6 +53,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected LBR robot;
 	protected Tool tool;
 	protected String toolFrameID;
+	protected String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
 	
@@ -153,17 +154,18 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		try {
 			getLogger().info("Waiting for configuration... ");
 			configuration.waitForInitialization();
-			getLogger().info("done!");
+			getLogger().info("done!"); // TODO : is this waiting just for roscore or fore more? Change text to something better.
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 			return;
 		}
 		
-		getLogger().info("using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
+		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		// TODO : add parametrization for relative acceleration too
 		motion.setTimeoutAfterGoalReach(300);
 		
 		// Configurable toolbars to publish events on topics
@@ -172,24 +174,25 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Tool to attach
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig != "") {
-			getLogger().info("attaching tool " + toolFromConfig);
+			getLogger().info("Attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
 			tool.attachTo(robot.getFlange());
-			toolFrameID = toolFromConfig + "_link_ee_kuka";
+			toolFrameID = toolFromConfig + toolFrameIDSuffix;
 			toolFrame = tool.getFrame("/" + toolFrameID);
+			if (!SmartServo.validateForImpedanceMode(tool))
+				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		} else {
-			getLogger().info("no tool attached");
-			toolFrameID = "iiwa_link_ee_kuka";
+			getLogger().info("No tool attached. Using flange.");
+			toolFrameID = iiwaConfiguration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = robot.getFlange();
+			if (!SmartServo.validateForImpedanceMode(robot))
+				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		}
 		
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 		
-		if (!SmartServo.validateForImpedanceMode(robot))
-			getLogger().error("Too much external torque on the robot! Is it a singular position?");
-		
-		robot.moveAsync(motion);
+		toolFrame.moveAsync(motion);
 		
 		beforeControlLoop();
 		
