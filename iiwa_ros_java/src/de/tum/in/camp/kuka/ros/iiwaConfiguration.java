@@ -1,8 +1,8 @@
  /**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische UniversitÃ¤t MÃ¼nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -56,23 +56,26 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
+/**
+ * TODO : short explanation of the class
+ */
 public class iiwaConfiguration extends AbstractNodeMain {
 
 	// Name to use to build the name of the ROS topics
-	private static Map<String, String> config = null;
-	private static String robotName = null;
-	private static String masterIp = null;
-	private static String masterPort = null;
-	private static String masterUri = null; //< IP address of ROS core to talk to.
-	private static String robotIp = null;
-	private static boolean staticConfigurationSuccessful = false;
-	private static boolean ntpWithHost = false;
-	private static TimeProvider timeProvider = null;
+	private static Map<String, String> config;
+	private static String robotName;
+	private static String masterIp;
+	private static String masterPort;
+	private static String masterUri; //< IP address of ROS core to talk to.
+	private static String robotIp;
+	private static boolean staticConfigurationSuccessful;
+	private static boolean ntpWithHost;
+	private static TimeProvider timeProvider;
 
 	private ConnectedNode node;
 	private ParameterTree params;
 
-	// used to wait until we are connected to the ROS master and params are available
+	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
 
 	public iiwaConfiguration() {
@@ -101,24 +104,25 @@ public class iiwaConfiguration extends AbstractNodeMain {
 				config.put(lineComponents[0].trim(), lineComponents[1].trim());
 			}
 		} catch (IOException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 	}
 
-	public static void configure() {
-		parseConfigFile();
+	private static void configure() {
+		parseConfigFile(); //TODO : use KUKA's process data?
 		
+		// Obtain name of the robot from config file
 		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
-		System.out.println("robot name: " + robotName);
+		System.out.println("Robot name: " + robotName);
 		
+		// Obtain if NTP server is used from config file
 		ntpWithHost  = config.get("ntp_with_host").equals("true");
-
-		// network configuration
+		
+		// Obtain IP:port of the ROS Master 
 		masterIp = config.get("master_ip");
 		masterPort = config.get("master_port");
 		masterUri = "http://" + masterIp + ":" + masterPort;
-		System.out.println("master uri: " + masterUri);
+		System.out.println("Master URI: " + masterUri);
 
 		String[] master_components = masterIp.split("\\.");
 		String localhostIp = null;
@@ -126,7 +130,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		try {
 			ifaces = NetworkInterface.getNetworkInterfaces();
 		} catch (SocketException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			return;
 		}
@@ -140,7 +143,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 				boolean matches = components[0].equals(master_components[0])
 						&& components[1].equals(master_components[1])
-						&& components[2].equals(master_components[2]);
+						&& components[2].equals(master_components[2]); //TODO : check this
 				if (matches) {
 					localhostIpFound = true;
 					break;
@@ -148,31 +151,57 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			}
 		}
 		robotIp = localhostIp;
-		System.out.println("robot ip: " + robotIp);
+		System.out.println("Robot IP: " + robotIp);
 		
 		staticConfigurationSuccessful = true;
 	}
 	
+	/**
+	 * Get the ROS Master URI, obtained from the configuration file.
+	 * Format : http://IP:port
+	 * 
+	 * @return ROS Master URI
+	 */
 	public static String getMasterURI() {
 		checkConfiguration();
 		return masterUri;
 	}
 	
+	/**
+	 * Get the ROS Master IP address, obtained from the configuration file.
+	 * 
+	 * @return ROS Master IP address
+	 */
 	public static String getMasterIp() {
 		checkConfiguration();
 		return masterIp;
 	}
 	
+	/**
+	 * Get the robot IP address, obtained from the configuration file.
+	 * 
+	 * @return Robot IP address
+	 */
 	public static String getRobotIp() {
 		checkConfiguration();
 		return robotIp;
 	}
 	
+	/**
+	 * Get the robot name, obtained from the configuration file.
+	 * 
+	 * @return name of the robot
+	 */
 	public static String getRobotName() {
 		checkConfiguration();
 		return robotName;
 	}
 	
+	/**
+	 * Return if an external NTP server should be used, value obtained from the configuration file.
+	 * 
+	 * @return true if external NTP server should be used
+	 */
 	public static boolean getShouldUseNtp() {
 		checkConfiguration();
 		return ntpWithHost;
@@ -197,16 +226,27 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		initSemaphore.release();
 	}
 
+	/**
+	 * Wait for ROS Master to connect.
+	 * @throws InterruptedException
+	 */
 	public void waitForInitialization() throws InterruptedException {
 		initSemaphore.acquire();
 	}
 
+	// Functions to work with ROS param server
+	
 	private ParameterTree getParameterTree() {
 		if (initSemaphore.availablePermits() > 0)
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
 	
+	/**
+	 * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS param server.
+	 * 
+	 * @return the default relative joint speed
+	 */
 	public Double getDefaultRelativeJointSpeed() {
 		Double defaultRelativeJointSpeed = getDoubleParameter("defaultRelativeJointSpeed");
 		if (defaultRelativeJointSpeed == null)
@@ -214,6 +254,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return defaultRelativeJointSpeed;
 	}
 
+	/**
+	 * Get the name of the tool to use from param <b>toolName</b> in ROS param server.
+	 * 
+	 * @return name of the tool
+	 */
 	public String getToolName() {
 		String toolName = getStringParameter("toolName");
 		if (toolName == null)
@@ -221,24 +266,34 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return toolName;
 	}
 	
+	/**
+	 * Get if <i>joint_state</i> shoud be published, reading param <b>publishJointStates</b> from ROS param server.
+	 * 
+	 * @return true if <i>joint_state</i>
+	 */
 	public boolean getPublishJointStates() {
 		Boolean publishStates = getBooleanParameter("publishJointStates");
 		if (publishStates == null)
 			publishStates = false;
 		return publishStates;
 	}
-
-	public class ToolbarSpecification {
-		public String name;
-		public String[] buttonIDs;
-	}
 	
+	/**
+	 * Get the time provider to use, this is selected accordingly to the value of <b>ntp_with_host</b> in the configuration file.
+	 * 
+	 * @return the time provider to use, NtpTimeProvider or WallTimeProvider
+	 */
 	public static TimeProvider getTimeProvider() {
 		if (timeProvider == null)
 			setupTimeProvider();
 		return timeProvider;
 	}
 	
+	/**
+	 * Configure the time provider to use accordingly to the value of of <b>ntp_with_host</b> in the configuration file.
+	 * 
+	 * @return the configured time provider
+	 */
 	private static TimeProvider setupTimeProvider() {
 		checkConfiguration();
 		if (ntpWithHost) {
@@ -254,7 +309,24 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		
 		return timeProvider;
 	}
+	
+	/**
+	 * Simple class to handle toolbar settings
+	 */
+	private class ToolbarSpecification {
+		public String name;
+		public String[] buttonIDs;
+	}
 
+	/**
+	 * TODO : @Marco doc
+	 *  
+	 * @param appUI
+	 * @param publisher
+	 * @param generalKeys
+	 * @param generalKeyLists
+	 * @param generalKeyBars
+	 */
 	public void setupToolbars(IApplicationUI appUI, 
 			final iiwaPublisher publisher, 
 			List<IUserKey> generalKeys, 
@@ -320,6 +392,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 
 	// one of the dirtiest things I did in my life. but I can't see a better way
+	/**
+	 * Get the toolbar configuration to build buttons on the SmartPad from the param <b>toolbarSpecifications</b> in the ROS param server.
+	 * 
+	 * @return the toolbar specifications
+	 */
 	public List<ToolbarSpecification> getToolbarSpecifications() {
 		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
 		List<?> rawParam = getListParameter("toolbarSpecifications");
@@ -349,6 +426,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return ret;
 	}
 	
+	/**
+	 * Read a double param from the ROS param server given its name
+	 * @param argname : rosparam name to get
+	 * @return a double
+	 */
 	public Double getDoubleParameter(String argname) {
 		params = getParameterTree();
 		Double ret = null;
@@ -361,6 +443,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return ret;
 	}
 	
+	/**
+	 * Read a boolean param from the ROS param server given its name
+	 * @param argname : rosparam name to get
+	 * @return a boolean
+	 */
 	public Boolean getBooleanParameter(String argname) {
 		params = getParameterTree();
 		Boolean ret = null;
@@ -373,6 +460,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return ret;
 	}
 
+	/**
+	 * Read a string param from the ROS param server given its name
+	 * @param argname
+	 * @return a string
+	 */
 	public String getStringParameter(String argname) {
 		params = getParameterTree();
 		String ret = null;
@@ -385,6 +477,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		return ret;
 	}
 
+	/**
+	 * Read a list param from the ROS param server given its name
+	 * @param argname
+	 * @return a list
+	 */
 	public List<?> getListParameter(String argname) {
 		List<?> args = new LinkedList<String>();  // supports remove
 		params = getParameterTree();

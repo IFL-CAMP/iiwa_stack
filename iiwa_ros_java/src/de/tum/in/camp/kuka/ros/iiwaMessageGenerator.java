@@ -1,8 +1,8 @@
  /**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische UniversitÃ¤t MÃ¼nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -290,7 +290,7 @@ public class iiwaMessageGenerator {
 	//	}
 	
 	// TODO : doc
-	public void getCurrentJointState(sensor_msgs.JointState js, LBR robot, SmartServo motion) {
+	public void getCurrentJointState(sensor_msgs.JointState js, LBR robot) {
 		
 		js.getHeader().setStamp(time.getCurrentTime());
 		
