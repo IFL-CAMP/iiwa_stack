@@ -200,6 +200,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		// Run what is needed before the control loop in the subclasses.
 		beforeControlLoop();
+		
+		running = true;
 
 		// The run loop
 		getLogger().info("Starting the ROS control loop...");
