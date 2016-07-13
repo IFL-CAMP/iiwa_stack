@@ -1,8 +1,8 @@
  /**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische UniversitÃ¤t MÃ¼nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -37,13 +37,12 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 /*
- * This example shows how to monitor the state of the robot, publishing it into ROS nodes.
- * Only the Joint Position of the robot is published in this example,
- * but any other of its property included in the iiwa_msgs ROS package can be published in the same way.
+ * This application allows to turn on/off a pseudo Gravity Compensation mode via buttons on the SmartPad.
+ * It extends the ROSBaseApplication, so it also publishes the current state of the robot on ROS topics.
  */
 public class ROSMonitor extends ROSBaseApplication {
 
-	// gravity compensation stuff
+	// Gravity compensation keys for the SmartPad toolbar
 	private IUserKeyBar gravcompKeybar;
 	private IUserKey gravCompKey;
 	private IUserKeyListener gravCompKeyList;
@@ -89,9 +88,9 @@ public class ROSMonitor extends ROSBaseApplication {
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setTimeoutAfterGoalReach(300);
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
-		toolFrame.moveAsync(motion.setMode(controlMode));
+		toolFrame.moveAsync(motion.setMode(controlMode)); 
 		oldmotion.getRuntime().stopMotion();
-
+		// TODO : do we need all this? Can't I just set the mode to the current motion?
 	}
 
 	@Override
@@ -122,7 +121,4 @@ public class ROSMonitor extends ROSBaseApplication {
 			}
 		}
 	}
-
-
-
 }

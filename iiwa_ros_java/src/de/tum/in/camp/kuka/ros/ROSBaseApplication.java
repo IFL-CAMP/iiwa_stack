@@ -1,8 +1,8 @@
  /**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische UniversitÃ¤t MÃ¼nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -53,71 +53,73 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected LBR robot;
 	protected Tool tool;
 	protected String toolFrameID;
-	protected String toolFrameIDSuffix = "_link_ee_kuka";
+	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
-	
-	protected boolean initSuccessful = false;
-	protected boolean debug = false;
-	protected boolean running = true;
-	
-	protected iiwaPublisher publisher; //< IIWARos Publisher.
-	protected iiwaConfiguration configuration; //< Configuration via parameters and services.
+
+	protected boolean initSuccessful;
+	protected boolean debug;
+	protected boolean running;
+
+	protected iiwaPublisher publisher;
+	protected iiwaConfiguration configuration;
 
 	// ROS Configuration and Node execution objects.
 	protected NodeConfiguration nodeConfPublisher;
 	protected NodeConfiguration nodeConfConfiguration;
 	protected NodeMainExecutor nodeMainExecutor;
 
-	// configurable toolbars
+	// Configurable Toolbars.
 	protected List<IUserKeyBar> generalKeyBars = new ArrayList<IUserKeyBar>();
 	protected List<IUserKey> generalKeys = new ArrayList<IUserKey>();
 	protected List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
-	
+
 	protected abstract void configureNodes(URI uri);
 	protected abstract void addNodesToExecutor(NodeMainExecutor nodeExecutor);
 	protected abstract void initializeApp();
 	protected abstract void beforeControlLoop();
 	protected abstract void controlLoop();
-	
+
 	/*
 	 * Performing NTP synchronization and SmartServo control makes the control loop very slow
 	 * These variables are used to run them every *decimation* times, 
 	 * In order to balance the load, they alternate at *decimationCounter* % *decimation* == 0 and
 	 * *decimationCounter* % *decimation* == *decimation* / 2
 	 */
-	 
+	
+	// TODO : in config.txt or processData
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
 	protected int ntpDecimation = 1024;
-	
-	
+
+
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
-		
-		// Standard stuff
+
+		// Standard configuration.
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
-	
-		// ROS initialization
+
+		// ROS initialization.
 		try {
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
-			
+
 			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
 			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
-			
+
 			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
 			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 			
+			// Additional configuration needed in subclasses.
 			configureNodes(uri);
 		}
 		catch (Exception e) {
-			if (debug) getLogger().info("Node Configuration failed; "
-					+ "please check the ROS master IP in the Sunrise app source code");
+			if (debug) 
+				getLogger().info("Node Configuration failed. " + "Please check the ROS master IP in the Sunrise configuration.");
 			getLogger().info(e.toString());
 			return;
 		}
@@ -127,51 +129,52 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
 			nodeMainExecutor.execute(publisher, nodeConfPublisher);
 			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
-			
-			addNodesToExecutor(nodeMainExecutor);  // add Nodes from subclass
-			
+
+			 // Additional Nodes from subclasses.
+			addNodesToExecutor(nodeMainExecutor); 
+
 			if (debug) 
 				getLogger().info("ROS Node Executor initialized.");
 		}
 		catch(Exception e) {
 			if (debug) 
 				getLogger().info("ROS Node Executor initialization failed.");
-			
 			getLogger().info(e.toString());
 			return;
 		}
-		
-		initializeApp();  // further initialization as specified by subclass
-		
-		initSuccessful = true;  // we cannot throw here
+
+		 // Additional initialization from subclasses.
+		initializeApp();
+
+		initSuccessful = true;  // We cannot throw here.
 	}
 
 	public void run() {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-		
+
 		try {
-			getLogger().info("Waiting for configuration... ");
+			getLogger().info("Waiting for ROS Master to connect... ");
 			configuration.waitForInitialization();
-			getLogger().info("done!"); // TODO : is this waiting just for roscore or fore more? Change text to something better.
+			getLogger().info("ROS Master is connected!");
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 			return;
 		}
-		
+
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
 		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3);
+		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
-		// TODO : add parametrization for relative acceleration too
-		motion.setTimeoutAfterGoalReach(300);
-		
-		// Configurable toolbars to publish events on topics
+		motion.setJointAccelerationRel(configuration.getDefaultRelativeJointAcceleration());
+		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
+
+		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
-		
-		// Tool to attach
+
+		// Tool to attach, robot's flange will be used if no tool has been defined.
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig != "") {
 			getLogger().info("Attaching tool " + toolFromConfig);
@@ -188,29 +191,30 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			if (!SmartServo.validateForImpedanceMode(robot))
 				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		}
-		
+
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
-		
+
+		// Initialize motion.
 		toolFrame.moveAsync(motion);
-		
+
+		// Run what is needed before the control loop in the subclasses.
 		beforeControlLoop();
-		
+
 		// The run loop
 		getLogger().info("Starting the ROS control loop...");
 		try {
 			while(running) { 
 				decimationCounter++;
-				
-				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) 
-						&& iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
+
+				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) && iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime(); //TODO check if throws and print it (could avoid thread hanging if no NTP server is on the other side)
 				}
-				
+
 				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
-				
-				if ((decimationCounter % controlDecimation) == 0)
+
+				if ((decimationCounter % controlDecimation) == 0) // TODO is this neeed with the new implemantation?
 					controlLoop();  // Perform control loop specified by subclass
 			} 
 		}
@@ -221,7 +225,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info("ROS control loop has ended. Application terminated.");
 		}
 	}
-	
+
 	@Override 
 	public void onApplicationStateChanged(RoboticsAPIApplicationState state) {
 		if (state == RoboticsAPIApplicationState.STOPPING) {
@@ -229,7 +233,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		super.onApplicationStateChanged(state);
 	};
-	
+
 	void cleanup() {
 		running = false;
 		if (nodeMainExecutor != null) {

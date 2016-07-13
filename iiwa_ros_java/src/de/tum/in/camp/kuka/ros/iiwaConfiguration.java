@@ -251,6 +251,18 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			defaultRelativeJointSpeed = 0.5;
 		return defaultRelativeJointSpeed;
 	}
+	
+	/**
+	 * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS param server.
+	 * 
+	 * @return the default relative joint speed
+	 */
+	public Double getDefaultRelativeJointAcceleration() {
+		Double defaultRelativeJointAcceleration = getDoubleParameter("defaultRelativeJointAcceleration");
+		if (defaultRelativeJointAcceleration == null)
+			defaultRelativeJointAcceleration = 0.5;
+		return defaultRelativeJointAcceleration;
+	}
 
 	/**
 	 * Get the name of the tool to use from param <b>toolName</b> in ROS param server.

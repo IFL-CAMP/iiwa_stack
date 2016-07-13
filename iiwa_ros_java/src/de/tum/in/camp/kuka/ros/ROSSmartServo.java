@@ -1,8 +1,8 @@
- /**  
+/**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische UniversitÃ¤t MÃ¼nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -52,15 +52,7 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
 /*
- * This example shows how to monitor and change the state of the robot.
- * The current state is published into a (monitor) ROS node, while another (command) node receives
- * messages containing the a new position for the robot.
- * The example uses a SmartServo motion to move the robot to the new commanded position.
- * 
- * Only the Joint Position of the robot is published (current position)
- * and received (new position) in this example,
- * but any other of its property included in the iiwa_msgs ROS package can be published
- * and received in the same way.
+ * This application allows to command the robot using SmartServo motions.
  */
 public class ROSSmartServo extends ROSBaseApplication {
 
@@ -69,13 +61,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private iiwaMessageGenerator helper; //< Helper class to generate iiwa_msgs from current robot state.
 	private iiwaSubscriber subscriber; //< IIWARos Subscriber.
 
-	// ROS Configuration and Node execution objects. Two different configurations are needed
-	// for the Publisher and the Subscriber.
+	// Configuration of the subscriber ROS node.
 	private NodeConfiguration nodeConfSubscriber;
-	
-	private JointPosition jp = new JointPosition(7);
-	private JointPosition jv = new JointPosition(7);
-	
+
+	private JointPosition jp;
+	private JointPosition jv;
+
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
@@ -84,14 +75,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 		nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
 	}
-	
+
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
 		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
-		
-		// SmartServo configuration service callback
+
+		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, 
-																			 iiwa_msgs.ConfigureSmartServoResponse>() {
+				iiwa_msgs.ConfigureSmartServoResponse>() {
 			@Override
 			public void build(ConfigureSmartServoRequest req,
 					ConfigureSmartServoResponse resp) throws ServiceException {
@@ -106,13 +97,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 							motion.setJointVelocityRel(req.getMode().getRelativeVelocity());
 					} else {
 						configureSmartServoLock.lock();
-						
+
 						SmartServo oldmotion = motion;
 						ServoMotion.validateForImpedanceMode(robot);
 						motion = configureSmartServoMotion(req.getMode());
 						toolFrame.moveAsync(motion);
 						oldmotion.getRuntime().stopMotion();
-						
+
 						configureSmartServoLock.unlock();
 					}
 				} catch (Exception e) {
@@ -128,18 +119,21 @@ public class ROSSmartServo extends ROSBaseApplication {
 					return;
 				}
 				resp.setSuccess(true);
-				
+
 				getLogger().info("Changed SmartServo configuration!");
 				getLogger().info("Mode: " + motion.toString());
 			}
 		});
-		
+
+		// Execute the subscriber node.
 		nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
 	}
 
 	@Override
 	protected void initializeApp() {
-		helper = new iiwaMessageGenerator();
+		helper = new iiwaMessageGenerator(iiwaConfiguration.getRobotName());
+		jp = new JointPosition(robot.getJointCount());
+		jv = new JointPosition(robot.getJointCount());
 	}
 
 	public static class UnsupportedControlModeException extends RuntimeException {
@@ -150,6 +144,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
 
+	/**
+	 * Given the parameters from the SmartServo service, it builds up the new control mode to use.
+	 * @param params : parameters from the SmartServo service
+	 * @return resulting control mode
+	 */
 	public IMotionControlMode buildMotionControlMode(iiwa_msgs.SmartServoMode params) {
 		IMotionControlMode cm;
 
@@ -184,7 +183,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				ccm.parametrize(CartDOF.B).setDamping(damping.getB());
 			if (damping.getC() > 0)
 				ccm.parametrize(CartDOF.C).setDamping(damping.getC());
-			
+
 			// TODO: add stiffness along axis
 			if (params.getNullspaceStiffness() >= 0)
 				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
@@ -209,12 +208,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 			cm = jcm;
 			break;
 		}
-		
+
+
 		// TODO : case CONSTANT_FORCE
 
-		default: {
+		default:
 			throw new UnsupportedControlModeException();  // this should just not happen
-		}
 		}
 
 		return cm;
@@ -222,10 +221,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(20e-3);
-		mot.setTimeoutAfterGoalReach(300);
+		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
 		motion.getRuntime().activateVelocityPlanning(true);
-		
+
 		configureSmartServoMotion(ssm, mot);
 		return mot;
 	}
@@ -238,7 +237,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 			mot.setJointVelocityRel(ssm.getRelativeVelocity());
 		mot.setMode(buildMotionControlMode(ssm));
 	}
-	
+
+	/**
+	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
+	 * @return boolean
+	 */
 	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {		
 		String roscmname = null;
 		switch (roscm.getMode()) {
@@ -248,13 +251,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 		case SmartServoMode.JOINT_IMPEDANCE:
 			roscmname = "JointImpedanceControlMode";
 			break;
-		// TODO : case CONSTANT_FORCE
+			// TODO : case CONSTANT_FORCE
 		}
 		String kukacmname = kukacm.getClass().getSimpleName();
-		
+
 		return roscmname.equals(kukacmname);
 	}
-	
+
 	@Override
 	protected void beforeControlLoop() { 
 		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
@@ -264,7 +267,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	protected void controlLoop() {
 		if (subscriber.currentCommandType != null) {
 			configureSmartServoLock.lock(); // the service could stop the motion and restart it
-			
+
 			switch (subscriber.currentCommandType) {
 			case CARTESIAN_POSE: {
 				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
@@ -306,6 +309,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 			configureSmartServoLock.unlock();
 		}
-		
+
 	}
 }

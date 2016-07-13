@@ -24,7 +24,6 @@
 package de.tum.in.camp.kuka.ros;
 
 import geometry_msgs.Pose;
-import geometry_msgs.PoseStamped;
 import geometry_msgs.Quaternion;
 
 import java.util.Arrays;
