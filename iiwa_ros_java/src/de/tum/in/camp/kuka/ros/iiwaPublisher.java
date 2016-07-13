@@ -59,20 +59,22 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
 	
-	// Object to easily build iiwa_msgs from the current robot state
-	private iiwaMessageGenerator helper = new iiwaMessageGenerator();
-	
-	// Cache objects
-	private geometry_msgs.PoseStamped cp = helper.buildMessage(PoseStamped._TYPE);
-	private geometry_msgs.WrenchStamped cw = helper.buildMessage(WrenchStamped._TYPE);
-	private iiwa_msgs.JointPosition jp = helper.buildMessage(JointPosition._TYPE);
-	private iiwa_msgs.JointStiffness jst = helper.buildMessage(JointStiffness._TYPE);
-	private iiwa_msgs.JointDamping jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
-	private iiwa_msgs.JointTorque jt = helper.buildMessage(JointTorque._TYPE);
-	private sensor_msgs.JointState js = helper.buildMessage(sensor_msgs.JointState._TYPE);
-
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
+	
+	// Object to easily build iiwa_msgs from the current robot state
+	private iiwaMessageGenerator helper;
+	
+	// Cache objects
+	private geometry_msgs.PoseStamped cp;
+	private geometry_msgs.WrenchStamped cw;
+	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointStiffness jst;
+	private iiwa_msgs.JointDamping jd;
+	private iiwa_msgs.JointTorque jt;
+	private sensor_msgs.JointState js;
+
+
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -82,6 +84,15 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	public iiwaPublisher(String robotName) {
 		iiwaName = robotName;
+		helper = new iiwaMessageGenerator(iiwaName);
+		
+		cp = helper.buildMessage(PoseStamped._TYPE);
+		cw = helper.buildMessage(WrenchStamped._TYPE);
+		jp = helper.buildMessage(JointPosition._TYPE);
+		jst = helper.buildMessage(JointStiffness._TYPE);
+		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
+		jt = helper.buildMessage(JointTorque._TYPE);
+		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
 	}
 	
 	/**

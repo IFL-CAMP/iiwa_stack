@@ -57,7 +57,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 /**
- * TODO : short explanation of the class
+ * Utility class to get configuration at startup from the config.txt file or from ROS params in the ROS param server.
  */
 public class iiwaConfiguration extends AbstractNodeMain {
 
@@ -234,8 +234,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		initSemaphore.acquire();
 	}
 
-	// Functions to work with ROS param server
-	
 	private ParameterTree getParameterTree() {
 		if (initSemaphore.availablePermits() > 0)
 			System.out.println("waitForInitialization not called before using parameters!");

@@ -21,11 +21,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// IIWAROS import
 package de.tum.in.camp.kuka.ros;
 
-// ROS import
 import geometry_msgs.Pose;
+import geometry_msgs.PoseStamped;
 import geometry_msgs.Quaternion;
 
 import java.util.Arrays;
@@ -46,293 +45,263 @@ import com.kuka.roboticsAPI.geometricModel.math.Vector;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
 /**
- * This class helps the building of iiwa_msgs ROS messages,
- * it gives a collection of methods to build the messages from the current state of a LBR iiwa Robot.
- * For Cartesian messages, it's possible to pass a reference frames to acquire the message values.
- * If no reference frames is passed, the flange frame is used.
+ * This class helps building iiwa_msgs ROS messages,
+ * it's a collection of methods to build the messages from the current state of a LBR iiwa Robot.
+ * For Cartesian messages, it's possible to pass a reference frames, if no reference frames is passed, the flange frame is used.
  */
 public class iiwaMessageGenerator {
-	private static final String baseFrameID = "iiwa_link_0"; // TODO: overridable for multi-robot configurations
 	
-	final String[] joint_names = {
-			  "iiwa_joint_1", 
-			  "iiwa_joint_2",
-			  "iiwa_joint_3",
-			  "iiwa_joint_4",
-			  "iiwa_joint_5",
-			  "iiwa_joint_6",
-			  "iiwa_joint_7"
-			};
+	private static String baseFrameID;
+	private static final String baseFrameIDSuffix = "_link_0";
+	private static String[] joint_names;
 
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
 	private TimeProvider time = iiwaConfiguration.getTimeProvider();
 	
-	public iiwaMessageGenerator() {}
-
-	/**
-	 * Builds a CartesianPosition message given a LBR iiwa Robot.<p>
-	 * The Cartesian position will be the obtained from current Flange frame,
-	 * the message header is set to current time and according frame name.<br>
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built CartesianPosition message.
-	 */
-	public void getCurrentCartesianPose(geometry_msgs.PoseStamped pps, LBR robot) {
-		getCurrentCartesianPose(pps, robot, robot.getFlange());
+	public iiwaMessageGenerator(String robotName) {
+		baseFrameID = robotName + baseFrameIDSuffix; // e.g. if robotName == iiwa, then baseFrameID = iiwa_link_0
+				
+		// e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
+		joint_names = new String[]{
+				robotName+"_joint_1", 
+				robotName+"_joint_2",
+				robotName+"_joint_3",
+				robotName+"_joint_4",
+				robotName+"_joint_5",
+				robotName+"_joint_6",
+				robotName+"_joint_7"
+				};
 	}
 
 	/**
-	 * Builds a CartesianPosition message given a LBR iiwa Robot and a frame of reference.<p>
+	 * Builds a geometry_msgs.PoseStamped message given a LBR iiwa Robot.<p>
+	 * The Cartesian position will be the obtained from current Flange frame,
+	 * the message header is set to current time, poses will be relative to the robot base frame.<br>
+	 * @param currentPose : the PoseStamped message that will be created.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 */
+	public void getCurrentCartesianPose(geometry_msgs.PoseStamped currentPose, LBR robot) {
+		getCurrentCartesianPose(currentPose, robot, robot.getFlange());
+	}
+
+	/**
+	 * Builds a geometry_msgs.PoseStamped message given a LBR iiwa Robot and a frame of reference.<p>
 	 * The Cartesian position will be the obtained from the given Frame,
-	 * the message header is set to current time and according frame name.<br>
+	 * the message header is set to current time, poses will be relative to the robot base frame.<br>
+	 * @param currentPose : the PoseStamped message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @param frame : reference frame to set the values of the Cartesian position.
-	 * @return built CartesianPosition message.
 	 */
-	public void getCurrentCartesianPose(geometry_msgs.PoseStamped pps, LBR robot, ObjectFrame frame) {
+	public void getCurrentCartesianPose(geometry_msgs.PoseStamped currentPose, LBR robot, ObjectFrame frame) {
 		Transformation transform = robot.getCurrentCartesianPosition(frame).transformationFromWorld();
 
-		pps.getHeader().setFrameId(baseFrameID);  
-		pps.getHeader().setStamp(time.getCurrentTime());
+		currentPose.getHeader().setFrameId(baseFrameID);  
+		currentPose.getHeader().setStamp(time.getCurrentTime());
 
-		kukaTransformationToRosPose(transform, pps.getPose());
+		kukaTransformationToRosPose(transform, currentPose.getPose());
 	}
 
-	/**
-	 * Builds a CartesianVelocity message given a LBR iiwa Robot.<p>
-	 * The <b>velocity will be set to zero</b>, 
-	 * the message header is set to current time and according frame name.<br>
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built CartesianVelocity message.
-	 */
-	//	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot) {
-	//		return buildCartesianVelocity(robot, robot.getFlange());
-	//	}
 
 	/**
-	 * Builds a CartesianVelocity message given a LBR iiwa Robot and a frame of reference.<p>
-	 * The <b>velocity will be set to zero</b>, 
-	 * the message header is set to current time and according frame name.<br>
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @param frame : reference frame the velocity refers to.
-	 * @return built CartesianVelocity message.
-	 */
-	//	public iiwa_msgs.CartesianVelocity buildCartesianVelocity(LBR robot, ObjectFrame frame) {
-	////		double[] velocity = new double[9];
-	//
-	//		// Velocity is set to zero!
-	//		// TODO: Compute Cartesian velocity !
-	//
-	//		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-	//		header.setFrameId(frame.getName());
-	//		header.setStamp(time.getCurrentTime());
-	//
-	//		iiwa_msgs.CartesianVelocity cv = messageFactory.newFromType(iiwa_msgs.CartesianVelocity._TYPE);
-	//		
-	////		iiwa_msgs.CartesianQuantity cq = messageFactory.newFromType(iiwa_msgs.CartesianQuantity._TYPE);
-	//		
-	////		cv.setVelocity(velocity);
-	//		cv.setHeader(header);
-	//
-	//		return cv;
-	//	}
-
-	/**
-	 * Builds a CartesianVelocity message given a LBR iiwa Robot.<p>
+	 * Builds a geometry_msgs.WrenchStamped message given a LBR iiwa Robot.<p>
 	 * The wrench values will refer to the Flange frame,
 	 * the message header is set to current time and according frame name.<br>
+	 * @param currentWrench : the WrenchStamped message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built CartesianWrench message.
 	 */
-	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped ws, LBR robot) {
-		getCurrentCartesianWrench(ws, robot, robot.getFlange());
+	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot) {
+		getCurrentCartesianWrench(currentWrench, robot, robot.getFlange());
 	}
 
 	/**
-	 * Builds a CartesianVelocity message given a LBR iiwa Robot and a frame of reference.<p>
+	 * Builds a geometry_msgs.WrenchStamped message given a LBR iiwa Robot and a frame of reference.<p>
 	 * The wrench values will refer to the given frame,
 	 * the message header is set to current time and according frame name.<br> 
+	 * @param currentWrench : the WrenchStamped message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @param frame : reference frame the wrench refers to.
-	 * @return built CartesianWrench message.
 	 */
-	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped ws, LBR robot, ObjectFrame frame) {
-		ws.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
-		ws.getHeader().setStamp(time.getCurrentTime());
+	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot, ObjectFrame frame) {
+		currentWrench.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
+		currentWrench.getHeader().setStamp(time.getCurrentTime());
 		
-		ws.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
-		ws.getWrench().getForce().setY(robot.getExternalForceTorque(frame).getForce().getY());
-		ws.getWrench().getForce().setZ(robot.getExternalForceTorque(frame).getForce().getZ());
+		currentWrench.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
+		currentWrench.getWrench().getForce().setY(robot.getExternalForceTorque(frame).getForce().getY());
+		currentWrench.getWrench().getForce().setZ(robot.getExternalForceTorque(frame).getForce().getZ());
 
-		ws.getWrench().getTorque().setX(robot.getExternalForceTorque(frame).getTorque().getX());
-		ws.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
-		ws.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
+		currentWrench.getWrench().getTorque().setX(robot.getExternalForceTorque(frame).getTorque().getX());
+		currentWrench.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
+		currentWrench.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
+		
+		// TODO : should we also add these 
+		//robot.getExternalForceTorque(frame).getForceInaccuracy();
+		//robot.getExternalForceTorque(frame).getTorqueInaccuracy();
+		// to give an estimation of the accuracy of the force/torque?
 	}
 
 	/**
-	 * Builds a JointPosition message given a LBR iiwa Robot.<p>
+	 * Builds an iiwa_msgs.JointPosition message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
+	 * @param currentJointPosition : the JointPosition message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointPosition message.
 	 */
-	public void getCurrentJointPosition(iiwa_msgs.JointPosition jp, LBR robot) {
+	public void getCurrentJointPosition(iiwa_msgs.JointPosition currentJointPosition, LBR robot) {
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
-
-		jp.getHeader().setStamp(time.getCurrentTime());
-
-		vectorToJointQuantity(position, jp.getPosition());
+		currentJointPosition.getHeader().setStamp(time.getCurrentTime());
+		vectorToJointQuantity(position, currentJointPosition.getPosition());
 	}
 	
 	/**
-	 * Builds a JointPositionVelocity message given a LBR iiwa Robot.<p>
+	 * Builds a iiwa_msgs.JointPositionVelocity message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
+	 * @param currentJointPositionVelocity : the JointPositionVelocity message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointPositionVelocity message.
 	 */
-	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity jpv, LBR robot) {
+	// TODO : should we keep this?
+	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity currentJointPositionVelocity, LBR robot) {
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
-		double[] velocity = new double[7];  // TODO: read current joint velocity
+		double[] velocity = new double[robot.getJointCount()];  // TODO: read current joint velocity
 
-		jpv.getHeader().setStamp(time.getCurrentTime());
+		currentJointPositionVelocity.getHeader().setStamp(time.getCurrentTime());
 
-		vectorToJointQuantity(position, jpv.getPosition());
-		vectorToJointQuantity(velocity, jpv.getVelocity());
+		vectorToJointQuantity(position, currentJointPositionVelocity.getPosition());
+		vectorToJointQuantity(velocity, currentJointPositionVelocity.getVelocity());
 	}
 
 	/**
-	 * Builds a JointStiffness message given a LBR iiwa Robot.<p>
-	 * The <b>stiffness will be set to zero</b>,<br>
-	 * the message header is set to current time.
+	 * Builds a iiwa_msgs.JointStiffness message given a LBR iiwa Robot.<p>
+	 * The message header is set to current time.
+	 * @param currentJointStiffness : the JointStiffness message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointStiffness message.
+	 * @param motion : the current robot motion, used to get the stiffness values.
 	 */
-	public void getCurrentJointStiffness(iiwa_msgs.JointStiffness js, LBR robot, SmartServo motion) {
+	public void getCurrentJointStiffness(iiwa_msgs.JointStiffness currentJointStiffness, LBR robot, SmartServo motion) {
 		if (motion == null) 
 			return;
 
-		double[] stiffness = new double[7];
+		double[] stiffness = new double[robot.getJointCount()];
 
 		try {
 			stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
 		} catch (Exception e) {
-			// ups, our control mode is not joint impedance
-			System.out.println("ERROR: asking for joint stiffness while not in impedance!");
+			System.out.println("ERROR: asking for joint stiffness while not in joint impedance mode!");
 			return;
 		}
 
-		js.getHeader().setStamp(time.getCurrentTime());
-
-		vectorToJointQuantity(stiffness, js.getStiffness());
+		currentJointStiffness.getHeader().setStamp(time.getCurrentTime());
+		vectorToJointQuantity(stiffness, currentJointStiffness.getStiffness());
 	}
 
 	/**
-	 * Builds a JointDamping message given a LBR iiwa Robot.<p>
-	 * The <b>damping will be set to zero</b>,<br>
-	 * the message header is set to current time.
+	 * Builds a iiwa_msgs.JointDamping message given a LBR iiwa Robot.<p>
+	 * The message header is set to current time.
+	 * @param currentJointDamping : the JointDamping message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointDamping message.
+	 * @param motion : the current robot motion, used to get the damping values.
 	 */
-	public void getCurrentJointDamping(iiwa_msgs.JointDamping jd, LBR robot, SmartServo motion) {
+	public void getCurrentJointDamping(iiwa_msgs.JointDamping currentJointDamping, LBR robot, SmartServo motion) {
 		if (motion == null) 
 			return;
 
-		double[] damping = new double[7];
+		double[] damping = new double[robot.getJointCount()];
 
 		try {
 			damping = ((JointImpedanceControlMode) motion.getMode()).getDamping();
 		} catch (Exception e) {
-			// ups, our control mode is not joint impedance
-			System.out.println("ERROR: asking for joint damping while not in impedance!");
+			System.out.println("ERROR: asking for joint damping while not in joint impedance mode!");
 			return;
 		}
 
-		jd.getHeader().setStamp(time.getCurrentTime());
-
-		vectorToJointQuantity(damping, jd.getDamping());
+		currentJointDamping.getHeader().setStamp(time.getCurrentTime());
+		vectorToJointQuantity(damping, currentJointDamping.getDamping());
 	}
 
 	/**
-	 * Builds a JointTorque message given a LBR iiwa Robot.<p>
+	 * Builds a iiwa_msgs.JointTorque message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
+	 * @param currentJointTorque : the JointTorque message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointTorque message.
 	 */
-	public void getCurrentJointTorque(iiwa_msgs.JointTorque jt, LBR robot) {
+	public void getCurrentJointTorque(iiwa_msgs.JointTorque currentJointTorque, LBR robot) {
 		double[] torque = robot.getMeasuredTorque().getTorqueValues();
-
-		jt.getHeader().setStamp(time.getCurrentTime());
-
-		vectorToJointQuantity(torque, jt.getTorque());
+		currentJointTorque.getHeader().setStamp(time.getCurrentTime());
+		vectorToJointQuantity(torque, currentJointTorque.getTorque());		
 	}
-
-	/**
-	 * Builds a JointVelocity message given a LBR iiwa Robot.<p>
-	 * The <b>velocity will be set to zero</b>,<br>
-	 * the message header is set to current time.
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 * @return built JointVelocity message.
-	 */
-	//	public iiwa_msgs.JointVelocity buildJointVelocity(LBR robot) {
-	//		double[] velocity = new double[7];
-	//		// TODO: build velocity vector
-	//
-	//		std_msgs.Header header = messageFactory.newFromType(std_msgs.Header._TYPE);
-	//		header.setFrameId("Robot");
-	//		header.setStamp(time.getCurrentTime());
-	//		
-	//		iiwa_msgs.JointQuantity a = vectorToJointQuantity(velocity);
-	//		
-	//		iiwa_msgs.JointVelocity jv = messageFactory.newFromType(iiwa_msgs.JointVelocity._TYPE);
-	//		jv.setHeader(header);
-	//		jv.setVelocity(a);
-	//		return jv;
-	//	}
 	
-	// TODO : doc
-	public void getCurrentJointState(sensor_msgs.JointState js, LBR robot) {
+	/**
+	 * Builds a sensor_msgs.JointState message given a LBR iiwa Robot.<p>
+	 * <b>No velocity information currently available</b>
+	 * @param currentJointState : the JointState message that will be created.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 */
+	public void getCurrentJointState(sensor_msgs.JointState currentJointState, LBR robot) {
 		
-		js.getHeader().setStamp(time.getCurrentTime());
-		
-		js.setName(Arrays.asList(joint_names));
-		
-		js.setPosition(robot.getCurrentJointPosition().getInternalArray());
-		
-		js.setEffort(robot.getMeasuredTorque().getTorqueValues());
+		currentJointState.getHeader().setStamp(time.getCurrentTime());
+		currentJointState.setName(Arrays.asList(joint_names));
+		currentJointState.setPosition(robot.getCurrentJointPosition().getInternalArray());
+		currentJointState.setEffort(robot.getMeasuredTorque().getTorqueValues());
 		
 		// TODO: velocity
 	}
 
 	// Conversions
 
-	public void vectorToJointQuantity(double[] torque, iiwa_msgs.JointQuantity q) {
-		q.setA1((float) torque[0]);
-		q.setA2((float) torque[1]);
-		q.setA3((float) torque[2]);
-		q.setA4((float) torque[3]);
-		q.setA5((float) torque[4]);
-		q.setA6((float) torque[5]);
-		q.setA7((float) torque[6]);
+	/**
+	 * Generates a iiwa_msgs.JointQuantity message from a double vector
+	 * @param vec : double vector
+	 * @param q : resulting JointQuantity message
+	 */
+	public void vectorToJointQuantity(double[] vec, iiwa_msgs.JointQuantity q) {
+		q.setA1((float) vec[0]);
+		q.setA2((float) vec[1]);
+		q.setA3((float) vec[2]);
+		q.setA4((float) vec[3]);
+		q.setA5((float) vec[4]);
+		q.setA6((float) vec[5]);
+		q.setA7((float) vec[6]);
 	}
 
-	public double[]  jointQuantityToVector(iiwa_msgs.JointQuantity a) {
+	/**
+	 * Generate a double vector from a iiwa_msgs.JointQuantity message
+	 * @param q : a JointQuantity message
+	 * @return a double vector
+	 */
+	public double[]  jointQuantityToVector(iiwa_msgs.JointQuantity q) {
 		double[] ret = new double[7];
 
-		ret[0] = a.getA1();
-		ret[1] = a.getA2();
-		ret[2] = a.getA3();
-		ret[3] = a.getA4();
-		ret[4] = a.getA5();
-		ret[5] = a.getA6();
-		ret[6] = a.getA7();
+		ret[0] = q.getA1();
+		ret[1] = q.getA2();
+		ret[2] = q.getA3();
+		ret[3] = q.getA4();
+		ret[4] = q.getA5();
+		ret[5] = q.getA6();
+		ret[6] = q.getA7();
 
 		return ret;
 	}
 
+	/**
+	 * Generates a MatrixRotation from a Quaternion
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param w
+	 * @return a MatrixRotation
+	 */
 	public static MatrixRotation quatToMatrix(double x, double y, double z, double w) {
 		return quatToMatrix((float) x, (float) y, (float) z, (float) w);
 	}
 
+	/**
+	 * Generates a MatrixRotation from a Quaternion
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param w
+	 * @return a MatrixRotation
+	 */
 	public final static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
 		double sqw = w*w;
 		double sqx = x*x;
@@ -365,9 +334,14 @@ public class iiwaMessageGenerator {
 		return MatrixRotation.of(mb.toMatrix());
 	}
 
+	/**
+	 * Generates a quaternion from a Matrix.<p>
+	 * Mercilessly copied <url>from https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/math/Quaternion.java</url>
+	 * @param matrix : the starting matrix
+	 * @param quaternion : the resulting quaternion
+	 */
 	public void matrixToQuat(Matrix matrix, Quaternion quaternion) {
 
-		// mercilessly copied from https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/math/Quaternion.java
 		double xx = matrix.getElement00();
 		double xy = matrix.getElement01();
 		double xz = matrix.getElement02();
@@ -419,7 +393,12 @@ public class iiwaMessageGenerator {
 		quaternion.setW(w);
 	}
 
-	public Transformation rosPoseToKukaTransformation(Pose rosPose) {
+	/**
+	 * Converts a geometry_msgs.Pose message to a Transformation object in KUKA APIs
+	 * @param rosPose : starting Pose
+	 * @return resulting Transformation
+	 */
+	public Transformation rosPoseToKukaTransformation(geometry_msgs.Pose rosPose) {
 		if (rosPose == null)
 			return null;
 
@@ -438,6 +417,11 @@ public class iiwaMessageGenerator {
 		return Transformation.of(transl, rot);
 	}
 
+	/**
+	 * Converts a Transformation object in KUKA APIs to a geometry_msgs.Pose message
+	 * @param kukaTransf : startign Trasnformation
+	 * @param pose : resulting Pose
+	 */
 	public void kukaTransformationToRosPose(Transformation kukaTransf, Pose pose) {
 		pose.getPosition().setX(kukaTransf.getX()/1000); 
 		pose.getPosition().setY(kukaTransf.getY()/1000);
@@ -446,8 +430,14 @@ public class iiwaMessageGenerator {
 		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
 		matrixToQuat(rotationMatrix, pose.getOrientation());
 	}
+	
+	//TODO : I see some inconsistency, some conversions return a value, some not
 
-	// KUKA uses JointPosition for speed also...
+	/**
+	 * Converts an iiwa_msgs.JointQuantity to a JointPosition in KUKA APIs
+	 * @param rosJointPos : starting JointQuantity
+	 * @param kukaJointPos : resulting JointPosition
+	 */
 	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos) {
 		kukaJointPos.set(
 			rosJointPos.getA1(),
@@ -460,6 +450,11 @@ public class iiwaMessageGenerator {
 		);
 	}
 
+	/**
+	 * Converts an iiwa_msgs.JointQuantity to a double vector.
+	 * @param rosJointQuant : starting jointQuantity
+	 * @return a double vector
+	 */
 	public double[] rosJointQuantityToArray(iiwa_msgs.JointQuantity rosJointQuant) {
 		double[] ret = {
 				rosJointQuant.getA1(),
@@ -474,10 +469,19 @@ public class iiwaMessageGenerator {
 
 	}
 
+	/**
+	 * Create a ROS Message of the given type.
+	 * @param typeString : type of the ROS message to build, e.g. PoseStamped._TYPE
+	 * @return created ROS message
+	 */
 	public <T extends org.ros.internal.message.Message> T buildMessage(String typeString) {
 		return messageFactory.newFromType(typeString);
 	}
 	
+	/**
+	 * Adds one to the current sequence number of the message Header
+	 * @param h : message Header
+	 */
 	public void incrementSeqNumber(std_msgs.Header h) {
 		h.setSeq(h.getSeq()+1);
 	}
