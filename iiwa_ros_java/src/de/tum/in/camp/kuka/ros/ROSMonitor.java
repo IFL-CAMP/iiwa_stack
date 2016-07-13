@@ -90,7 +90,6 @@ public class ROSMonitor extends ROSBaseApplication {
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
 		toolFrame.moveAsync(motion.setMode(controlMode)); 
 		oldmotion.getRuntime().stopMotion();
-		// TODO : do we need all this? Can't I just set the mode to the current motion?
 	}
 
 	@Override
@@ -115,7 +114,7 @@ public class ROSMonitor extends ROSBaseApplication {
 			if (gravCompSwitched) {
 				gravCompSwitched = false;
 				getLogger().warn("Disabling gravity compensation");
-				controlMode.setStiffnessForAllJoints(1500);
+				controlMode.setStiffnessForAllJoints(1500); // TODO : which is the max?
 				motion.getRuntime().changeControlModeSettings(controlMode);
 				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 			}
