@@ -48,6 +48,7 @@ import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
@@ -99,7 +100,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 						configureSmartServoLock.lock();
 
 						SmartServo oldmotion = motion;
-						ServoMotion.validateForImpedanceMode(robot);
+						if (tool != null)
+							ServoMotion.validateForImpedanceMode(tool);
+						else
+							ServoMotion.validateForImpedanceMode(robot);
 						motion = configureSmartServoMotion(req.getMode());
 						toolFrame.moveAsync(motion);
 						oldmotion.getRuntime().stopMotion();
@@ -121,7 +125,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				resp.setSuccess(true);
 
 				getLogger().info("Changed SmartServo configuration!");
-				getLogger().info("Mode: " + motion.toString());
+				getLogger().info("Mode: " + motion.getMode().toString());
 			}
 		});
 
@@ -150,7 +154,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * @return resulting control mode
 	 */
 	public IMotionControlMode buildMotionControlMode(iiwa_msgs.SmartServoMode params) {
-		IMotionControlMode cm;
+		IMotionControlMode cm = null;
 
 		switch (params.getMode()) {
 		case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
@@ -209,14 +213,36 @@ public class ROSSmartServo extends ROSBaseApplication {
 			break;
 		}
 
+		case iiwa_msgs.SmartServoMode.CONSTANT_FORCE : {
+			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
+			CartDOF direction = null;
+			switch (params.getConstantForceDirection()) {
+			case iiwa_msgs.SmartServoMode.X :
+				direction = CartDOF.X;
+			case iiwa_msgs.SmartServoMode.Y :
+				direction = CartDOF.Y;
+			case iiwa_msgs.SmartServoMode.Z :
+				direction = CartDOF.Z;
+			default:
+				getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
+			}
 
-		// TODO : case CONSTANT_FORCE
+			if (direction != null) {
+				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, params.getConstantForce(), params.getConstantForceStiffness());
+				cm = cscm;
+			}
+			break;
+		}
 
-		default:
+		default:				
+			getLogger().error("Control Mode not supported.");
 			throw new UnsupportedControlModeException();  // this should just not happen
 		}
 
-		return cm;
+		if (cm != null)
+			return cm;
+		else
+			throw new UnsupportedControlModeException();
 	}
 
 	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
@@ -251,7 +277,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 		case SmartServoMode.JOINT_IMPEDANCE:
 			roscmname = "JointImpedanceControlMode";
 			break;
-			// TODO : case CONSTANT_FORCE
+		case SmartServoMode.CONSTANT_FORCE:
+			roscmname = "CartesianSineImpedanceControlMode";
+			break;
 		}
 		String kukacmname = kukacm.getClass().getSimpleName();
 
