@@ -1,5 +1,8 @@
 ## IIWA STACK
 ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
+
+**Current version : v-1.7.0**        
+[![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
 ___
 ### Features
 - rosjava node running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, actions
@@ -46,7 +49,8 @@ possible to switch the control mode at runtime safely.
 ___
 ### Usage
 __The features and usage of the stack are described in depth on its  [WIKI][8].__  
-We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.
+We **_strongly_** suggest to have a look at the wiki to have a better understanding of the code, both for its use and its extension.     
+Do you have problems? First, please check the [**FAQs**](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ). Issues or emails are always welcome.
 
 ___
 ### Acknowledgements
@@ -70,7 +74,7 @@ This packages contained in this repository are :
 - __iiwa_ros_java__: the ROSJava interface to use on SunriseApplications - it allows to send and receive messages defined in iiwa_msgs.
 
 ### Contacts
-Salvatore Virga : salvo.virga@tum.de
+Salvatore Virga : salvo.virga@tum.de     
 Marco Esposito : marco.esposito@tum.de
 
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
