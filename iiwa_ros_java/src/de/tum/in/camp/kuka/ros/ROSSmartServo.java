@@ -219,12 +219,16 @@ public class ROSSmartServo extends ROSBaseApplication {
 			switch (params.getConstantForceDirection()) {
 			case iiwa_msgs.SmartServoMode.X :
 				direction = CartDOF.X;
+				break;
 			case iiwa_msgs.SmartServoMode.Y :
 				direction = CartDOF.Y;
+				break;
 			case iiwa_msgs.SmartServoMode.Z :
 				direction = CartDOF.Z;
+				break;
 			default:
 				getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
+				break;
 			}
 
 			if (direction != null) {
