@@ -3,6 +3,8 @@ ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA
 
 **Current version : v-1.7.0**        
 [![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
+[![Stories in Ready](https://badge.waffle.io/SalvoVirga/iiwa_stack.png?label=ready&title=Ready)](https://waffle.io/SalvoVirga/iiwa_stack)
+[![Stories in Progress](https://badge.waffle.io/SalvoVirga/iiwa_stack.png?label=ready&title=Progress)](https://waffle.io/SalvoVirga/iiwa_stack)
 ___
 ### Features
 - rosjava node running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, actions
