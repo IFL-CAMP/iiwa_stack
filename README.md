@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/SalvoVirga/iiwa_stack.png?label=ready&title=Ready)](https://waffle.io/SalvoVirga/iiwa_stack)
 ## IIWA STACK
 ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
 
