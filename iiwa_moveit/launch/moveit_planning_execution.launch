@@ -8,7 +8,7 @@
     <arg name="sim" default="true" doc="If true, the robot will be simulated in Gazebo" />
     <!-- hardware_interface to use : PositionJointInterface, EffortJointInterface, VelocityJointInterface. -->
     <arg name="hardware_interface" default="PositionJointInterface"/>
-    <!-- name of the iiwa to use, useful in case of multiple robots. Every robot is gonna have its nodees/topics under a namespace with the same name. -->
+    <!-- The is gonna have its nodes/topics under a namespace with the same name. -->
     <arg name="robot_name" default="iiwa"/>
     <!-- Model of the iiwa to use : iiwa7, iiwa14 -->
     <arg name="model" default="iiwa7"/>
@@ -20,7 +20,7 @@
     <remap from="/get_planning_scene" to="/$(arg robot_name)/get_planning_scene" /> 
     
     <!-- Run the robot within a Gazebo simulation. -->
-    <group ns="$(arg robot_name)" if="$(arg sim)">
+    <group if="$(arg sim)">
         
         <!-- Load Gazebo with given values -->
         <include file="$(find iiwa_gazebo)/launch/iiwa_gazebo.launch">
