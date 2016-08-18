@@ -68,6 +68,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private JointPosition jp;
 	private JointPosition jv;
 
+	private JointPosition commandPosition; 
+	private JointPosition currentDestination;
+	private JointPosition displacement;
+	private double loopPeriod; // Loop period in s
+	private long previousTime; // Timestamp of previous setDestination() in s
+	private long currentTime; // Timestamp of last setDestination() in s
+	private long loopCounter;
+
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
@@ -138,6 +146,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 		helper = new iiwaMessageGenerator(iiwaConfiguration.getRobotName());
 		jp = new JointPosition(robot.getJointCount());
 		jv = new JointPosition(robot.getJointCount());
+
+		commandPosition = new JointPosition(robot.getCurrentJointPosition());
+		displacement = new JointPosition(robot.getJointCount());
 	}
 
 	public static class UnsupportedControlModeException extends RuntimeException {
@@ -293,6 +304,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void beforeControlLoop() { 
 		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
+
+		// Initialize timestamps
+		previousTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
+		currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
+		loopPeriod = 0.0;
+
+		loopCounter = 0;
 	}
 
 	@Override
@@ -332,6 +350,40 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 				if (robot.isReadyToMove()) 
 					motion.getRuntime().setDestination(jp, jv);
+			}
+			break;
+			case JOINT_VELOCITY: { // TODO : Pierre's code
+				/*
+				 * This will acquire the last received JointVelocity command from the commanding ROS node.
+				 * If the robot can move, then it will move to this new position.
+				 */
+				currentDestination = motion.getRuntime().getCurrentJointDestination();
+				iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
+				helper.rosJointQuantityToKuka(commandVelocity.getVelocity(), jv);
+
+				if (robot.isReadyToMove()) {
+
+					//TODO : check all this part, reuse object used elsewhere, write it properly
+					displacement.set(0, commandVelocity.getVelocity().getA1() * loopPeriod);
+					displacement.set(1, commandVelocity.getVelocity().getA2() * loopPeriod);	
+					displacement.set(2, commandVelocity.getVelocity().getA3() * loopPeriod);	
+					displacement.set(3, commandVelocity.getVelocity().getA4() * loopPeriod);	
+					displacement.set(4, commandVelocity.getVelocity().getA5() * loopPeriod);	
+					displacement.set(5, commandVelocity.getVelocity().getA6() * loopPeriod);	
+					displacement.set(6, commandVelocity.getVelocity().getA7() * loopPeriod);	
+
+					for(int i = 0; i < 7; ++i) commandPosition.set(i, currentDestination.get(i) + displacement.get(i));
+					previousTime = currentTime;
+
+					currentTime = motion.getRuntime().setDestination(commandPosition);
+					if (loopCounter == 0)
+						loopPeriod = 0;
+					else
+						loopPeriod = (double)(currentTime - previousTime) / 1000000.0;
+
+				}
+
+				++loopCounter;
 			}
 			break;
 

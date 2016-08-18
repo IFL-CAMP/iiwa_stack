@@ -28,6 +28,8 @@ import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointPosition;
 import iiwa_msgs.JointPositionVelocity;
+import iiwa_msgs.JointVelocity;
+
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -50,7 +52,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public enum CommandType {
 		CARTESIAN_POSE,
 		JOINT_POSITION,
-		JOINT_POSITION_VELOCITY
+		JOINT_POSITION_VELOCITY,
+		JOINT_VELOCITY
 	}
 	
 	private ConnectedNode node = null;
@@ -65,6 +68,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
 	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
+	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
+
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper;
@@ -73,6 +78,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private geometry_msgs.PoseStamped cp;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
+	private iiwa_msgs.JointVelocity jv;
+
 	
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
 	CommandType currentCommandType = CommandType.JOINT_POSITION;
@@ -107,6 +114,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cp = helper.buildMessage(PoseStamped._TYPE);
 		jp = helper.buildMessage(JointPosition._TYPE);
 		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
+		jv = helper.buildMessage(JointVelocity._TYPE);
 		
 		helper.getCurrentCartesianPose(cp, robot, frame);
 		helper.getCurrentJointPosition(jp, robot);
@@ -146,6 +154,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public iiwa_msgs.JointPositionVelocity getJointPositionVelocity() {
 		return jpv;
 	}
+	
+	/**
+	 * Returns the last received Joint Velocity message. <p>
+	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
+	 * @return the received Joint Velocity message.
+	 */
+	public iiwa_msgs.JointVelocity getJointVelocity() {
+		return jv;
+	}
 
 	/**
 	 * @see org.ros.node.NodeMain#getDefaultNodeName()
@@ -169,7 +186,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
+		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 
+		
 		// Subscribers' callbacks
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
@@ -192,6 +211,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity){
 				jpv = positionVelocity;
 				currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+			}
+		});
+		
+		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
+			@Override
+			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
+				jv = velocity;
+				currentCommandType = CommandType.JOINT_VELOCITY;
 			}
 		});
 		
