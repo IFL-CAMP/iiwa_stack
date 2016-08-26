@@ -1,8 +1,12 @@
 ## IIWA STACK
 ROS indigo metapackage that contains ROS packages to work with the KUKA LBR IIWA R800/R820 (7/14 Kg).
 
-**Current version : v-1.7.0**        
+**Current version : v-1.1.0 for Sunrise 1.9**    
+[Using a previous version of Sunrise?](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ#which-version-of-sunriseossunrise-workbench-is-supported)    
+
 [![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
+[![Stories in Ready](https://badge.waffle.io/SalvoVirga/iiwa_stack.png?label=ready&title=Ready)](https://waffle.io/SalvoVirga/iiwa_stack)
+[![Stories in Progress](https://badge.waffle.io/SalvoVirga/iiwa_stack.png?label=ready&title=Progress)](https://waffle.io/SalvoVirga/iiwa_stack)
 ___
 ### Features
 - rosjava node running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, actions

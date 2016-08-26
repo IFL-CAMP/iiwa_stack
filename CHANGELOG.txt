@@ -1,0 +1,18 @@
+# IIWA_STACK Changelog
+
+## Version 1.1.0 (release date: 26.08.2016)
+
+Completely refactoring of the Java applications led to various improvements in terms of performance.
+
+#### New
+* `ConstantForce via SmartServo service`
+* `Added JointPositionVelocity commands`
+
+#### Bug Fixes
+* `Tool selection from ROS param`
+* `CartesianPose published from the robot now depends on the tool selected`
+* `Fixed URDF xacro files`
+* `ROSMonitor shouts down cleanly`
+
+## Version 1.0.0
+Initial release

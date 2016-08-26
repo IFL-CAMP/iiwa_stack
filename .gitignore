@@ -73,3 +73,4 @@ Status API Training Shop Blog About
 *.cproject
 /config
 *.kdev_include_paths
+*.orig
