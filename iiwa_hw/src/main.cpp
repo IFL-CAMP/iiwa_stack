@@ -5,6 +5,9 @@
  * Enrico Corvaglia
  * Marco Esposito - marco.esposito@tum.de
  * Manuel Bonilla - josemanuelbonilla@gmail.com
+ *
+ * Modified by Murilo F. Martins (murilo.martins@ocado.com) on 09/11/2016.
+ * Added compatibility with combined_robot_hw (http://wiki.ros.org/combined_robot_hw).
  * 
  * LICENSE :
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
@@ -58,11 +61,11 @@ int main( int argc, char** argv ) {
     
     // construct the lbr iiwa
     ros::NodeHandle iiwa_nh;
-    IIWA_HW iiwa_robot(iiwa_nh);
-    
+    IIWA_HW iiwa_robot;
+
     // configuration routines
-    iiwa_robot.start();
-    
+    iiwa_robot.init(iiwa_nh, iiwa_nh);
+
     // timer variables
     struct timespec ts = {0, 0};
     ros::Time last(ts.tv_sec, ts.tv_nsec), now(ts.tv_sec, ts.tv_nsec);
@@ -86,14 +89,14 @@ int main( int argc, char** argv ) {
         } 
         
         // read current robot position
-        iiwa_robot.read(period);
-        
+        iiwa_robot.read(now, period);
+
         // update the controllers
         manager.update(now, period);
         
         // send command position to the robot
-        iiwa_robot.write(period);
-        
+        iiwa_robot.write(now, period);
+
         // wait for some milliseconds defined in controlFrequency
         iiwa_robot.getRate()->sleep();
         

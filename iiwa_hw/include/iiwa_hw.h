@@ -8,6 +8,9 @@
  * Enrico Corvaglia
  * Marco Esposito - marco.esposito@tum.de
  * Manuel Bonilla - josemanuelbonilla@gmail.com
+ *
+ * Modified by Murilo F. Martins (murilo.martins@ocado.com) on 09/11/2016.
+ * Added compatibility with combined_robot_hw (http://wiki.ros.org/combined_robot_hw).
  * 
  * LICENSE :
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
@@ -32,7 +35,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef IIWA_HW_H_
+#define IIWA_HW_H_
 
 // iiwa_msgs and ROS inteface includes
 #include "iiwa_ros.h"
@@ -63,14 +67,22 @@ public:
     /** 
      * Constructor
      */
-    IIWA_HW(ros::NodeHandle nh);
-    
-    /** 
+    IIWA_HW();
+
+    /**
      * Destructor
      */
     virtual ~IIWA_HW();
-    
-    /** 
+
+    /**
+     * @brief Method implementing all the initialisation required by the class.
+     * @param unused node handle
+     * @param robot hardware-specific node handle
+     * @return True if initialisation was successful; False otherwise.
+     */
+    virtual bool init(ros::NodeHandle& n, ros::NodeHandle& robot_hw_nh);
+
+    /**
      * \brief Initializes the IIWA device struct and all the hardware and joint limits interfaces needed.
      * 	
      * A joint state handle is created and linked to the current joint state of the IIWA robot.
@@ -91,15 +103,15 @@ public:
                              double *const effort_limit);
     
     /**
-     * \brief Reads the current robot state via the IIWARos interfae and sends the values to the IIWA device struct.
+     * \brief Reads the current robot state via the IIWARos interface and sends the values to the IIWA device struct.
      */
-    bool read(ros::Duration period);
-    
+    virtual void read(const ros::Time& time, const ros::Duration& period);
+
     /**
      * \brief Sends the command joint position to the robot via IIWARos interface
      */
-    bool write(ros::Duration period);
-    
+    virtual void write(const ros::Time& time, const ros::Duration& period);
+
     /**
      * \brief Retuns the ros::Rate object to control the receiving/sending rate.
      */
@@ -232,3 +244,5 @@ void vectorToIiwaMsgsJoint(const std::vector<T>& v, iiwa_msgs::JointQuantity& ax
     ax.a6 = v[5];
     ax.a7 = v[6];
 }
+
+#endif //IIWA_HW_H_

@@ -8,6 +8,9 @@
  * Enrico Corvaglia
  * Marco Esposito - marco.esposito@tum.de
  * Manuel Bonilla - josemanuelbonilla@gmail.com
+ *
+ * Modified by Murilo F. Martins (murilo.martins@ocado.com) on 09/11/2016.
+ * Added compatibility with combined_robot_hw (http://wiki.ros.org/combined_robot_hw).
  * 
  * LICENSE :
  *
@@ -35,21 +38,13 @@
 
 #include "iiwa_hw.h"
 
+#include <pluginlib/class_list_macros.h>
+
+PLUGINLIB_EXPORT_CLASS(IIWA_HW, hardware_interface::RobotHW)
+
 using namespace std;
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh) 
-: last_joint_position_command_(7, 0)
-{
-    nh_ = nh;
-    
-    timer_ = ros::Time::now();
-    control_frequency_ = DEFAULT_CONTROL_FREQUENCY;
-    loop_rate_ = new ros::Rate(control_frequency_);
-    
-    interface_type_.push_back("PositionJointInterface");
-    interface_type_.push_back("EffortJointInterface");
-    interface_type_.push_back("VelocityJointInterface");
-}
+IIWA_HW::IIWA_HW(): last_joint_position_command_(7, 0) {}
 
 IIWA_HW::~IIWA_HW() {}
 
@@ -64,6 +59,20 @@ double IIWA_HW::getFrequency() {
 void IIWA_HW::setFrequency(double frequency) {
     control_frequency_ = frequency;
     loop_rate_ = new ros::Rate(control_frequency_);
+}
+
+bool IIWA_HW::init(ros::NodeHandle& n, ros::NodeHandle& robot_hw_nh) {
+    nh_ = robot_hw_nh;
+
+    timer_ = ros::Time::now();
+    control_frequency_ = DEFAULT_CONTROL_FREQUENCY;
+    loop_rate_ = new ros::Rate(control_frequency_);
+
+    interface_type_.push_back("PositionJointInterface");
+    interface_type_.push_back("EffortJointInterface");
+    interface_type_.push_back("VelocityJointInterface");
+
+    return start();
 }
 
 bool IIWA_HW::start() {
@@ -95,7 +104,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No URDF model available");
     }
     
-    iiwa_ros_conn_.init();
+    iiwa_ros_conn_.init(false);
     
     // initialize and set to zero the state and command values
     device_->init();
@@ -203,7 +212,7 @@ void IIWA_HW::registerJointLimits(const std::string& joint_name,
     }
 }
 
-bool IIWA_HW::read(ros::Duration period)
+void IIWA_HW::read(const ros::Time& time, const ros::Duration& period)
 {
     ros::Duration delta = ros::Time::now() - timer_;
     
@@ -227,18 +236,18 @@ bool IIWA_HW::read(ros::Duration period)
         }
         
         for (int j = 0; j < IIWA_JOINTS; j++)
-            device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), 
-                                                                       device_->joint_velocity[j], 0.2);  
-        
-        return 1;
+            device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(),
+                                                                       device_->joint_velocity[j], 0.2);
+
+        //return 1;
     } else if (delta.toSec() >= 10) {
         ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before reading ...");
         timer_ = ros::Time::now();
     }
-    return 0;
+    //return 0;
 }
 
-bool IIWA_HW::write(ros::Duration period) {
+void IIWA_HW::write(const ros::Time& time, const ros::Duration& period) {
     ej_sat_interface_.enforceLimits(period);
     ej_limits_interface_.enforceLimits(period);
     pj_sat_interface_.enforceLimits(period);
@@ -251,8 +260,9 @@ bool IIWA_HW::write(ros::Duration period) {
         // Joint Position Control
         if (interface_ == interface_type_.at(0)) {
             if (device_->joint_position_command == last_joint_position_command_)  // avoid sending the same joint command over and over
-                return 0;
-            
+                //return 0;
+                return;
+
             last_joint_position_command_ = device_->joint_position_command;
             
             // Building the message
@@ -270,10 +280,11 @@ bool IIWA_HW::write(ros::Duration period) {
             // TODO
         }
         
+        iiwa_ros_conn_.publish();
     } else if (delta.toSec() >= 10) {
         ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
     }
-    
-    return 0;
+
+    //return 0;
 }
