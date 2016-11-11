@@ -1,4 +1,4 @@
-<library path="lib/iiwa_hw">
+<library path="lib/libiiwa_hw">
   <class name="iiwa_hw/IIWA_HW"
          type="IIWA_HW"
          base_class_type="hardware_interface::RobotHW" />
