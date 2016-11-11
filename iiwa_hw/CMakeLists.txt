@@ -48,15 +48,22 @@ add_executable(${PROJECT_NAME}-bin
     src/main.cpp
 )
 
+add_executable(iiwa_combined_hw_node src/iiwa_combined_hw_node.cpp)
+
 ## Add dependence to the iiwa_msg module for the executable
 add_dependencies(${PROJECT_NAME}-bin
+    iiwa_msgs_generate_messages_cpp)
+
+add_dependencies(iiwa_combined_hw_node
     iiwa_msgs_generate_messages_cpp)
 
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME}
     iiwa_msgs_generate_messages_cpp)
 
-
+target_link_libraries(${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}-bin
@@ -64,18 +71,37 @@ target_link_libraries(${PROJECT_NAME}-bin
     ${catkin_LIBRARIES}
 )
 
+target_link_libraries(iiwa_combined_hw_node
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
+if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+    add_rostest_gtest(combined_robot_hw_test
+        test/combined_robot_hw_test.test
+        test/combined_robot_hw_test.cpp
+    )
+    target_link_libraries(combined_robot_hw_test ${PROJECT_NAME} ${catkin_LIBRARIES})
+    
+endif()
+
 install(TARGETS ${PROJECT_NAME}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+                ${PROJECT_NAME}-bin
+                iiwa_combined_hw_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(FILES robot_hw_plugin.xml
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(DIRECTORY config/
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+install(DIRECTORY launch/ config/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
