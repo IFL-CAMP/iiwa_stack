@@ -54,8 +54,6 @@ int main( int argc, char** argv ) {
     // initialize ROS
     ros::init(argc, argv, "iiwa_combined_hw", ros::init_options::NoSigintHandler);
 
-    ros::Rate loop_rate(CTRL_FREQ);
-
     // ros spinner
     ros::AsyncSpinner spinner(1);
     spinner.start();
@@ -68,6 +66,8 @@ int main( int argc, char** argv ) {
     // construct the lbr iiwa
     ros::NodeHandle nh;
     combined_robot_hw::CombinedRobotHW robot_hw;
+
+    ros::Rate loop_rate(CTRL_FREQ);
 
     // configuration routines
     robot_hw.init(nh, nh);
