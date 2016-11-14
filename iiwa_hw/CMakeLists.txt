@@ -82,9 +82,8 @@ target_link_libraries(iiwa_combined_hw_node
 #        test/combined_robot_hw_test.test
 #        test/combined_robot_hw_test.cpp
 #    )
-#    target_link_libraries(combined_robot_hw_test ${PROJECT_NAME} ${catkin_LIBRARIES})
-    
-endif()
+#    target_link_libraries(combined_robot_hw_test ${PROJECT_NAME} ${catkin_LIBRARIES})    
+#endif()
 
 install(TARGETS ${PROJECT_NAME}
                 ${PROJECT_NAME}-bin
