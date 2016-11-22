@@ -252,8 +252,31 @@ public class iiwaMessageGenerator {
 		currentJointState.setName(Arrays.asList(joint_names));
 		currentJointState.setPosition(robot.getCurrentJointPosition().getInternalArray());
 		currentJointState.setEffort(robot.getMeasuredTorque().getTorqueValues());
+
+	}
+	
+	/**
+	 * Builds a iiwa_msgs.JointVelocity message given a LBR iiwa Robot.<p>
+	 * @param currentJointVelocity : the JointVelocity message that will be created.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 */
+	public void getCurrentJointVelocity(iiwa_msgs.JointVelocity currentJointVelocity, LBR robot) {
 		
-		// TODO: velocity
+		double[] position = robot.getCurrentJointPosition().getInternalArray();
+		long position_time_ns = System.nanoTime();
+		double[] velocity = new double[robot.getJointCount()];  
+		
+		if (last_position_time_ns != 0) {
+			for (int i = 0; i < robot.getJointCount(); i++)
+				velocity[i] = (position[i] - last_position[i]) / ((double)(position_time_ns - last_position_time_ns) / 1000000000);
+		}
+		
+		last_position = position;
+		last_position_time_ns = position_time_ns;
+		
+		vectorToJointQuantity(velocity,currentJointVelocity.getVelocity());
+		
+
 	}
 
 	// Conversions

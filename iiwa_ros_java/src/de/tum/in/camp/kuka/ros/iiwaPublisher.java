@@ -29,6 +29,7 @@ import iiwa_msgs.JointPosition;
 import iiwa_msgs.JointPositionVelocity;
 import iiwa_msgs.JointStiffness;
 import iiwa_msgs.JointTorque;
+import iiwa_msgs.JointVelocity;
 
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -55,6 +56,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointDamping> jointDampingPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
+	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
 	// UserKey Event Publisher
 	private Publisher<std_msgs.String> iiwaButtonPublisher; // TODO: iiwa_msgs.ButtonEvent
 	// JointState publisher (optional)
@@ -76,8 +78,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointDamping jd;
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
-
-
+	private iiwa_msgs.JointVelocity jv;
+	
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -96,7 +98,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jst = helper.buildMessage(JointStiffness._TYPE);
 		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
 		jt = helper.buildMessage(JointTorque._TYPE);
+		jv = helper.buildMessage(JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
+		
 	}
 	
 	/**
@@ -140,9 +144,11 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointDampingPublisher = connectedNode.newPublisher(iiwaName + "/state/JointDamping", iiwa_msgs.JointDamping._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
+		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/joint_velocity",  iiwa_msgs.JointVelocity._TYPE);
 		
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
+		
 	}
 	
 	/**
@@ -187,6 +193,11 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.getCurrentJointPositionVelocity(jpv, robot);
 			helper.incrementSeqNumber(jpv.getHeader());
 			jointPositionVelocityPublisher.publish(jpv);
+		}
+		if (jointVelocityPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointVelocity(jv, robot);
+			helper.incrementSeqNumber(jv.getHeader());
+			jointVelocityPublisher.publish(jv);
 		}
 		if (jointTorquePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointTorque(jt, robot);
