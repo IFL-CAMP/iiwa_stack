@@ -1,4 +1,4 @@
- /**  
+/**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
@@ -22,14 +22,6 @@
  */
 
 package de.tum.in.camp.kuka.ros;
-
-import geometry_msgs.PoseStamped;
-import geometry_msgs.WrenchStamped;
-import iiwa_msgs.JointPosition;
-import iiwa_msgs.JointPositionVelocity;
-import iiwa_msgs.JointStiffness;
-import iiwa_msgs.JointTorque;
-import iiwa_msgs.JointVelocity;
 
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -62,13 +54,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 	// JointState publisher (optional)
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
-	
+
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
-	
+
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper;
-	
+
 	// Cache objects
 	private geometry_msgs.PoseStamped cp;
 	private geometry_msgs.WrenchStamped cw;
@@ -79,7 +71,6 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
 	private iiwa_msgs.JointVelocity jv;
-	
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -90,19 +81,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public iiwaPublisher(String robotName) {
 		iiwaName = robotName;
 		helper = new iiwaMessageGenerator(iiwaName);
-		
-		cp = helper.buildMessage(PoseStamped._TYPE);
-		cw = helper.buildMessage(WrenchStamped._TYPE);
-		jp = helper.buildMessage(JointPosition._TYPE);
-		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
-		jst = helper.buildMessage(JointStiffness._TYPE);
+
+		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);
+		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
+		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
+		jst = helper.buildMessage(iiwa_msgs.JointStiffness._TYPE);
 		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
-		jt = helper.buildMessage(JointTorque._TYPE);
-		jv = helper.buildMessage(JointVelocity._TYPE);
+		jt = helper.buildMessage(iiwa_msgs.JointTorque._TYPE);
+		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
-		
 	}
-	
+
 	/**
 	 * Set if also joint_states should be published
 	 * @param publishJointState
@@ -144,13 +134,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointDampingPublisher = connectedNode.newPublisher(iiwaName + "/state/JointDamping", iiwa_msgs.JointDamping._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
-		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/joint_velocity",  iiwa_msgs.JointVelocity._TYPE);
-		
+		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity",  iiwa_msgs.JointVelocity._TYPE);
+
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
-		
+
 	}
-	
+
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
@@ -163,7 +153,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public void publishCurrentState(LBR robot, SmartServo motion) throws InterruptedException {
 		publishCurrentState(robot, motion, robot.getFlange());
 	}
-		
+
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
@@ -220,7 +210,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 			jointStatesPublisher.publish(js);
 		}
 	}
-	
+
 	/**
 	 * Publishes the even of a button on the SmartPad toolbar being <b>pressed</b>
 	 * @param name : name of the button
@@ -230,7 +220,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		msg.setData(name + "_pressed");
 		iiwaButtonPublisher.publish(msg);
 	}
-	
+
 	/**
 	 * Publishes the even of a button on the SmartPad toolbar being <b>released</b>
 	 * @param name : name of the button
