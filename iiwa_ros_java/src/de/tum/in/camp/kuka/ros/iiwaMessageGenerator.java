@@ -53,6 +53,9 @@ public class iiwaMessageGenerator {
 	private static String baseFrameID;
 	private static final String baseFrameIDSuffix = "_link_0";
 	private static String[] joint_names;
+	
+	private static double[] last_position;
+	private static long last_position_time_ns = 0;
 
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
@@ -158,11 +161,19 @@ public class iiwaMessageGenerator {
 	 * @param currentJointPositionVelocity : the JointPositionVelocity message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
-	// TODO : should we keep this?
-	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity currentJointPositionVelocity, LBR robot) {
+	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity currentJointPositionVelocity, LBR robot) {		
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
-		double[] velocity = new double[robot.getJointCount()];  // TODO: read current joint velocity
-
+		long position_time_ns = System.nanoTime();
+		double[] velocity = new double[robot.getJointCount()];  
+		
+		if (last_position_time_ns != 0) {
+			for (int i = 0; i < robot.getJointCount(); i++)
+				velocity[i] = (position[i] - last_position[i]) / ((double)(position_time_ns - last_position_time_ns) / 1000000000);
+		}
+		
+		last_position = position;
+		last_position_time_ns = position_time_ns;
+		
 		currentJointPositionVelocity.getHeader().setStamp(time.getCurrentTime());
 
 		vectorToJointQuantity(position, currentJointPositionVelocity.getPosition());

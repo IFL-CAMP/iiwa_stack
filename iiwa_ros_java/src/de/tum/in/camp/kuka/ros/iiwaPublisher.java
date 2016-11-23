@@ -26,6 +26,7 @@ package de.tum.in.camp.kuka.ros;
 import geometry_msgs.PoseStamped;
 import geometry_msgs.WrenchStamped;
 import iiwa_msgs.JointPosition;
+import iiwa_msgs.JointPositionVelocity;
 import iiwa_msgs.JointStiffness;
 import iiwa_msgs.JointTorque;
 
@@ -50,6 +51,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<geometry_msgs.WrenchStamped> cartesianWrenchPublisher;
 	// Joint Message Publishers
 	private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
+	private Publisher<iiwa_msgs.JointPositionVelocity> jointPositionVelocityPublisher;
 	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointDamping> jointDampingPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
@@ -69,6 +71,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private geometry_msgs.PoseStamped cp;
 	private geometry_msgs.WrenchStamped cw;
 	private iiwa_msgs.JointPosition jp;
+	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointStiffness jst;
 	private iiwa_msgs.JointDamping jd;
 	private iiwa_msgs.JointTorque jt;
@@ -89,6 +92,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cp = helper.buildMessage(PoseStamped._TYPE);
 		cw = helper.buildMessage(WrenchStamped._TYPE);
 		jp = helper.buildMessage(JointPosition._TYPE);
+		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
 		jst = helper.buildMessage(JointStiffness._TYPE);
 		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
 		jt = helper.buildMessage(JointTorque._TYPE);
@@ -132,6 +136,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
 		jointPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
+		jointPositionVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointDampingPublisher = connectedNode.newPublisher(iiwaName + "/state/JointDamping", iiwa_msgs.JointDamping._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
@@ -177,6 +182,11 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.getCurrentJointPosition(jp, robot);
 			helper.incrementSeqNumber(jp.getHeader());
 			jointPositionPublisher.publish(jp);
+		}
+		if (jointPositionVelocityPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointPositionVelocity(jpv, robot);
+			helper.incrementSeqNumber(jpv.getHeader());
+			jointPositionVelocityPublisher.publish(jpv);
 		}
 		if (jointTorquePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointTorque(jt, robot);
