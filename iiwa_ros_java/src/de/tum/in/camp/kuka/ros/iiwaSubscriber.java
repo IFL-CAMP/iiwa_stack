@@ -1,4 +1,4 @@
- /**  
+/**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
@@ -48,16 +48,16 @@ import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
  * <robot name>/command/<iiwa message type> (e.g. MyIIWA/command/JointPosition)
  */
 public class iiwaSubscriber extends AbstractNodeMain {
-	
+
 	public enum CommandType {
 		CARTESIAN_POSE,
 		JOINT_POSITION,
 		JOINT_POSITION_VELOCITY,
 		JOINT_VELOCITY
 	}
-	
+
 	private ConnectedNode node = null;
-	
+
 	// Service for reconfiguring control mode
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoServer = null;
@@ -73,14 +73,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper;
-		
+
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointVelocity jv;
 
-	
+
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
 	CommandType currentCommandType = CommandType.JOINT_POSITION;
 
@@ -109,25 +109,25 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
 		iiwaName = robotName;
 		helper = new iiwaMessageGenerator(iiwaName);
-		
+
 		//TODO : needed?
 		cp = helper.buildMessage(PoseStamped._TYPE);
 		jp = helper.buildMessage(JointPosition._TYPE);
 		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(JointVelocity._TYPE);
-		
+
 		helper.getCurrentCartesianPose(cp, robot, frame);
 		helper.getCurrentJointPosition(jp, robot);
 		helper.getCurrentJointPositionVelocity(jpv, robot);
 	}
-	
+
 	/**
 	 * Add a callback to the SmartServo service
 	 */
 	public void setConfigureSmartServoCallback(ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> callback) {
 		configureSmartServoCallback = callback;
 	}
-	
+
 	/**
 	 * Get the last received PoseStamped message.<p>
 	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
@@ -145,7 +145,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public iiwa_msgs.JointPosition getJointPosition() {
 		return jp;
 	}
-	
+
 	/**
 	 * Returns the last received Joint Position-Velocity message. <p>
 	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
@@ -154,7 +154,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public iiwa_msgs.JointPositionVelocity getJointPositionVelocity() {
 		return jpv;
 	}
-	
+
 	/**
 	 * Returns the last received Joint Velocity message. <p>
 	 * If no messages have been received yet, it returns a message filled with initial values created in the class constructor.
@@ -179,7 +179,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		
+
 		node = connectedNode;
 
 		// Creating the subscribers
@@ -188,7 +188,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 
-		
+
 		// Subscribers' callbacks
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
@@ -205,7 +205,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				currentCommandType = CommandType.JOINT_POSITION;
 			}
 		});
-		
+
 		jointPositionVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPositionVelocity>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity){
@@ -213,7 +213,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
 			}
 		});
-		
+
 		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
@@ -221,7 +221,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				currentCommandType = CommandType.JOINT_VELOCITY;
 			}
 		});
-		
+
 		// Creating SmartServo service if a callback has been defined.
 		if (configureSmartServoCallback != null) {
 			configureSmartServoServer = node.newServiceServer(
