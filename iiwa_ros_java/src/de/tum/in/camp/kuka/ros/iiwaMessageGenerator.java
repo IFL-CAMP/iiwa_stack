@@ -1,4 +1,4 @@
- /**  
+/**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
@@ -49,11 +49,11 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMo
  * For Cartesian messages, it's possible to pass a reference frames, if no reference frames is passed, the flange frame is used.
  */
 public class iiwaMessageGenerator {
-	
+
 	private static String baseFrameID;
 	private static final String baseFrameIDSuffix = "_link_0";
 	private static String[] joint_names;
-	
+
 	private static double[] last_position;
 	private static long last_position_time_ns = 0;
 
@@ -61,10 +61,10 @@ public class iiwaMessageGenerator {
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
 	private TimeProvider time = iiwaConfiguration.getTimeProvider();
-	
+
 	public iiwaMessageGenerator(String robotName) {
 		baseFrameID = robotName + baseFrameIDSuffix; // e.g. if robotName == iiwa, then baseFrameID = iiwa_link_0
-				
+
 		// e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
 		joint_names = new String[]{
 				robotName+"_joint_1", 
@@ -74,7 +74,7 @@ public class iiwaMessageGenerator {
 				robotName+"_joint_5",
 				robotName+"_joint_6",
 				robotName+"_joint_7"
-				};
+		};
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class iiwaMessageGenerator {
 	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot, ObjectFrame frame) {
 		currentWrench.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
 		currentWrench.getHeader().setStamp(time.getCurrentTime());
-		
+
 		currentWrench.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
 		currentWrench.getWrench().getForce().setY(robot.getExternalForceTorque(frame).getForce().getY());
 		currentWrench.getWrench().getForce().setZ(robot.getExternalForceTorque(frame).getForce().getZ());
@@ -136,7 +136,7 @@ public class iiwaMessageGenerator {
 		currentWrench.getWrench().getTorque().setX(robot.getExternalForceTorque(frame).getTorque().getX());
 		currentWrench.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
 		currentWrench.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
-		
+
 		// TODO : should we also add these 
 		//robot.getExternalForceTorque(frame).getForceInaccuracy();
 		//robot.getExternalForceTorque(frame).getTorqueInaccuracy();
@@ -154,7 +154,7 @@ public class iiwaMessageGenerator {
 		currentJointPosition.getHeader().setStamp(time.getCurrentTime());
 		vectorToJointQuantity(position, currentJointPosition.getPosition());
 	}
-	
+
 	/**
 	 * Builds a iiwa_msgs.JointPositionVelocity message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
@@ -165,15 +165,15 @@ public class iiwaMessageGenerator {
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
 		long position_time_ns = System.nanoTime();
 		double[] velocity = new double[robot.getJointCount()];  
-		
+
 		if (last_position_time_ns != 0) {
 			for (int i = 0; i < robot.getJointCount(); i++)
 				velocity[i] = (position[i] - last_position[i]) / ((double)(position_time_ns - last_position_time_ns) / 1000000000);
 		}
-		
+
 		last_position = position;
 		last_position_time_ns = position_time_ns;
-		
+
 		currentJointPositionVelocity.getHeader().setStamp(time.getCurrentTime());
 
 		vectorToJointQuantity(position, currentJointPositionVelocity.getPosition());
@@ -239,7 +239,7 @@ public class iiwaMessageGenerator {
 		currentJointTorque.getHeader().setStamp(time.getCurrentTime());
 		vectorToJointQuantity(torque, currentJointTorque.getTorque());		
 	}
-	
+
 	/**
 	 * Builds a sensor_msgs.JointState message given a LBR iiwa Robot.<p>
 	 * <b>No velocity information currently available</b>
@@ -247,36 +247,34 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
 	public void getCurrentJointState(sensor_msgs.JointState currentJointState, LBR robot) {
-		
+
 		currentJointState.getHeader().setStamp(time.getCurrentTime());
 		currentJointState.setName(Arrays.asList(joint_names));
 		currentJointState.setPosition(robot.getCurrentJointPosition().getInternalArray());
 		currentJointState.setEffort(robot.getMeasuredTorque().getTorqueValues());
 
 	}
-	
+
 	/**
 	 * Builds a iiwa_msgs.JointVelocity message given a LBR iiwa Robot.<p>
 	 * @param currentJointVelocity : the JointVelocity message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
 	public void getCurrentJointVelocity(iiwa_msgs.JointVelocity currentJointVelocity, LBR robot) {
-		
+
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
 		long position_time_ns = System.nanoTime();
 		double[] velocity = new double[robot.getJointCount()];  
-		
+
 		if (last_position_time_ns != 0) {
 			for (int i = 0; i < robot.getJointCount(); i++)
 				velocity[i] = (position[i] - last_position[i]) / ((double)(position_time_ns - last_position_time_ns) / 1000000000);
 		}
-		
+
 		last_position = position;
 		last_position_time_ns = position_time_ns;
-		
-		vectorToJointQuantity(velocity,currentJointVelocity.getVelocity());
-		
 
+		vectorToJointQuantity(velocity, currentJointVelocity.getVelocity());
 	}
 
 	// Conversions
@@ -463,7 +461,7 @@ public class iiwaMessageGenerator {
 		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
 		matrixToQuat(rotationMatrix, pose.getOrientation());
 	}
-	
+
 	//TODO : I see some inconsistency, some conversions return a value, some not
 
 	/**
@@ -473,14 +471,32 @@ public class iiwaMessageGenerator {
 	 */
 	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos) {
 		kukaJointPos.set(
-			rosJointPos.getA1(),
-			rosJointPos.getA2(),
-			rosJointPos.getA3(),
-			rosJointPos.getA4(),
-			rosJointPos.getA5(),
-			rosJointPos.getA6(),
-			rosJointPos.getA7()
-		);
+				rosJointPos.getA1(),
+				rosJointPos.getA2(),
+				rosJointPos.getA3(),
+				rosJointPos.getA4(),
+				rosJointPos.getA5(),
+				rosJointPos.getA6(),
+				rosJointPos.getA7()
+				);
+	}
+
+	/**
+	 * Converts an iiwa_msgs.JointQuantity to a JointPosition in KUKA APIs
+	 * @param rosJointPos : starting JointQuantity
+	 * @param kukaJointPos : resulting JointPosition
+	 * @param scaleFactor : each element of rosJointPos with be scaled using this value 
+	 */
+	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos, double scaleFactor) {
+		kukaJointPos.set(
+				rosJointPos.getA1()*scaleFactor,
+				rosJointPos.getA2()*scaleFactor,
+				rosJointPos.getA3()*scaleFactor,
+				rosJointPos.getA4()*scaleFactor,
+				rosJointPos.getA5()*scaleFactor,
+				rosJointPos.getA6()*scaleFactor,
+				rosJointPos.getA7()*scaleFactor
+				);
 	}
 
 	/**
@@ -510,7 +526,7 @@ public class iiwaMessageGenerator {
 	public <T extends org.ros.internal.message.Message> T buildMessage(String typeString) {
 		return messageFactory.newFromType(typeString);
 	}
-	
+
 	/**
 	 * Adds one to the current sequence number of the message Header
 	 * @param h : message Header
