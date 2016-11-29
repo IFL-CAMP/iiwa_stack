@@ -26,7 +26,6 @@
  */
 
 #include "iiwaRos.h"
-#include<string>
 
 using namespace std;
 
@@ -40,8 +39,7 @@ void iiwaRos::init(bool initRos)
     if (initRos) {
         int argc = 1;
         char *argv[1];
-        string str = "iiwaRos";
-        argv[0] = str.c_str();  //ToDo check that argv shouln't be a const
+        sprintf(argv[1],"iiwaRos");
         ros::init(argc, argv, "iiwaRos");
     }
 
