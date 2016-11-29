@@ -33,18 +33,8 @@ ros::Time last_update_time;
 
 iiwaRos::iiwaRos() { }
 
-void iiwaRos::init(bool initRos)
+void iiwaRos::init()
 {
-    // hide ROS away for non-ROS applications
-    if (initRos) {
-        int argc = 1;
-        char *argv[1];
-        sprintf(argv[1],"iiwaRos");
-        ros::init(argc, argv, "iiwaRos");
-    }
-
-    ros::NodeHandle node_handle;
-
     robot_is_connected_ = false;
 
     holder_state_pose.init("state/CartesianPose");

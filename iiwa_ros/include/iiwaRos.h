@@ -150,7 +150,7 @@ public:
     /** 
      * Init
      */
-    void init(bool initRos = false);
+    void init();
     
     /**
      * Getters
