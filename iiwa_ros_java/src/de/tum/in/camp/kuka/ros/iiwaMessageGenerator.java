@@ -35,6 +35,7 @@ import org.ros.time.TimeProvider;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
@@ -425,6 +426,10 @@ public class iiwaMessageGenerator {
 		Vector transl = Vector.of(tx, ty, tz);
 
 		return Transformation.of(transl, rot);
+	}
+	
+	public Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) {	
+		return new Frame(rosPoseToKukaTransformation(rosPose));
 	}
 
 	/**
