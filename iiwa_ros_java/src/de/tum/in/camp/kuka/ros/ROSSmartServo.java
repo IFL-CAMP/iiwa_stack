@@ -46,7 +46,7 @@ import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
-import com.kuka.roboticsAPI.geometricModel.math.Transformation;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -303,10 +303,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 			switch (subscriber.currentCommandType) {
 			case CARTESIAN_POSE: {
 				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
-				Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
+				Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
 
 				if (robot.isReadyToMove()) 
-					motion.getRuntime().setDestination(tr);
+					motion.getRuntime().setDestination(destinationFrame);
 			}
 			break;
 			case JOINT_POSITION: {
