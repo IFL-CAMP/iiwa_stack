@@ -307,7 +307,7 @@
       <visual>
 	<origin xyz="0 0 -0.0005" rpy="0 0 0"/>
 	<geometry>
-	  <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_7_basic.stl"/>
+	  <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_7.stl"/>
 	</geometry>
 	<material name="Grey"/>
       </visual>
@@ -315,7 +315,7 @@
       <collision>
 	<origin xyz="0 0 -0.0005" rpy="0 0 0"/>
 	<geometry>
-	  <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_7_basic.stl"/>
+	  <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_7.stl"/>
 	</geometry>
 	<material name="Grey"/>
       </collision>
