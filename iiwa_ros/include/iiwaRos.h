@@ -25,8 +25,7 @@
  * \date 07/03/2016
  */
 
-#ifndef IIWAROS_H_
-#define IIWAROS_H_
+#pragma once
 
 #include <iiwa_msgs/CartesianVelocity.h>
 #include <iiwa_msgs/JointPosition.h>
@@ -214,5 +213,3 @@ private:
     
     bool robot_is_connected_; /**< Stores the current connection state */
 };
-
-#endif //IIWAROCONNS_H_
