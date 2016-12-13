@@ -56,6 +56,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
+	protected ROSGoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
 	protected boolean debug;
@@ -99,7 +100,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Standard configuration.
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
-
+		handler = new ROSGoalReachedEventListener(publisher);
+		
 		// ROS initialization.
 		try {
 			URI uri = new URI(iiwaConfiguration.getMasterURI());
@@ -170,6 +172,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
 		motion.setJointAccelerationRel(configuration.getDefaultRelativeJointAcceleration());
 		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
+		motion.getRuntime().setGoalReachedEventHandler(handler);
 
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);

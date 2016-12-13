@@ -256,49 +256,9 @@ public class iiwaMessageGenerator {
 		
 		// TODO: velocity
 	}
-
-	/**
-	 * Builds a std_msgs.Bool message given a LBR iiwa Robot.<p>
-	 * @param destinationFlag : the Flag message that will be created.
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 */
-	public void getDestinationFlag(std_msgs.Empty destinationFlag, LBR robot) {
-		
-		SampleGoalReachedEventListener FlagListener;
-		double[] remainingTime = {0};
-		int[] osTimestamp = {0};
-		int targetId = 1;
-		String state = "Test";
-		FlagListener.onGoalReachedEvent(state, remainingTime, osTimestamp,targetId);
-		if (targetId ==0){
-			
-			destinationFlag = (std_msgs.Empty) true;
-		}
-		else {
-			destinationFlag = (std_msgs.Empty) false;
-		}
-			
-	}
-	
-	/**
-	 * Builds a std_msgs.Float32 message given a LBR iiwa Robot.<p>
-	 * @param remainingTime : the RemainingTime message that will be created.
-	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
-	 */
-	public void getRemainingTime(std_msgs.Float32 Time, LBR robot) {
-		
-		SampleGoalReachedEventListener FlagListener;
-		double[] remainingTime = {0};
-		int[] osTimestamp = {0};
-		int targetId = 1;
-		String state = "Test";
-		FlagListener.onGoalReachedEvent(state, remainingTime, osTimestamp, targetId);
-		Time = (std_msgs.Float32) remainingTime[0];
-			
-	}
 	
 	// Conversions
-
+	
 	/**
 	 * Generates a iiwa_msgs.JointQuantity message from a double vector
 	 * @param vec : double vector

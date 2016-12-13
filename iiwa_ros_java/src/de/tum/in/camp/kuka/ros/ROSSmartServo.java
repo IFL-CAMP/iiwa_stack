@@ -254,6 +254,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
 		motion.getRuntime().activateVelocityPlanning(true);
+		motion.getRuntime().setGoalReachedEventHandler(handler);
 
 		configureSmartServoMotion(ssm, mot);
 		return mot;

@@ -61,9 +61,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
 	//DestinationReachedFlag publisher
-	private Publisher<std_msgs.Empty> destinationReachedFlagPublisher;
-	//RemainingTime publisher
-	private Publisher<std_msgs.Float32> remainingTimePublisher;
+	private Publisher<std_msgs.Empty> destinationReachedPublisher;
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
 	
@@ -79,8 +77,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointDamping jd;
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
-	private std_msgs.Empty df;
-	private std_msgs.Float32 rt;
+	private std_msgs.Empty e;
 
 
 	/**
@@ -101,8 +98,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
 		jt = helper.buildMessage(JointTorque._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
-		df = helper.buildMessage(std_msgs.Empty._TYPE);
-		rt = helper.buildMessage(std_msgs.Float32._TYPE);
+		e = helper.buildMessage(std_msgs.Empty._TYPE);
 	}
 	
 	/**
@@ -150,8 +146,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 		
-		destinationReachedFlagPublisher = connectedNode.newPublisher(iiwaName + "/state/destinationReachedFlag", std_msgs.Empty._TYPE);
-		remainingTimePublisher = connectedNode.newPublisher(iiwaName + "/state/remainigTime", std_msgs.Float32._TYPE); 
+		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/destinationReached", std_msgs.Empty._TYPE);
 	}
 	
 	/**
@@ -216,17 +211,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.getCurrentJointState(js, robot);
 			helper.incrementSeqNumber(js.getHeader());
 			jointStatesPublisher.publish(js);
+		}		
+	}
+	
+	public void publishDestinationReached() {
+		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
+			destinationReachedPublisher.publish(e);
 		}
-		
-		if (destinationReachedFlagPublisher.hasSubscribers()) {
-			helper.getDestinationFlag(df,robot);
-			destinationReachedFlagPublisher.publish(df);
-		}
-		if (remainingTimePublisher.hasSubscribers()) {
-			helper.getRemainingTime(rt,robot);
-			remainingTimePublisher.publish(rt);
-		}
-		
 	}
 	
 	/**
