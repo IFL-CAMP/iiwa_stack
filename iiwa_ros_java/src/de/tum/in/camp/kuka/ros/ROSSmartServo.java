@@ -30,6 +30,8 @@ import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
 import iiwa_msgs.SmartServoMode;
+import iiwa_msgs.TimeToDestinationRequest;
+import iiwa_msgs.TimeToDestinationResponse;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -129,6 +131,22 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 		});
 
+		subscriber.setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, 
+				iiwa_msgs.TimeToDestinationResponse>() {
+
+					@Override
+					public void build(TimeToDestinationRequest req,
+							TimeToDestinationResponse res) throws ServiceException {
+						try {
+							res.setRemainingTime(motion.getRuntime().getRemainingTime());
+						}
+						catch(Exception e) {
+							// An exception should be thrown only if a motion/runtime is not available.
+							res.setRemainingTime(-1); 
+						}
+					}
+		});
+		
 		// Execute the subscriber node.
 		nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
 	}

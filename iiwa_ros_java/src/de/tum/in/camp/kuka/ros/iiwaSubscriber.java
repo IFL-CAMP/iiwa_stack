@@ -23,11 +23,6 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import geometry_msgs.PoseStamped;
-import iiwa_msgs.ConfigureSmartServoRequest;
-import iiwa_msgs.ConfigureSmartServoResponse;
-import iiwa_msgs.JointPosition;
-import iiwa_msgs.JointPositionVelocity;
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -38,7 +33,6 @@ import org.ros.node.topic.Subscriber;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
-
 
 /**
  * This class provides ROS subscribers for ROS messages defined in the iiwa_msgs ROS package.
@@ -58,7 +52,11 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	// Service for reconfiguring control mode
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoServer = null;
-	private ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> configureSmartServoCallback = null;
+	private ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoCallback = null;
+	
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
 
 	// ROSJava Subscribers for iiwa_msgs
 	// Cartesian Message Subscribers
@@ -104,9 +102,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		helper = new iiwaMessageGenerator(iiwaName);
 		
 		//TODO : needed?
-		cp = helper.buildMessage(PoseStamped._TYPE);
-		jp = helper.buildMessage(JointPosition._TYPE);
-		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
+		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
+		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		
 		helper.getCurrentCartesianPose(cp, robot, frame);
 		helper.getCurrentJointPosition(jp, robot);
@@ -116,8 +114,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	/**
 	 * Add a callback to the SmartServo service
 	 */
-	public void setConfigureSmartServoCallback(ServiceResponseBuilder<ConfigureSmartServoRequest, ConfigureSmartServoResponse> callback) {
+	public void setConfigureSmartServoCallback(ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> callback) {
 		configureSmartServoCallback = callback;
+	}
+	
+	/**
+	 * Add a callback to the TimeToDestination service
+	 */
+	public void setTimeToDestinationCallback(ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
+		timeToDestinationCallback = callback;
 	}
 	
 	/**
@@ -201,6 +206,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					iiwaName + "/configuration/configureSmartServo", 
 					"iiwa_msgs/ConfigureSmartServo", 
 					configureSmartServoCallback);
+		}
+		
+		// Creating TimeToDestination service if a callback has been defined.
+		if (timeToDestinationCallback != null) {
+			timeToDestinationServer = node.newServiceServer(
+					iiwaName + "/state/timeToDestination", 
+					"", 
+					timeToDestinationCallback);
 		}
 	}
 }
