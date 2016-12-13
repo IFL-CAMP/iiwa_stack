@@ -1,8 +1,8 @@
  /**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische UniversitÃ¤t MÃ¼nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -272,10 +272,10 @@ public class iiwaMessageGenerator {
 		FlagListener.onGoalReachedEvent(state, remainingTime, osTimestamp,targetId);
 		if (targetId ==0){
 			
-			destinationFlag = true;
+			destinationFlag = (std_msgs.Empty) true;
 		}
 		else {
-			destinationFlag = false;
+			destinationFlag = (std_msgs.Empty) false;
 		}
 			
 	}
@@ -293,7 +293,7 @@ public class iiwaMessageGenerator {
 		int targetId = 1;
 		String state = "Test";
 		FlagListener.onGoalReachedEvent(state, remainingTime, osTimestamp, targetId);
-		Time = (double) remainingTime[0];
+		Time = (std_msgs.Float32) remainingTime[0];
 			
 	}
 	
