@@ -138,6 +138,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 					public void build(TimeToDestinationRequest req,
 							TimeToDestinationResponse res) throws ServiceException {
 						try {
+							motion.getRuntime().updateWithRealtimeSystem();
 							res.setRemainingTime(motion.getRuntime().getRemainingTime());
 						}
 						catch(Exception e) {
@@ -360,6 +361,5 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 			configureSmartServoLock.unlock();
 		}
-
 	}
 }
