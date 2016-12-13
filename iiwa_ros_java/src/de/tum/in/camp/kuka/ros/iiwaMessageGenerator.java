@@ -428,6 +428,11 @@ public class iiwaMessageGenerator {
 		return Transformation.of(transl, rot);
 	}
 	
+	/**
+	 * Converts a geometry_msgs.Pose message to a Frame object in KUKA APIs
+	 * @param rosPose : starting Pose
+	 * @return resulting Frame
+	 */
 	public Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) {	
 		return new Frame(rosPoseToKukaTransformation(rosPose));
 	}
