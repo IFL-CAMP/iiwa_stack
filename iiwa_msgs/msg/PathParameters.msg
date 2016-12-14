@@ -1,0 +1,2 @@
+float32 relative_joint_velocity
+float32 relative_joint_acceleration
