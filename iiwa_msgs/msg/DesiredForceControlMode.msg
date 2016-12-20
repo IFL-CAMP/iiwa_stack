@@ -1,0 +1,3 @@
+DOF cartesian_dof
+float64 desired_force
+float64 desired_stiffness

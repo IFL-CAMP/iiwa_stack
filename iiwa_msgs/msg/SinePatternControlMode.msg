@@ -1,0 +1,4 @@
+DOF cartesian_dof
+float64 frequency
+float64 amplitude
+float64 stiffness

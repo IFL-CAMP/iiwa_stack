@@ -1,0 +1,6 @@
+iiwa_msgs/JointQuantity joint_relative_velocity
+iiwa_msgs/JointQuantity joint_relative_acceleration
+iiwa_msgs/JointQuantity override_joint_acceleration
+---
+bool success
+string error

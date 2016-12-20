@@ -1,0 +1,10 @@
+CartesianImpedanceControlMode cartesian_impedance
+CartesianQuantity amplitude
+CartesianQuantity frequency
+CartesianQuantity phase_deg
+CartesianQuantity bias
+CartesianQuantity force_limit
+CartesianQuantity position_limit
+float64 rise_time
+float64 hold_time
+float64 fall_time

@@ -1,4 +1,11 @@
-iiwa_msgs/SmartServoMode mode
+iiwa_msgs/ControlMode control_mode
+iiwa_msgs/JointImpedanceControlMode joint_impedance
+iiwa_msgs/CartesianImpedanceControlMode cartesian_impedance
+iiwa_msgs/CartesianSineImpedanceControlMode cartesian_sine_impedance
+iiwa_msgs/DesiredForceControlMode disired_force
+iiwa_msgs/SinePatternControlMode sine_pattern
+iiwa_msgs/LissajousPatternControlMode lissajous_pattern
+iiwa_msgs/SpiralPatternControlMode spiral_pattern
 ---
 bool success
 string error

@@ -1,0 +1,4 @@
+CartPlane cartesian_plane
+float64 frequency
+float64 amplitude
+float64 stiffness
