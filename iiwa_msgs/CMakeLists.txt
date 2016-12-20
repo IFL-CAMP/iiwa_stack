@@ -10,31 +10,11 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 # Declare the message files to be built
-add_message_files(DIRECTORY msg
-    FILES 
-    CartesianDamping.msg
-    CartesianQuantity.msg
-    CartesianStiffness.msg
-    CartesianVelocity.msg
-    JointDamping.msg
-    JointPosition.msg
-    JointPositionVelocity.msg
-    JointQuantity.msg
-    JointStiffness.msg
-    JointTorque.msg
-    JointVelocity.msg
-    SmartServoMode.msg
-)
+add_message_files(DIRECTORY msg)
 
-add_service_files(DIRECTORY srv
-    FILES
-    ConfigureSmartServo.srv
-    SetPathParameters.srv
-)
+add_service_files(DIRECTORY srv)
         
 # Actually generate the language-specific message and service files
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
-catkin_package(
-    CATKIN_DEPENDS 	message_runtime std_msgs geometry_msgs
-) 
+catkin_package(CATKIN_DEPENDS message_runtime std_msgs geometry_msgs) 
