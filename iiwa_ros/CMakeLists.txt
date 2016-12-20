@@ -22,6 +22,7 @@ include_directories(include
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
 	src/iiwaRos.cpp
+	src/iiwa_services.cpp
 )
 			
 ## Add dependence to the iiwa_msg module for the library
