@@ -1,5 +1,4 @@
 
-
 # Stiffness values [x, y, z, a, b, c] for the cartesian impedance, x, y, z in [N/m], a, b, c in [Nm/rad]. 
 Precondition: 0.0 <= x, y, z <= 5000.0 and 0.0 <= a, b, c <= 300.0. 
 CartesianQuantity cartesian_stiffness
@@ -18,19 +17,18 @@ float64 nullspace_damping
 
 # Sets the maximum cartesian deviation accepted. If the deviation is exceeded a stop condition occurs. 
 # [x, y, z] in [mm]. Precondition: value >= 0.0.
-# [a, b, c] in [rad]. Precondition: value >=0.0
+# [a, b, c] in [rad]. Precondition: value >=0.0.
 CartesianQuantity max_path_deviation
 
 # The maximum control force parameter.
-# [x, y, z] in [N]
-# [a, b, c] in [Nm]
-# Returns null if value not set.
+# [x, y, z] in [N]. Precondition: value >= 0.0.
+# [a, b, c] in [Nm]. Precondition: value >= 0.0.
 CartesianQuantity max_control_force
 
 # Indicates whether a stop condition is fired if the maximum control force is exceeded. 
 bool max_control_force_stop
 
-# Cartesian velocity parameter 
-# [x, y, z] in [mm/s]
-# [a, b, c] in [rad/s]
+# Maximum Cartesian velocity parameter 
+# [x, y, z] in [mm/s]. Precondition: value >= 0.0. 
+# [a, b, c] in [rad/s]. Precondition: value >= 0.0. 
 CartesianQuantity max_cartesian_velocity
