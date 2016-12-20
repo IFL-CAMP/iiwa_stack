@@ -1,6 +1,6 @@
 
 # Stiffness values [x, y, z, a, b, c] for the cartesian impedance, x, y, z in [N/m], a, b, c in [Nm/rad]. 
-Precondition: 0.0 <= x, y, z <= 5000.0 and 0.0 <= a, b, c <= 300.0. 
+# Precondition: 0.0 <= x, y, z <= 5000.0 and 0.0 <= a, b, c <= 300.0. 
 CartesianQuantity cartesian_stiffness
 
 # Dimensionless stiffness and damping values for the cartesian impedance control, for all degrees of freedom : [x, y, z, a, b, c].
