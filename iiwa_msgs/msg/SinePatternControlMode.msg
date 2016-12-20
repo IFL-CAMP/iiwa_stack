@@ -1,5 +1,5 @@
 # The degree of freedom for performing the sine oscillation.
-DOF cartesian_dof
+int32 cartesian_dof
 
 # The value of the frequency for the sine oscillation [Hz] 
 float64 frequency

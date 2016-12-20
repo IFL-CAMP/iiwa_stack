@@ -1,5 +1,5 @@
 # The plane in the Cartesian space for performing the lissajous-pattern. e.g. (XY, XZ, YZ)
-CartPlane cartesian_plane
+int32 cartesian_plane
 
 # The value of the frequency for the sine oscillation [Hz] 
 float64 frequency

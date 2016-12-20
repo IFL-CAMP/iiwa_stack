@@ -1,5 +1,5 @@
 # The degree of freedom for performing the desired force.
-DOF cartesian_dof
+int32 cartesian_dof
 
 # The value of the desired force. For X,Y,Z in [N] and A,B,C in [Nm]
 float64 desired_force
