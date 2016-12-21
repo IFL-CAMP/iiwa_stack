@@ -99,7 +99,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No URDF model available");
     }
     
-    iiwa_ros_conn_.init(false);
+    iiwa_ros_conn_.init();
     
     // initialize and set to zero the state and command values
     device_->init();
