@@ -19,7 +19,7 @@
 
     <!--joint between {parent} and link_0-->
     <joint name="${parent}_${robot_name}_joint" type="fixed">
-      <insert_block name="origin"/>
+      <xacro:insert_block name="origin"/>
       <parent link="${parent}"/>
       <child link="${robot_name}_link_0"/>
     </joint>
