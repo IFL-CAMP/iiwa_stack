@@ -75,10 +75,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointVelocity jv;
+	
+	private Boolean new_jp = false;
 
 
 	// current control strategy TODO: set this with a service; for now it is the last message arrived
-	CommandType currentCommandType = CommandType.JOINT_POSITION;
+	CommandType currentCommandType = null;
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
@@ -146,7 +148,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @return the received Joint Position message.
 	 */
 	public iiwa_msgs.JointPosition getJointPosition() {
-		return jp;
+		synchronized (new_jp) {
+			if (new_jp) {
+				new_jp = false;
+				return jp;
+			}
+			else {
+				return null;
+			}
+		}
 	}
 
 	/**
@@ -204,8 +214,11 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionSubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPosition>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPosition position){
-				jp = position;
-				currentCommandType = CommandType.JOINT_POSITION;
+				synchronized (new_jp) {
+					jp = position;
+					currentCommandType = CommandType.JOINT_POSITION;
+					new_jp = true;
+				}
 			}
 		});
 
@@ -237,7 +250,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		if (timeToDestinationCallback != null) {
 			timeToDestinationServer = node.newServiceServer(
 					iiwaName + "/state/timeToDestination", 
-					"", 
+					"std_msgs/Empty", 
 					timeToDestinationCallback);
 		}
 	}

@@ -320,7 +320,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void beforeControlLoop() { 
 		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
-
+		motion.getRuntime().setGoalReachedEventHandler(handler);
+		
 		// Initialize timestamps
 		previousTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
 		currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
@@ -337,7 +338,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			case CARTESIAN_POSE: {
 				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
 				Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
-
+				
 				if (robot.isReadyToMove()) 
 					motion.getRuntime().setDestination(destinationFrame);
 			}
@@ -348,10 +349,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 				 * If the robot can move, then it will move to this new position.
 				 */
 				iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-				helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
-
-				if (robot.isReadyToMove()) 
-					motion.getRuntime().setDestination(jp);
+				if (commandPosition != null) {
+					helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
+					if (robot.isReadyToMove())
+						motion.getRuntime().setDestination(jp);
+				}
 			}
 			break;
 			case JOINT_POSITION_VELOCITY: {
