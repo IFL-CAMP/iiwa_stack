@@ -35,6 +35,4 @@ add_service_files(DIRECTORY srv
 # Actually generate the language-specific message and service files
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
-catkin_package(
-    CATKIN_DEPENDS 	message_runtime std_msgs geometry_msgs
-) 
+catkin_package(CATKIN_DEPENDS 	message_runtime std_msgs geometry_msgs) 
