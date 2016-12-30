@@ -141,7 +141,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
-		
+
 		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Empty._TYPE);
 	}
 
@@ -214,13 +214,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 			jointStatesPublisher.publish(js);
 		}		
 	}
-	
+
 	public void publishDestinationReached() {
 		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
 			destinationReachedPublisher.publish(e);
 		}
 	}
-	
+
 	/**
 	 * Publishes the even of a button on the SmartPad toolbar being <b>pressed</b>
 	 * @param name : name of the button
