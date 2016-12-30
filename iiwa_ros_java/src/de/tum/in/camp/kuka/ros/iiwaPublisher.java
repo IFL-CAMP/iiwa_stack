@@ -142,7 +142,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 		
-		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/destinationReached", std_msgs.Empty._TYPE);
+		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Empty._TYPE);
 	}
 
 	/**
