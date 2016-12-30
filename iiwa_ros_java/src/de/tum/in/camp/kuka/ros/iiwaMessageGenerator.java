@@ -35,6 +35,7 @@ import org.ros.time.TimeProvider;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
@@ -168,7 +169,7 @@ public class iiwaMessageGenerator {
 		vectorToJointQuantity(position, currentJointPositionVelocity.getPosition());
 		vectorToJointQuantity(computeVelocity(robot), currentJointPositionVelocity.getVelocity());
 	}
-	
+
 	/**
 	 * Builds a iiwa_msgs.JointVelocity message given a LBR iiwa Robot.<p>
 	 * @param currentJointVelocity : the JointVelocity message that will be created.
@@ -177,7 +178,7 @@ public class iiwaMessageGenerator {
 	public void getCurrentJointVelocity(iiwa_msgs.JointVelocity currentJointVelocity, LBR robot) {
 		vectorToJointQuantity(computeVelocity(robot), currentJointVelocity.getVelocity());
 	}
-	
+
 	private double[] computeVelocity(LBR robot) {
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
 		long position_time_ns = System.nanoTime();
@@ -189,7 +190,7 @@ public class iiwaMessageGenerator {
 		}
 		last_position = position;
 		last_position_time_ns = position_time_ns;
-		
+
 		return velocity;
 	}
 
@@ -266,6 +267,7 @@ public class iiwaMessageGenerator {
 		currentJointState.setPosition(robot.getCurrentJointPosition().getInternalArray());
 		currentJointState.setEffort(robot.getMeasuredTorque().getTorqueValues());
 	}
+
 	// Conversions
 
 	/**
@@ -435,6 +437,15 @@ public class iiwaMessageGenerator {
 		Vector transl = Vector.of(tx, ty, tz);
 
 		return Transformation.of(transl, rot);
+	}
+
+	/**
+	 * Converts a geometry_msgs.Pose message to a Frame object in KUKA APIs
+	 * @param rosPose : starting Pose
+	 * @return resulting Frame
+	 */
+	public Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) {	
+		return new Frame(rosPoseToKukaTransformation(rosPose));
 	}
 
 	/**

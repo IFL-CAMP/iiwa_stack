@@ -54,7 +54,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	// JointState publisher (optional)
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
-
+	//DestinationReachedFlag publisher
+	private Publisher<std_msgs.Empty> destinationReachedPublisher;
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
 
@@ -71,6 +72,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
 	private iiwa_msgs.JointVelocity jv;
+	private std_msgs.Empty e;
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -91,6 +93,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jt = helper.buildMessage(iiwa_msgs.JointTorque._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
+		e = helper.buildMessage(std_msgs.Empty._TYPE);
 	}
 
 	/**
@@ -139,6 +142,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 
+		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Empty._TYPE);
 	}
 
 	/**
@@ -208,6 +212,12 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.getCurrentJointState(js, robot);
 			helper.incrementSeqNumber(js.getHeader());
 			jointStatesPublisher.publish(js);
+		}		
+	}
+
+	public void publishDestinationReached() {
+		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
+			destinationReachedPublisher.publish(e);
 		}
 	}
 

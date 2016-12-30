@@ -30,6 +30,8 @@ import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
 import iiwa_msgs.SmartServoMode;
+import iiwa_msgs.TimeToDestinationRequest;
+import iiwa_msgs.TimeToDestinationResponse;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -46,7 +48,7 @@ import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
-import com.kuka.roboticsAPI.geometricModel.math.Transformation;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -132,6 +134,23 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 				getLogger().info("Changed SmartServo configuration!");
 				getLogger().info("Mode: " + motion.getMode().toString());
+			}
+		});
+
+		subscriber.setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, 
+				iiwa_msgs.TimeToDestinationResponse>() {
+
+			@Override
+			public void build(TimeToDestinationRequest req,
+					TimeToDestinationResponse res) throws ServiceException {
+				try {
+					motion.getRuntime().updateWithRealtimeSystem();
+					res.setRemainingTime(motion.getRuntime().getRemainingTime());
+				}
+				catch(Exception e) {
+					// An exception should be thrown only if a motion/runtime is not available.
+					res.setRemainingTime(-1); 
+				}
 			}
 		});
 
@@ -261,6 +280,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
 		motion.getRuntime().activateVelocityPlanning(true);
+		motion.getRuntime().setGoalReachedEventHandler(handler);
 
 		configureSmartServoMotion(ssm, mot);
 		return mot;
@@ -300,8 +320,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void beforeControlLoop() { 
 		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
+		motion.getRuntime().setGoalReachedEventHandler(handler);
 
-		// Initialize timestamps
+		// Initialize time stamps
 		previousTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
 		currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
 		loopPeriod = 0.0;
@@ -311,66 +332,67 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void controlLoop() {
 		if (subscriber.currentCommandType != null) {
-			configureSmartServoLock.lock(); // the service could stop the motion and restart it
+			configureSmartServoLock.lock();
 
 			switch (subscriber.currentCommandType) {
 			case CARTESIAN_POSE: {
+				/* This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
+				 * If the robot can move, then it will move to this new position. */
 				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
-				Transformation tr = helper.rosPoseToKukaTransformation(commandPosition.getPose());
-
-				if (robot.isReadyToMove()) 
-					motion.getRuntime().setDestination(tr);
+				if (commandPosition != null) {
+					Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
+					if (robot.isReadyToMove()) 
+						motion.getRuntime().setDestination(destinationFrame);
+				}
 			}
 			break;
 			case JOINT_POSITION: {
-				/*
-				 * This will acquire the last received JointPosition command from the commanding ROS node.
-				 * If the robot can move, then it will move to this new position.
-				 */
+				/* This will acquire the last received JointPosition command from the commanding ROS node, if there is any available.
+				 * If the robot can move, then it will move to this new position. */
 				iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-				helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
-
-				if (robot.isReadyToMove()) 
-					motion.getRuntime().setDestination(jp);
+				if (commandPosition != null) {
+					helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
+					if (robot.isReadyToMove())
+						motion.getRuntime().setDestination(jp);
+				}
 			}
 			break;
 			case JOINT_POSITION_VELOCITY: {
-				/*
-				 * This will acquire the last received JointPositionVelocity command from the commanding ROS node.
-				 * If the robot can move, then it will move to this new position.
-				 */
+				/* This will acquire the last received JointPositionVelocity command from the commanding ROS node, if there is any available.
+				 * If the robot can move, then it will move to this new position. */
 				iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
-				helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
-				helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
-
-				if (robot.isReadyToMove()) 
-					motion.getRuntime().setDestination(jp, jv);
+				if (commandPositionVelocity != null) {
+					helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
+					helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
+					if (robot.isReadyToMove()) 
+						motion.getRuntime().setDestination(jp, jv);
+				}
 			}
 			break;
 			case JOINT_VELOCITY: {
-				/*
-				 * This will acquire the last received JointVelocity command from the commanding ROS node.
-				 * If the robot can move, then it will move to this new position accordingly to the given joint velocity.
-				 */
-
+				/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
+				 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
 				iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
-				jp = motion.getRuntime().getCurrentJointDestination();
-				helper.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod); // compute the joint displacement over the current period.
 
-				for(int i = 0; i < 7; ++i) jp.set(i, jp.get(i) + jointDisplacement.get(i)); //add the displacement to the joint destination.
-				previousTime = currentTime;
+				if (commandVelocity != null) {
+					jp = motion.getRuntime().getCurrentJointDestination();
+					helper.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod); // compute the joint displacement over the current period.
 
-				if (robot.isReadyToMove())
-					motion.getRuntime().setDestination(jp);
+					for(int i = 0; i < robot.getJointCount(); ++i) jp.set(i, jp.get(i) + jointDisplacement.get(i)); //add the displacement to the joint destination.
+					previousTime = currentTime;
 
-				currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
+					if (robot.isReadyToMove())
+						motion.getRuntime().setDestination(jp);
 
-				if (loopCounter == 0)
-					loopPeriod = 0;
-				else
-					loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
+					currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
 
-				++loopCounter;
+					if (loopCounter == 0)
+						loopPeriod = 0;
+					else
+						loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
+
+					++loopCounter;
+				}
 			}
 			break;
 
@@ -380,6 +402,5 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 			configureSmartServoLock.unlock();
 		}
-
 	}
 }
