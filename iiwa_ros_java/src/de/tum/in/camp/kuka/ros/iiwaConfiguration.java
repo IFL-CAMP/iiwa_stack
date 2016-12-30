@@ -1,4 +1,4 @@
- /**  
+/**  
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
@@ -110,14 +110,14 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 	private static void configure() {
 		parseConfigFile(); //TODO : use KUKA's process data?
-		
+
 		// Obtain name of the robot from config file
 		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
 		System.out.println("Robot name: " + robotName);
-		
+
 		// Obtain if NTP server is used from config file
 		ntpWithHost  = config.get("ntp_with_host").equals("true");
-		
+
 		// Obtain IP:port of the ROS Master 
 		masterIp = config.get("master_ip");
 		masterPort = config.get("master_port");
@@ -152,10 +152,10 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		}
 		robotIp = localhostIp;
 		System.out.println("Robot IP: " + robotIp);
-		
+
 		staticConfigurationSuccessful = true;
 	}
-	
+
 	/**
 	 * Get the ROS Master URI, obtained from the configuration file.
 	 * Format : http://IP:port
@@ -166,7 +166,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		checkConfiguration();
 		return masterUri;
 	}
-	
+
 	/**
 	 * Get the ROS Master IP address, obtained from the configuration file.
 	 * 
@@ -176,7 +176,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		checkConfiguration();
 		return masterIp;
 	}
-	
+
 	/**
 	 * Get the robot IP address, obtained from the configuration file.
 	 * 
@@ -186,7 +186,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		checkConfiguration();
 		return robotIp;
 	}
-	
+
 	/**
 	 * Get the robot name, obtained from the configuration file.
 	 * 
@@ -196,7 +196,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		checkConfiguration();
 		return robotName;
 	}
-	
+
 	/**
 	 * Return if an external NTP server should be used, value obtained from the configuration file.
 	 * 
@@ -239,7 +239,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			System.out.println("waitForInitialization not called before using parameters!");
 		return node.getParameterTree();
 	}
-	
+
 	/**
 	 * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS param server.
 	 * 
@@ -251,7 +251,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			defaultRelativeJointSpeed = 0.5;
 		return defaultRelativeJointSpeed;
 	}
-	
+
 	/**
 	 * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS param server.
 	 * 
@@ -275,7 +275,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			toolName = "";
 		return toolName;
 	}
-	
+
 	/**
 	 * Get if <i>joint_state</i> shoud be published, reading param <b>publishJointStates</b> from ROS param server.
 	 * 
@@ -287,7 +287,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			publishStates = false;
 		return publishStates;
 	}
-	
+
 	/**
 	 * Get the time provider to use, this is selected accordingly to the value of <b>ntp_with_host</b> in the configuration file.
 	 * 
@@ -298,7 +298,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 			setupTimeProvider();
 		return timeProvider;
 	}
-	
+
 	/**
 	 * Configure the time provider to use accordingly to the value of of <b>ntp_with_host</b> in the configuration file.
 	 * 
@@ -316,10 +316,10 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		} else {
 			timeProvider = new  WallTimeProvider();
 		}
-		
+
 		return timeProvider;
 	}
-	
+
 	/**
 	 * Simple class to handle toolbar settings
 	 */
@@ -435,7 +435,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 		return ret;
 	}
-	
+
 	/**
 	 * Read a double param from the ROS param server given its name
 	 * @param argname : rosparam name to get
@@ -452,7 +452,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 		return ret;
 	}
-	
+
 	/**
 	 * Read a boolean param from the ROS param server given its name
 	 * @param argname : rosparam name to get
