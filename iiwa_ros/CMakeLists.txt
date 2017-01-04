@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.2.0)
+cmake_minimum_required(VERSION 2.8.3)
 project(iiwa_ros)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
