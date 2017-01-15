@@ -8,8 +8,6 @@ int32 Z = 3
 
 int32 mode
 
-float32 relative_velocity
-
 int32 constant_force_direction
 float32 constant_force
 float32 constant_force_stiffness
