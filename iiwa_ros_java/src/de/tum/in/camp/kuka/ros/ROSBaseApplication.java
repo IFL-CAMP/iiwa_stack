@@ -26,6 +26,7 @@ package de.tum.in.camp.kuka.ros;
 //ROS imports
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.ros.node.DefaultNodeMainExecutor;
@@ -56,6 +57,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
+	protected double[] jointVelocity;
+	protected double[] jointAcceleration;
+	protected double overrideJointAcceleration;
 	protected ROSGoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
@@ -144,6 +148,11 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info(e.toString());
 			return;
 		}
+		
+		// Set variables for current joint velocity and acceleration to the default.
+		Arrays.fill(jointVelocity, configuration.getDefaultRelativeJointVelocity());
+		Arrays.fill(jointAcceleration, configuration.getDefaultRelativeJointAcceleration());
+		overrideJointAcceleration = 1.0;
 
 		 // Additional initialization from subclasses.
 		initializeApp();
@@ -169,8 +178,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
-		motion.setJointAccelerationRel(configuration.getDefaultRelativeJointAcceleration());
+		motion.setJointVelocityRel(jointVelocity);
+		motion.setJointAccelerationRel(jointAcceleration);
 		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
 		
 		// Configurable toolbars to publish events on topics.
