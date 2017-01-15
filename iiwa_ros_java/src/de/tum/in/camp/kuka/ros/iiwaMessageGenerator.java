@@ -449,8 +449,8 @@ public class iiwaMessageGenerator {
 	}
 
 	/**
-	 * Converts a Transformation object in KUKA APIs to a geometry_msgs.Pose message
-	 * @param kukaTransf : startign Trasnformation
+	 * Converts a Transformation object from KUKA APIs to a geometry_msgs.Pose message
+	 * @param kukaTransf : starting Trasnformation
 	 * @param pose : resulting Pose
 	 */
 	public void kukaTransformationToRosPose(Transformation kukaTransf, Pose pose) {
@@ -534,5 +534,4 @@ public class iiwaMessageGenerator {
 	public void incrementSeqNumber(std_msgs.Header h) {
 		h.setSeq(h.getSeq()+1);
 	}
-
 }
