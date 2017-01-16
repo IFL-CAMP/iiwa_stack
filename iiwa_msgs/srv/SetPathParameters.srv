@@ -1,10 +1,10 @@
 # This service allows to set relative joint velocity and acceleration of the robot at runtime.
 
 # Relative velocity of the individual joints, values between 0 and 1.
-iiwa_msgs/JointQuantity joint_relative_velocity
+float64 joint_relative_velocity
 
 # Relative acceleration of the individual joints, values between 0 and 1.
-iiwa_msgs/JointQuantity joint_relative_acceleration
+float64 joint_relative_acceleration
 
 # Override the acceleration factor for all joints. Must be between 0.0 and 10.0. 
 float64 override_joint_acceleration
