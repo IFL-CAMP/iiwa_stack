@@ -1,5 +1,5 @@
  /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -26,7 +26,6 @@ package de.tum.in.camp.kuka.ros;
 //ROS imports
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.ros.node.DefaultNodeMainExecutor;
@@ -57,8 +56,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
-	protected double[] jointVelocity;
-	protected double[] jointAcceleration;
+	protected double jointVelocity;
+	protected double jointAcceleration;
 	protected double overrideJointAcceleration;
 	protected ROSGoalReachedEventListener handler;
 
@@ -149,11 +148,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 		
-		// Set variables for current joint velocity and acceleration to the default.
-		Arrays.fill(jointVelocity, configuration.getDefaultRelativeJointVelocity());
-		Arrays.fill(jointAcceleration, configuration.getDefaultRelativeJointAcceleration());
-		overrideJointAcceleration = 1.0;
-
 		 // Additional initialization from subclasses.
 		initializeApp();
 
@@ -176,6 +170,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
+		jointVelocity = configuration.getDefaultRelativeJointVelocity();
+		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
+		overrideJointAcceleration = 1.0;
+		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
 		motion.setJointVelocityRel(jointVelocity);

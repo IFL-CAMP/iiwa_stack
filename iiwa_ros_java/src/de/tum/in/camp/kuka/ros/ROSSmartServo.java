@@ -1,5 +1,5 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -137,14 +137,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 		subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
 			@Override
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
-				if (helper.isJointQuantityGreaterEqualThan(req.getJointRelativeVelocity(), 0))
-					jointVelocity = helper.jointQuantityToVector(req.getJointRelativeVelocity());
-				if (helper.isJointQuantityGreaterEqualThan(req.getJointRelativeAcceleration(), 0))
-					jointAcceleration = helper.jointQuantityToVector(req.getJointRelativeAcceleration());
-				if (req.getOverrideJointAcceleration() > -1)
+				if (req.getJointRelativeVelocity() >= 0)
+					jointVelocity = req.getJointRelativeVelocity();
+				if (req.getJointRelativeAcceleration() >= 0)
+					jointAcceleration = req.getJointRelativeAcceleration();
+				if (req.getOverrideJointAcceleration() >= 0)
 					overrideJointAcceleration = req.getOverrideJointAcceleration();
-
-				switchSmartServoMotion(null); // To change velocity or acceleration we have 
+				switchSmartServoMotion(null);
 			}
 		});
 
@@ -271,35 +270,39 @@ public class ROSSmartServo extends ROSBaseApplication {
 	
 	public SmartServo createSmartServoMotion() {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
-
 		mot.setJointVelocityRel(jointVelocity);
 		mot.setJointAccelerationRel(jointAcceleration);
 		mot.overrideJointAcceleration(overrideJointAcceleration);
-
-		mot.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
-		mot.getRuntime().setGoalReachedEventHandler(handler);
-
 		return mot;
 	}	
 	
 	public void switchSmartServoMotion(iiwa_msgs.SmartServoMode request) {
 		configureSmartServoLock.lock();
 
+		IMotionControlMode currentControlMode = motion.getMode();
 		SmartServo oldmotion = motion;
-		if (tool != null)
+		if (tool != null) {
 			ServoMotion.validateForImpedanceMode(tool);
-		else
+		}
+		else {
 			ServoMotion.validateForImpedanceMode(robot);
+		}
 		motion = createSmartServoMotion();
-		if (request != null)
+		if (request != null) {
 			motion.setMode(buildMotionControlMode(request));
-		else
-			motion.setMode(oldmotion.getMode());
+		}
+		else {
+			if (currentControlMode != null) {
+				motion.setMode(currentControlMode);
+			}
+		}
 		toolFrame.moveAsync(motion);
 		oldmotion.getRuntime().stopMotion();
+		
+		motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
+		motion.getRuntime().setGoalReachedEventHandler(handler);
 
 		configureSmartServoLock.unlock();
 	}
@@ -308,7 +311,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
 	 * @return boolean
 	 */
-	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {		
+	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
+		if (kukacm == null) return false;
 		String roscmname = null;
 		switch (roscm.getMode()) {
 		case SmartServoMode.CARTESIAN_IMPEDANCE:
