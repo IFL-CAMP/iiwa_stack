@@ -93,7 +93,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			@Override
 			public void build(ConfigureSmartServoRequest req,
 					ConfigureSmartServoResponse res) throws ServiceException {
-				// we can change the parameters if it is the same type of control strategy
+				// We can change the parameters if it is the same type of control strategy,
 				// otherwise we have to stop the motion, replace it and start it again
 				try {
 					if (isSameControlMode(motion.getMode(), req.getMode())) {
