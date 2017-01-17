@@ -4,11 +4,9 @@
 int32 control_mode
 iiwa_msgs/JointImpedanceControlMode joint_impedance
 iiwa_msgs/CartesianImpedanceControlMode cartesian_impedance
-iiwa_msgs/CartesianSineImpedanceControlMode cartesian_sine_impedance
 iiwa_msgs/DesiredForceControlMode desired_force
 iiwa_msgs/SinePatternControlMode sine_pattern
-iiwa_msgs/LissajousPatterControlMode lissajous_pattern
-iiwa_msgs/SpiralPatternControlMode spiral_pattern
+iiwa_msgs/CartesianControlModeLimits limits
 ---
 bool success
 string error
