@@ -1,5 +1,5 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -245,11 +245,11 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	 * 
 	 * @return the default relative joint speed
 	 */
-	public Double getDefaultRelativeJointSpeed() {
-		Double defaultRelativeJointSpeed = getDoubleParameter("defaultRelativeJointSpeed");
-		if (defaultRelativeJointSpeed == null)
-			defaultRelativeJointSpeed = 0.5;
-		return defaultRelativeJointSpeed;
+	public Double getDefaultRelativeJointVelocity() {
+		Double defaultRelativeJointVelocity = getDoubleParameter("defaultRelativeJointSpeed");
+		if (defaultRelativeJointVelocity == null)
+			defaultRelativeJointVelocity = 1.0; // TODO: from config.txt or ProcessData, this is the default by KUKA doc
+		return defaultRelativeJointVelocity;
 	}
 
 	/**
@@ -260,7 +260,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	public Double getDefaultRelativeJointAcceleration() {
 		Double defaultRelativeJointAcceleration = getDoubleParameter("defaultRelativeJointAcceleration");
 		if (defaultRelativeJointAcceleration == null)
-			defaultRelativeJointAcceleration = 0.5;
+			defaultRelativeJointAcceleration = 1.0;  // TODO: from config.txt or ProcessData, this is the default by KUKA doc
 		return defaultRelativeJointAcceleration;
 	}
 

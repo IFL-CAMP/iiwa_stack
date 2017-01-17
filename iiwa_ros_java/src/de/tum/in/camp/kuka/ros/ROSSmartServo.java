@@ -1,5 +1,5 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -33,8 +33,6 @@ import iiwa_msgs.SmartServoMode;
 import iiwa_msgs.TimeToDestinationRequest;
 import iiwa_msgs.TimeToDestinationResponse;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -94,43 +92,25 @@ public class ROSSmartServo extends ROSBaseApplication {
 				iiwa_msgs.ConfigureSmartServoResponse>() {
 			@Override
 			public void build(ConfigureSmartServoRequest req,
-					ConfigureSmartServoResponse resp) throws ServiceException {
-				// we can change the parameters if it is the same type of control strategy
+					ConfigureSmartServoResponse res) throws ServiceException {
+				// We can change the parameters if it is the same type of control strategy,
 				// otherwise we have to stop the motion, replace it and start it again
 				try {
-					if (req.getMode().getMode() == -1
-							|| (motion.getMode() != null	&& isSameControlMode(motion.getMode(), req.getMode()))) {
-						if (req.getMode().getMode() != -1)
+					if (isSameControlMode(motion.getMode(), req.getMode())) {
 							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
-						if (req.getMode().getRelativeVelocity() > 0)
-							motion.setJointVelocityRel(req.getMode().getRelativeVelocity());
 					} else {
-						configureSmartServoLock.lock();
-
-						SmartServo oldmotion = motion;
-						if (tool != null)
-							ServoMotion.validateForImpedanceMode(tool);
-						else
-							ServoMotion.validateForImpedanceMode(robot);
-						motion = configureSmartServoMotion(req.getMode());
-						toolFrame.moveAsync(motion);
-						oldmotion.getRuntime().stopMotion();
-
-						configureSmartServoLock.unlock();
+						switchSmartServoMotion(req.getMode());
 					}
 				} catch (Exception e) {
-					resp.setSuccess(false);
+					res.setSuccess(false);
 					if (e.getMessage() != null) {
-						StringWriter sw = new StringWriter();
-						PrintWriter pw = new PrintWriter(sw);
-						e.printStackTrace(pw);
-						resp.setError(e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
+						res.setError(helper.execeptionToString(e));
 					} else {
-						resp.setError("because I hate you :)");
+						res.setError("because I hate you :)");
 					}
 					return;
 				}
-				resp.setSuccess(true);
+				res.setSuccess(true);
 
 				getLogger().info("Changed SmartServo configuration!");
 				getLogger().info("Mode: " + motion.getMode().toString());
@@ -151,6 +131,19 @@ public class ROSSmartServo extends ROSBaseApplication {
 					// An exception should be thrown only if a motion/runtime is not available.
 					res.setRemainingTime(-1); 
 				}
+			}
+		});
+		
+		subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
+			@Override
+			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
+				if (req.getJointRelativeVelocity() >= 0)
+					jointVelocity = req.getJointRelativeVelocity();
+				if (req.getJointRelativeAcceleration() >= 0)
+					jointAcceleration = req.getJointRelativeAcceleration();
+				if (req.getOverrideJointAcceleration() >= 0)
+					overrideJointAcceleration = req.getOverrideJointAcceleration();
+				switchSmartServoMotion(null);
 			}
 		});
 
@@ -274,32 +267,52 @@ public class ROSSmartServo extends ROSBaseApplication {
 		else
 			throw new UnsupportedControlModeException();
 	}
-
-	public SmartServo configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm) {
+	
+	public SmartServo createSmartServoMotion() {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
-		motion.getRuntime().activateVelocityPlanning(true);
+		mot.setJointVelocityRel(jointVelocity);
+		mot.setJointAccelerationRel(jointAcceleration);
+		mot.overrideJointAcceleration(overrideJointAcceleration);
+		return mot;
+	}	
+	
+	public void switchSmartServoMotion(iiwa_msgs.SmartServoMode request) {
+		configureSmartServoLock.lock();
+
+		IMotionControlMode currentControlMode = motion.getMode();
+		SmartServo oldmotion = motion;
+		if (tool != null) {
+			ServoMotion.validateForImpedanceMode(tool);
+		}
+		else {
+			ServoMotion.validateForImpedanceMode(robot);
+		}
+		motion = createSmartServoMotion();
+		if (request != null) {
+			motion.setMode(buildMotionControlMode(request));
+		}
+		else {
+			if (currentControlMode != null) {
+				motion.setMode(currentControlMode);
+			}
+		}
+		toolFrame.moveAsync(motion);
+		oldmotion.getRuntime().stopMotion();
+		
+		motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 
-		configureSmartServoMotion(ssm, mot);
-		return mot;
-	}
-
-	public void configureSmartServoMotion(iiwa_msgs.SmartServoMode ssm, SmartServo mot) {
-		if (mot == null)
-			return; // TODO: exception?
-
-		if (ssm.getRelativeVelocity() > 0)
-			mot.setJointVelocityRel(ssm.getRelativeVelocity());
-		mot.setMode(buildMotionControlMode(ssm));
+		configureSmartServoLock.unlock();
 	}
 
 	/**
 	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
 	 * @return boolean
 	 */
-	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {		
+	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
+		if (kukacm == null) return false;
 		String roscmname = null;
 		switch (roscm.getMode()) {
 		case SmartServoMode.CARTESIAN_IMPEDANCE:
