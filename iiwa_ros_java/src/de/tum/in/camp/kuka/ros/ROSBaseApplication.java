@@ -1,5 +1,5 @@
  /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -56,6 +56,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
+	protected double jointVelocity;
+	protected double jointAcceleration;
+	protected double overrideJointAcceleration;
 	protected ROSGoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
@@ -144,7 +147,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info(e.toString());
 			return;
 		}
-
+		
 		 // Additional initialization from subclasses.
 		initializeApp();
 
@@ -167,10 +170,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
+		jointVelocity = configuration.getDefaultRelativeJointVelocity();
+		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
+		overrideJointAcceleration = 1.0;
+		
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
-		motion.setJointAccelerationRel(configuration.getDefaultRelativeJointAcceleration());
+		motion.setJointVelocityRel(jointVelocity);
+		motion.setJointAccelerationRel(jointAcceleration);
 		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
 		
 		// Configurable toolbars to publish events on topics.

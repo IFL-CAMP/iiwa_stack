@@ -1,5 +1,5 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -58,6 +58,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
+	
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersCallback = null;
 
 	// ROSJava Subscribers for iiwa_msgs
 	// Cartesian Message Subscribers
@@ -133,6 +137,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public void setTimeToDestinationCallback(ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
 		timeToDestinationCallback = callback;
+	}
+	
+	/**
+	 * Add a callback to the SetPathParameters service
+	 */
+	public void setPathParametersCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> callback) {
+		setPathParametersCallback = callback;
 	}
 
 	/**
@@ -276,6 +287,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					iiwaName + "/state/timeToDestination", 
 					"iiwa_msgs/TimeToDestination", 
 					timeToDestinationCallback);
+		}
+		
+		// Creating TimeToDestination service if a callback has been defined.
+		if (setPathParametersCallback != null) {
+			setPathParametersServer = node.newServiceServer(
+					iiwaName + "/configuration/pathParameters", 
+					"iiwa_msgs/SetPathParameters",
+					setPathParametersCallback);
 		}
 	}
 }

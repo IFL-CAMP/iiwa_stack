@@ -1,5 +1,5 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -55,12 +55,14 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
 	//DestinationReachedFlag publisher
-	private Publisher<std_msgs.Empty> destinationReachedPublisher;
+	private Publisher<std_msgs.Time> destinationReachedPublisher;
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper;
+	
+	private ConnectedNode node = null;
 
 	// Cache objects
 	private geometry_msgs.PoseStamped cp;
@@ -72,7 +74,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
 	private iiwa_msgs.JointVelocity jv;
-	private std_msgs.Empty e;
+	private std_msgs.Time t;
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -93,7 +95,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jt = helper.buildMessage(iiwa_msgs.JointTorque._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
-		e = helper.buildMessage(std_msgs.Empty._TYPE);
+		t = helper.buildMessage(std_msgs.Time._TYPE);
 	}
 
 	/**
@@ -129,6 +131,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
+		node = connectedNode;
+		
 		cartesianPosePublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
@@ -142,13 +146,13 @@ public class iiwaPublisher extends AbstractNodeMain {
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 
-		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Empty._TYPE);
+		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Time._TYPE);
 	}
 
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
-	 * <b>Cartesian information published will be relativge to the robot's flange</b>
+	 * <b>Cartesian information published will be relative to the robot's flange</b>
 	 * 
 	 * @param robot : the state of this robot will be published
 	 * @param motion : the dynamic of this motion will be published
@@ -215,14 +219,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 		}		
 	}
 
+	/**
+	 * Publishes the current timestamp on the destinationReached topic.
+	 */
 	public void publishDestinationReached() {
 		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
-			destinationReachedPublisher.publish(e);
+			t.setData(node.getCurrentTime());
+			destinationReachedPublisher.publish(t);
 		}
 	}
 
 	/**
-	 * Publishes the even of a button on the SmartPad toolbar being <b>pressed</b>
+	 * Publishes the event of a button on the SmartPad toolbar being <b>pressed</b>
 	 * @param name : name of the button
 	 */
 	public void publishButtonPressed(String name) {
@@ -232,7 +240,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	}
 
 	/**
-	 * Publishes the even of a button on the SmartPad toolbar being <b>released</b>
+	 * Publishes the event of a button on the SmartPad toolbar being <b>released</b>
 	 * @param name : name of the button
 	 */
 	public void publishButtonReleased(String name) {

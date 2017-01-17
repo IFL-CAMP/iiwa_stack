@@ -1,8 +1,8 @@
 /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Technische Universitï¿½t Mï¿½nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -449,8 +449,8 @@ public class iiwaMessageGenerator {
 	}
 
 	/**
-	 * Converts a Transformation object in KUKA APIs to a geometry_msgs.Pose message
-	 * @param kukaTransf : startign Trasnformation
+	 * Converts a Transformation object from KUKA APIs to a geometry_msgs.Pose message
+	 * @param kukaTransf : starting Trasnformation
 	 * @param pose : resulting Pose
 	 */
 	public void kukaTransformationToRosPose(Transformation kukaTransf, Pose pose) {
@@ -461,8 +461,6 @@ public class iiwaMessageGenerator {
 		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
 		matrixToQuat(rotationMatrix, pose.getOrientation());
 	}
-
-	//TODO : I see some inconsistency, some conversions return a value, some not
 
 	/**
 	 * Converts an iiwa_msgs.JointQuantity to a JointPosition in KUKA APIs
@@ -533,6 +531,80 @@ public class iiwaMessageGenerator {
 	 */
 	public void incrementSeqNumber(std_msgs.Header h) {
 		h.setSeq(h.getSeq()+1);
+	}
+	
+	/**
+	 * Builds a string from an exception, adding the class name of the one that has thrown the exception.
+	 * @param e 
+	 * @return
+	 */
+	public String execeptionToString(Exception e) {
+		java.io.StringWriter sw = new java.io.StringWriter();
+		java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+		e.printStackTrace(pw);
+		return (e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
+	}
+
+	/**
+	 * Checks if all the component of a CartesianQuantity are greater than the given value.
+	 * @param quantity
+	 * @param value
+	 * @return
+	 */
+	public boolean isCartesianQuantityGreaterThan(iiwa_msgs.CartesianQuantity quantity, int value) {
+		return (quantity.getX() > value && 
+				quantity.getY() > value &&
+				quantity.getZ() > value &&
+				quantity.getA() > value &&
+				quantity.getB() > value &&
+				quantity.getC() > value);
+	}
+	
+	/**
+	 * Checks if all the component of a CartesianQuantity are greater or equal than the given value.
+	 * @param quantity
+	 * @param value
+	 * @return
+	 */
+	public boolean isCartesianQuantityGreaterEqualThan(iiwa_msgs.CartesianQuantity quantity, int value) {
+		return (quantity.getX() >= value && 
+				quantity.getY() >= value &&
+				quantity.getZ() >= value &&
+				quantity.getA() >= value &&
+				quantity.getB() >= value &&
+				quantity.getC() >= value);
+	}
+
+	/**
+	 * 
+	 * Checks if all the component of a JointQuantity are greater than the given value.
+	 * @param value
+	 * @return
+	 */
+	public boolean isJointQuantityGreaterThan(iiwa_msgs.JointQuantity quantity, int value) {
+		return (quantity.getA1() > value && 
+				quantity.getA2() > value &&
+				quantity.getA3() > value &&
+				quantity.getA4() > value &&
+				quantity.getA5() > value &&
+				quantity.getA6() > value &&
+				quantity.getA7() > value);
+	}
+	
+	/**
+	 * 
+	 * Checks if all the component of a JointQuantity are greater or equal than the given value.
+	 * @param value
+	 * @return
+	 */
+	public boolean isJointQuantityGreaterEqualThan(iiwa_msgs.JointQuantity quantity, int value) {
+		return (quantity.getA1() >= value && 
+				quantity.getA2() >= value &&
+				quantity.getA3() >= value &&
+				quantity.getA4() >= value &&
+				quantity.getA5() >= value &&
+				quantity.getA6() >= value &&
+				quantity.getA7() >= value);
 	}
 
 }

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(iiwa_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
     message_generation
     cmake_modules
     geometry_msgs
