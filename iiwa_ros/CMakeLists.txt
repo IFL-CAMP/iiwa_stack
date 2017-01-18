@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.2.0)
 project(iiwa_ros)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+set (CMAKE_CXX_STANDARD 11)
 
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
@@ -22,7 +22,13 @@ include_directories(include
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
 	src/iiwaRos.cpp
+	src/smart_servo_service.cpp
+	src/path_parameters_service.cpp
+	src/time_to_destination_service.cpp
 )
+
+add_executable(iiwa_service_test src/main.cpp)
+target_link_libraries(iiwa_service_test ${PROJECT_NAME})
 			
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)
