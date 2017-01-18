@@ -16,16 +16,16 @@ namespace iiwa_ros {
 		bool setJointRelativeVelocity(const double& joint_relative_velocity);
 		bool setJointRelativeAcceleration(const iiwa_msgs::JointQuantity& joint_relative_acceleration);
 		bool setJointRelativeAcceleration(const double& joint_relative_acceleration);
-		bool setOverrideJointAcceleration(float64 override_joint_acceleration);
+		bool setOverrideJointAcceleration(float override_joint_acceleration);
 		bool setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration);
 		bool setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration);
-		bool setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float64 override_joint_acceleration);
-		bool setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float64 override_joint_acceleration);
+		bool setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float override_joint_acceleration);
+		bool setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float override_joint_acceleration);
 		
+		iiwa_msgs::SetPathParameters config_;	
 			
 		
 	private:
-		iiwa_msgs::SetPathParameters config_;	
 		
 	};
 	

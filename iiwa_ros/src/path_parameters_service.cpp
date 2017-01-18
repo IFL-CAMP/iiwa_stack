@@ -7,13 +7,13 @@ namespace iiwa_ros {
 		initService();
 	}
 	
-	PathParametersService::PathParametersService(const std::string& service_name, const bool verbose) : service_name_(service_name), verbose_(verbose){
+	PathParametersService::PathParametersService(const std::string& service_name, const bool verbose) : service_name(service_name), verbose(verbose){
 		initService();
 	}
 	
 	void PathParametersService::setServiceName(const std::string& service_name)
 	{
-		service_name_ = service_name;
+		service_name = service_name;
 		initService();
 	}
 	
@@ -25,7 +25,7 @@ namespace iiwa_ros {
 
 	bool PathParametersService::setJointRelativeVelocity(const double& joint_relative_velocity)
 	{
-		float64 joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
+		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
 		return setJointRelativeVelocity(joint_relative_velocity);	
 		
 	}	
@@ -38,7 +38,7 @@ namespace iiwa_ros {
 	
 	bool PathParametersService::setJointRelativeAcceleration(const double& joint_relative_acceleration)
 	{
-		float64 joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
+		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
 		return setJointRelativeVelocity(joint_relative_acceleration);  
 	}	
 	
@@ -57,14 +57,14 @@ namespace iiwa_ros {
 	
 	bool PathParametersService::setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration)
 	{
-		float64 joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
-		float64 joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
+		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
+		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
 		return callService();	  
 	}
 		
-	bool PathParametersService::setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float64 override_joint_acceleration)
+	bool PathParametersService::setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float override_joint_acceleration)
 	{
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
@@ -72,10 +72,10 @@ namespace iiwa_ros {
 		return callService();	  
 	}
 		
-	bool PathParametersService::setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float64 override_joint_acceleration)
+	bool PathParametersService::setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float override_joint_acceleration)
 	{
-		float64 joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
-		float64 joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
+		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
+		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
 		config_.request.override_joint_acceleration = override_joint_acceleration;

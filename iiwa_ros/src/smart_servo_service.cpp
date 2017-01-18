@@ -7,13 +7,13 @@ namespace iiwa_ros {
 		initService();
 	}
 	
-	SmartServoService::SmartServoService(const std::string& service_name, const bool verbose) : service_name_(service_name), verbose_(verbose){
+	SmartServoService::SmartServoService(const std::string& service_name, const bool verbose) : service_name(service_name), verbose(verbose){
 		initService();
 	}
 	
 	void SmartServoService::setServiceName(const std::string& service_name)
 	{
-		service_name_ = service_name;
+		service_name = service_name;
 		initService();
 	}
 	

@@ -7,13 +7,13 @@ namespace iiwa_ros {
 		initService();
 	}
 	
-	TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose) : service_name_(service_name), verbose_(verbose){
+	TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose) : service_name(service_name), verbose(verbose){
 		initService();
 	}
 	
 	void TimeToDestinationService::setServiceName(const std::string& service_name)
 	{
-		service_name_ = service_name;
+		service_name = service_name;
 		initService();
 	}
 	

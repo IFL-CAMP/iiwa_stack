@@ -14,17 +14,13 @@ namespace iiwa_ros {
 		virtual void setServiceName(const std::string& service_name);
 		virtual void setVerbosity(const bool verbose) { verbose_ = verbose; }
 		virtual std::string getLastError() { return service_error_; }
-		void initService() { client_ = nh_.serviceClient<iiwa_msgs::ConfigureSmartServo>(service_name_); };
+		void initService() { client_ = nh_.serviceClient<iiwa_msgs::ConfigureSmartServo>(service_name); };
 		virtual bool callService();	
 		
 		
 		
-	
-		
 
-	private:
-
-		std::string service_name_ = "";
+		std::string service_name = "";
 		ros::NodeHandle nh_;
 		ros::ServiceClient client_;
 		
@@ -35,7 +31,13 @@ namespace iiwa_ros {
 
 
 		
-		virtual void ciccio();		  
+		virtual void ciccio();		
+		
+		
+
+	private:
+
+		  
 	  
 	};
 	

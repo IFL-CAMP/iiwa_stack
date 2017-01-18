@@ -14,9 +14,9 @@ namespace iiwa_ros {
 
 		bool getTimeToDestination();
 		
-		
+		iiwa_msgs::TimeToDestination config_;			
 	private:
-		iiwa_msgs::TimeToDestination config_;		
+	
 		
 	};
 	

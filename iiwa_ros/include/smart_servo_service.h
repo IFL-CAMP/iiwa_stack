@@ -19,6 +19,11 @@ namespace iiwa_ros {
 		//TODO : find a proper way to call these two
 		bool setCartesianImpedanceMode(const iiwa_msgs::CartesianQuantity& cartesian_stiffness, const iiwa_msgs::CartesianQuantity& cartesian_damping);
 		bool setCartesianImpedanceMode(const double& cartesian_stiffness, const double& cartesian_damping);
+		bool setCartesianImpedanceMode(const iiwa_msgs::CartesianQuantity& cartesian_stiffness, const iiwa_msgs::CartesianQuantity& cartesian_damping, 
+								  const double nullspace_stiffness, const double nullspace_damping);
+		bool setCartesianImpedanceMode(const iiwa_msgs::CartesianQuantity& cartesian_stiffness, const iiwa_msgs::CartesianQuantity& cartesian_damping, 
+								  const double nullspace_stiffness, const double nullspace_damping,
+								  const iiwa_msgs::CartesianQuantity& max_path_deviation);
 
 		bool setCartesianSineImpedanceMode();
 		
@@ -27,9 +32,10 @@ namespace iiwa_ros {
 		bool setLissajousPatterMode(const int cartesian_plane, const double frequency, const double amplitude, const double stiffness);
 		bool setSpiralPatternMode(const int cartesian_plane, const double frequency, const double amplitude, const double stiffness, const double total_time);
 			
-		
+
+		iiwa_msgs::ConfigureSmartServo config_;			
 	private:
-		iiwa_msgs::ConfigureSmartServo config_;	
+
 		
 	};
 	
