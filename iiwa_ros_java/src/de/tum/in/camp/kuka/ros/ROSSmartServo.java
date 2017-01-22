@@ -29,7 +29,6 @@ import iiwa_msgs.CartesianQuantity;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
 import iiwa_msgs.JointQuantity;
-import iiwa_msgs.SmartServoMode;
 import iiwa_msgs.TimeToDestinationRequest;
 import iiwa_msgs.TimeToDestinationResponse;
 
@@ -51,6 +50,7 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceContr
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 /*
  * This application allows to command the robot using SmartServo motions.
@@ -96,10 +96,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 				// We can change the parameters if it is the same type of control strategy,
 				// otherwise we have to stop the motion, replace it and start it again
 				try {
-					if (isSameControlMode(motion.getMode(), req.getMode())) {
-							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req.getMode()));
+					if (isSameControlMode(motion.getMode(), req.getControlMode())) {
+							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req));
 					} else {
-						switchSmartServoMotion(req.getMode());
+						switchSmartServoMotion(req);
 					}
 				} catch (Exception e) {
 					res.setSuccess(false);
@@ -166,20 +166,60 @@ public class ROSSmartServo extends ROSBaseApplication {
 		public UnsupportedControlModeException(String message, Throwable cause) { super(message, cause); }
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
+	
+	private void addControlModeLimits(CartesianImpedanceControlMode controlMode, iiwa_msgs.CartesianControlModeLimits limits) {
+		CartesianQuantity maxPathDeviation = limits.getMaxPathDeviation();
+		if (helper.isCartesianQuantityGreaterThan(maxPathDeviation, 0)) {
+			controlMode.setMaxPathDeviation(maxPathDeviation.getX(), maxPathDeviation.getY(), maxPathDeviation.getZ(), maxPathDeviation.getA(), maxPathDeviation.getB(), maxPathDeviation.getC());
+		}
+		
+		CartesianQuantity maxControlForce = limits.getMaxControlForce();
+		if (helper.isCartesianQuantityGreaterThan(maxControlForce, 0)) {
+			controlMode.setMaxControlForce(maxControlForce.getX(), maxControlForce.getY(), maxControlForce.getZ(), maxControlForce.getA(), maxControlForce.getB(), maxControlForce.getC(), limits.getMaxControlForceStop());
+		}
+		
+		CartesianQuantity maxCartesianVelocity = limits.getMaxCartesianVelocity();
+		if (helper.isCartesianQuantityGreaterThan(maxCartesianVelocity, 0)) {
+			controlMode.setMaxCartesianVelocity(maxCartesianVelocity.getX(), maxCartesianVelocity.getY(), maxCartesianVelocity.getZ(), maxCartesianVelocity.getA(), maxCartesianVelocity.getB(),maxCartesianVelocity.getC());
+		}
+	}
 
 	/**
 	 * Given the parameters from the SmartServo service, it builds up the new control mode to use.
-	 * @param params : parameters from the SmartServo service
+	 * @param request : parameters from the ConfigureSmartServo service
 	 * @return resulting control mode
 	 */
-	public IMotionControlMode buildMotionControlMode(iiwa_msgs.SmartServoMode params) {
+	public IMotionControlMode buildMotionControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
 		IMotionControlMode cm = null;
 
-		switch (params.getMode()) {
-		case iiwa_msgs.SmartServoMode.CARTESIAN_IMPEDANCE: {
+		switch (request.getControlMode()) {
+		
+		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
+			// TODO: test this, this should prevent the robot to jump back to the commanded position when in another control mode that allows for path deviation.
+			PositionControlMode pcm = new PositionControlMode(true);
+			cm = pcm;
+			break;
+		}
+		
+		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
+			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
+
+			JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
+			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0));
+				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
+
+			JointQuantity damping = request.getJointImpedance().getJointDamping();
+			if (helper.isJointQuantityGreaterEqualThan(damping, 0))
+				jcm.setDamping(helper.jointQuantityToVector(damping));
+
+			cm = jcm;
+			break;
+		}
+		
+		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
 			CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
 
-			CartesianQuantity stiffness = params.getCartesianStiffness().getStiffness();
+			iiwa_msgs.CartesianQuantity stiffness = request.getCartesianImpedance().getCartesianStiffness();
 			if (stiffness.getX() >= 0)
 				ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
 			if (stiffness.getY() >= 0)
@@ -193,7 +233,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			if (stiffness.getC() >= 0)
 				ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
 
-			CartesianQuantity damping = params.getCartesianDamping().getDamping();
+			CartesianQuantity damping = request.getCartesianImpedance().getCartesianDamping();
 			if (damping.getX() > 0)
 				ccm.parametrize(CartDOF.X).setDamping(damping.getX());
 			if (damping.getY() > 0)
@@ -207,42 +247,30 @@ public class ROSSmartServo extends ROSBaseApplication {
 			if (damping.getC() > 0)
 				ccm.parametrize(CartDOF.C).setDamping(damping.getC());
 
-			// TODO: add stiffness along axis
-			if (params.getNullspaceStiffness() >= 0)
-				ccm.setNullSpaceStiffness(params.getNullspaceStiffness());
-			if (params.getNullspaceDamping() > 0)
-				ccm.setNullSpaceDamping(params.getNullspaceDamping());
+			if (request.getCartesianImpedance().getNullspaceStiffness() >= 0)
+				ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness());
+			if (request.getCartesianImpedance().getNullspaceDamping() > 0)
+				ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping());
+			
+			addControlModeLimits(ccm, request.getLimits());
 
 			cm = ccm;
 			break;
 		}
+		
+		// TODO: get rid of duplicated code
 
-		case iiwa_msgs.SmartServoMode.JOINT_IMPEDANCE: {
-			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
-
-			JointQuantity stiffness = params.getJointStiffness().getStiffness();
-			jcm.setStiffness(helper.jointQuantityToVector(stiffness));
-
-			JointQuantity damping = params.getJointDamping().getDamping();
-			if (damping.getA1() > 0 && damping.getA2() > 0 && damping.getA3() > 0 && damping.getA4() > 0
-					&& damping.getA5() > 0 && damping.getA6() > 0 && damping.getA7() > 0)
-				jcm.setDamping(helper.jointQuantityToVector(damping));
-
-			cm = jcm;
-			break;
-		}
-
-		case iiwa_msgs.SmartServoMode.CONSTANT_FORCE : {
+		case iiwa_msgs.ControlMode.DESIRED_FORCE : {
 			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
 			CartDOF direction = null;
-			switch (params.getConstantForceDirection()) {
-			case iiwa_msgs.SmartServoMode.X :
+			switch (request.getDesiredForce().getCartesianDof()) {
+			case iiwa_msgs.DOF.X :
 				direction = CartDOF.X;
 				break;
-			case iiwa_msgs.SmartServoMode.Y :
+			case iiwa_msgs.DOF.Y :
 				direction = CartDOF.Y;
 				break;
-			case iiwa_msgs.SmartServoMode.Z :
+			case iiwa_msgs.DOF.Z :
 				direction = CartDOF.Z;
 				break;
 			default:
@@ -250,8 +278,37 @@ public class ROSSmartServo extends ROSBaseApplication {
 				break;
 			}
 
-			if (direction != null) {
-				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, params.getConstantForce(), params.getConstantForceStiffness());
+			if (direction != null && request.getDesiredForce().getDesiredForce() >= 0 && request.getDesiredForce().getDesiredStiffness() >= 0) {
+				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(),  request.getDesiredForce().getDesiredStiffness());
+				addControlModeLimits(cscm, request.getLimits());
+				cm = cscm;
+			}
+			
+			
+			break;
+		}
+		
+		case iiwa_msgs.ControlMode.SINE_PATTERN : {
+			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
+			CartDOF direction = null;
+			switch (request.getDesiredForce().getCartesianDof()) {
+			case iiwa_msgs.DOF.X :
+				direction = CartDOF.X;
+				break;
+			case iiwa_msgs.DOF.Y :
+				direction = CartDOF.Y;
+				break;
+			case iiwa_msgs.DOF.Z :
+				direction = CartDOF.Z;
+				break;
+			default:
+				getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
+				break;
+			}
+
+			if (direction != null && request.getSinePattern().getFrequency() >= 0 && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
+				cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern().getFrequency(), request.getSinePattern().getAmplitude(), request.getSinePattern().getStiffness());
+				addControlModeLimits(cscm, request.getLimits());
 				cm = cscm;
 			}
 			break;
@@ -278,7 +335,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		return mot;
 	}	
 	
-	public void switchSmartServoMotion(iiwa_msgs.SmartServoMode request) {
+	public void switchSmartServoMotion(iiwa_msgs.ConfigureSmartServoRequest request) {
 		configureSmartServoLock.lock();
 
 		IMotionControlMode currentControlMode = motion.getMode();
@@ -311,17 +368,23 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
 	 * @return boolean
 	 */
-	public boolean isSameControlMode(IMotionControlMode kukacm, SmartServoMode roscm) {
+	public boolean isSameControlMode(IMotionControlMode kukacm, int roscm) {
 		if (kukacm == null) return false;
 		String roscmname = null;
-		switch (roscm.getMode()) {
-		case SmartServoMode.CARTESIAN_IMPEDANCE:
-			roscmname = "CartesianImpedanceControlMode";
+		switch (roscm) {
+		case iiwa_msgs.ControlMode.POSITION_CONTROL:
+			roscmname = "PositionControlMode";
 			break;
-		case SmartServoMode.JOINT_IMPEDANCE:
+		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE:
 			roscmname = "JointImpedanceControlMode";
 			break;
-		case SmartServoMode.CONSTANT_FORCE:
+		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE:
+			roscmname = "CartesianImpedanceControlMode";
+			break;
+		case iiwa_msgs.ControlMode.DESIRED_FORCE:
+			roscmname = "CartesianSineImpedanceControlMode";
+			break;
+		case iiwa_msgs.ControlMode.SINE_PATTERN:
 			roscmname = "CartesianSineImpedanceControlMode";
 			break;
 		}
