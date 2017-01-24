@@ -21,31 +21,6 @@ namespace iiwa_ros {
 		return config_.response.success;
 	}
 	
-	bool PathParametersService::setJointRelativeVelocity(const double joint_relative_velocity)
-	{
-		config_.request.joint_relative_velocity = joint_relative_velocity;
-		return callService();	  
-	}
-	
-	bool PathParametersService::setJointRelativeAcceleration(const double joint_relative_acceleration)
-	{
-		config_.request.joint_relative_acceleration = joint_relative_acceleration;
-		return callService();	  
-	}
-		
-	bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration)
-	{
-		config_.request.override_joint_acceleration = override_joint_acceleration;
-		return callService();	  
-	}
-		
-	bool PathParametersService::setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration)
-	{
-		config_.request.joint_relative_velocity = joint_relative_velocity;
-		config_.request.joint_relative_acceleration = joint_relative_acceleration;
-		return callService();	  
-	}
-				
 	bool PathParametersService::setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration, const double override_joint_acceleration)
 	{
 		config_.request.joint_relative_velocity = joint_relative_velocity;
@@ -53,5 +28,24 @@ namespace iiwa_ros {
 		config_.request.override_joint_acceleration = override_joint_acceleration;
 		return callService();		  
 	}
+	
+	bool PathParametersService::setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration)
+	{
+		setPathParameters(joint_relative_velocity, joint_relative_acceleration, -1);
+	}
+	
+	bool PathParametersService::setJointRelativeVelocity(const double joint_relative_velocity)
+	{
+		setPathParameters(joint_relative_velocity, -1, -1);  
+	}
+	
+	bool PathParametersService::setJointRelativeAcceleration(const double joint_relative_acceleration)
+	{
+		setPathParameters(-1, joint_relative_acceleration, -1);  
+	}
 		
+	bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration)
+	{
+		setPathParameters(-1, -1, override_joint_acceleration);  
+	}
 }
