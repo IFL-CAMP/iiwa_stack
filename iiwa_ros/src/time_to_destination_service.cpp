@@ -10,7 +10,7 @@ namespace iiwa_ros {
 			return time_to_destination_;
 		}
 		else {
-			return -1;
+			return -999; // It cannot return -1 since it might be a meaningfull result.
 		}
 	}
 	
