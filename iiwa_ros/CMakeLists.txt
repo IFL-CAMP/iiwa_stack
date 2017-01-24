@@ -6,18 +6,17 @@ set (CMAKE_CXX_STANDARD 11)
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
   cmake_modules
+  roscpp
 )
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS  
+	CATKIN_DEPENDS iiwa_msgs roscpp
 )
 
 ## Specify additional locations of header files
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
@@ -28,7 +27,7 @@ add_library(${PROJECT_NAME}
 )
 
 add_executable(iiwa_service_test src/main.cpp)
-target_link_libraries(iiwa_service_test ${PROJECT_NAME})
+target_link_libraries(iiwa_service_test ${PROJECT_NAME} ${catkin_LIBRARIES})
 			
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)

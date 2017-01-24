@@ -3,100 +3,55 @@
 
 namespace iiwa_ros {
 	
-	PathParametersService::PathParametersService() {
-		initService();
+	PathParametersService::PathParametersService(const std::string& service_name, const bool verbose) : iiwaServices< iiwa_msgs::SetPathParameters >(service_name, verbose) {}
+	
+	bool PathParametersService::callService() {
+		if (client_.call(config_)) {
+			if(!config_.response.success && verbose_) {
+				service_error_ = config_.response.error;
+				ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
+			}
+			else if (verbose_) {
+				ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+			}
+		}
+		else if (verbose_) {
+			ROS_ERROR_STREAM(service_name_ << " could not be called");
+		}
+		return config_.response.success;
 	}
 	
-	PathParametersService::PathParametersService(const std::string& service_name, const bool verbose) : service_name(service_name), verbose(verbose){
-		initService();
-	}
-	
-	void PathParametersService::setServiceName(const std::string& service_name)
-	{
-		service_name = service_name;
-		initService();
-	}
-	
-	bool PathParametersService::setJointRelativeVelocity(const iiwa_msgs::JointQuantity& joint_relative_velocity)
+	bool PathParametersService::setJointRelativeVelocity(const double joint_relative_velocity)
 	{
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		return callService();	  
 	}
-
-	bool PathParametersService::setJointRelativeVelocity(const double& joint_relative_velocity)
-	{
-		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
-		return setJointRelativeVelocity(joint_relative_velocity);	
-		
-	}	
 	
-	bool PathParametersService::setJointRelativeAcceleration(const iiwa_msgs::JointQuantity& joint_relative_acceleration)
+	bool PathParametersService::setJointRelativeAcceleration(const double joint_relative_acceleration)
 	{
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
 		return callService();	  
 	}
-	
-	bool PathParametersService::setJointRelativeAcceleration(const double& joint_relative_acceleration)
-	{
-		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
-		return setJointRelativeVelocity(joint_relative_acceleration);  
-	}	
-	
-	bool PathParametersService::setOverrideJointAcceleration(float64 override_joint_acceleration)
+		
+	bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration)
 	{
 		config_.request.override_joint_acceleration = override_joint_acceleration;
 		return callService();	  
 	}
-	
-	bool PathParametersService::setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration)
-	{
-		config_.request.joint_relative_velocity = joint_relative_velocity;
-		config_.request.joint_relative_acceleration = joint_relative_acceleration;
-		return callService();	  
-	}
-	
-	bool PathParametersService::setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration)
-	{
-		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
-		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
-		config_.request.joint_relative_velocity = joint_relative_velocity;
-		config_.request.joint_relative_acceleration = joint_relative_acceleration;
-		return callService();	  
-	}
 		
-	bool PathParametersService::setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float override_joint_acceleration)
+	bool PathParametersService::setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration)
 	{
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
-		config_.request.override_joint_acceleration = override_joint_acceleration;
 		return callService();	  
 	}
-		
-	bool PathParametersService::setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float override_joint_acceleration)
+				
+	bool PathParametersService::setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration, const double override_joint_acceleration)
 	{
-		float joint_relative_velocity[] = {joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity,joint_relative_velocity};
-		float joint_relative_acceleration[] = {joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration,joint_relative_acceleration};
 		config_.request.joint_relative_velocity = joint_relative_velocity;
 		config_.request.joint_relative_acceleration = joint_relative_acceleration;
 		config_.request.override_joint_acceleration = override_joint_acceleration;
 		return callService();		  
 	}
 		
-	
-	bool PathParametersService::callService()
-	{
-		if (client_.call(config_)) {
-			if(!config_.response.success && verbose_) {
-				service_error_ = config_.response.error;
-				ROS_ERROR_STREAM("SmartServoService failed, Java error: " << service_error_);
-			}
-			else if (verbose_) {
-				ROS_INFO_STREAM(ros::this_node::getName() << ": SmartServoService successfully called.");
-			}
-		}
-		else if (verbose_) {
-			ROS_ERROR_STREAM("SmartServoService could not be called");
-		}
-		return config_.response.success;		
-	}
 }

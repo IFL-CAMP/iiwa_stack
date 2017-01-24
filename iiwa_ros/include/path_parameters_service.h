@@ -1,32 +1,21 @@
 #pragma once
 
-#include <ros/ros.h>
 #include <iiwa_msgs/SetPathParameters.h>
-#include <iiwa_services.h>
-
+#include <iiwa_services.hpp>
 
 namespace iiwa_ros {
 	
-	class PathParametersService : public iiwaServices {
+	class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters> {
 	public:
-		PathParametersService();
 		PathParametersService(const std::string& service_name, const bool verbose = true);
-
-		bool setJointRelativeVelocity(const iiwa_msgs::JointQuantity& joint_relative_velocity);
-		bool setJointRelativeVelocity(const double& joint_relative_velocity);
-		bool setJointRelativeAcceleration(const iiwa_msgs::JointQuantity& joint_relative_acceleration);
-		bool setJointRelativeAcceleration(const double& joint_relative_acceleration);
-		bool setOverrideJointAcceleration(float override_joint_acceleration);
-		bool setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration);
-		bool setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration);
-		bool setPathParameters(const iiwa_msgs::JointQuantity& joint_relative_velocity, const iiwa_msgs::JointQuantity& joint_relative_acceleration, float override_joint_acceleration);
-		bool setPathParameters(const double& joint_relative_velocity, const double& joint_relative_acceleration, float override_joint_acceleration);
+		bool setJointRelativeVelocity(const double joint_relative_velocity);
+		bool setJointRelativeAcceleration(const double joint_relative_acceleration);
+		bool setOverrideJointAcceleration(const double override_joint_acceleration);
+		bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration);
+		bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration, const double override_joint_acceleration);
 		
-		iiwa_msgs::SetPathParameters config_;	
-			
-		
-	private:
-		
+	protected:
+		virtual bool callService();
 	};
 	
 }

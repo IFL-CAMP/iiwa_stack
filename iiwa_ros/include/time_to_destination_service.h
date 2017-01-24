@@ -1,23 +1,18 @@
 #pragma once
 
-#include <ros/ros.h>
 #include <iiwa_msgs/TimeToDestination.h>
-#include <iiwa_services.h>
-
+#include <iiwa_services.hpp>
 
 namespace iiwa_ros {
 	
-	class TimeToDestinationService : public iiwaServices {
+	class TimeToDestinationService : public iiwaServices<iiwa_msgs::TimeToDestination> {
 	public:
-		TimeToDestinationService();
 		TimeToDestinationService(const std::string& service_name, const bool verbose = true);
-
-		bool getTimeToDestination();
-		
-		iiwa_msgs::TimeToDestination config_;			
+		double getTimeToDestination();
+	protected:
+		virtual bool callService();
 	private:
-	
-		
+		double time_to_destination_;
 	};
 	
 }
