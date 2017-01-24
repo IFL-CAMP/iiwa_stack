@@ -7,9 +7,9 @@ namespace iiwa_ros {
 	
 	
 	/**
-	 * @brief ...
+	 * @brief Creates a JointQuantity with the same value in all its components.
 	 * 
-	 * @param value ...
+	 * @param value the value to use for all the JointQuantity components.
 	 * @return iiwa_msgs::JointQuantity
 	 */
 	iiwa_msgs::JointQuantity jointQuantityFromDouble(const double value) {
@@ -25,15 +25,15 @@ namespace iiwa_ros {
 	}
 	
 	/**
-	 * @brief ...
+	 * @brief Creates a JointQuantity with the given values for as components.
 	 * 
-	 * @param a1 ...
-	 * @param a2 ...
-	 * @param a3 ...
-	 * @param a4 ...
-	 * @param a5 ...
-	 * @param a6 ...
-	 * @param a7 ...
+	 * @param a1
+	 * @param a2
+	 * @param a3
+	 * @param a4
+	 * @param a5
+	 * @param a6
+	 * @param a7
 	 * @return iiwa_msgs::JointQuantity
 	 */
 	iiwa_msgs::JointQuantity jointQuantityFromDouble(const double a1, const double a2, const double a3, const double a4, const double a5, const double a6, const double a7) {
@@ -49,9 +49,9 @@ namespace iiwa_ros {
 	}
 	
 	/**
-	 * @brief ...
+	 * @brief Creates a CartesianQuantity with the same value in all its components.
 	 * 
-	 * @param value ...
+	 * @param value the value to use for all the CartesianQuantity components.
 	 * @return iiwa_msgs::CartesianQuantity
 	 */
 	iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double value) {
@@ -66,14 +66,14 @@ namespace iiwa_ros {
 	}
 	
 	/**
-	 * @brief ...
+	 * @brief Creates a CartesianQuantity with the given values for as components.
 	 * 
-	 * @param x ...
-	 * @param y ...
-	 * @param z ...
-	 * @param a ...
-	 * @param b ...
-	 * @param c ...
+	 * @param x 
+	 * @param y 
+	 * @param z 
+	 * @param a 
+	 * @param b 
+	 * @param c 
 	 * @return iiwa_msgs::CartesianQuantity
 	 */
 	iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double x, const double y, const double z, const double a, const double b, const double c) {
@@ -88,10 +88,10 @@ namespace iiwa_ros {
 	}
 	
 	/**
-	 * @brief ...
+	 * @brief Creates a CartesianQuantity with the given values for its translational and rotational component respectively.
 	 * 
-	 * @param translation_value ...
-	 * @param rotation_value ...
+	 * @param translation_value value to use for all the transflational components (x,y,z) of the CartesianQuantity
+	 * @param rotation_value value to use for all the rotational components (a,b,c) of the CartesianQuantity
 	 * @return iiwa_msgs::CartesianQuantity
 	 */
 	iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double translation_value, const double rotation_value) {
