@@ -17,7 +17,15 @@ int main( int argc, char** argv ) {
     iiwa_ros::SmartServoService sss("", true);
     iiwa_ros::PathParametersService pps("", true);
     iiwa_ros::TimeToDestinationService tds("", true);
+	
+	
+	tds.setVerbosity(true);
+	tds.setServiceName("first_test");
+	std::cerr<<tds.getTimeToDestination()<<std::endl;
+	
     
+	
+	
     while( ros::ok() ) {
         loop_rate_->sleep();
     }
