@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universitï¿½t Mï¿½nchen
+ * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -127,7 +127,7 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame the wrench refers to.
 	 */
 	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot, ObjectFrame frame) {
-		currentWrench.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
+		currentWrench.getHeader().setFrameId(frame.getName());
 		currentWrench.getHeader().setStamp(time.getCurrentTime());
 
 		currentWrench.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
@@ -138,7 +138,7 @@ public class iiwaMessageGenerator {
 		currentWrench.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
 		currentWrench.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
 
-		// TODO : should we also add these 
+		// TODO : should we also add these: 
 		//robot.getExternalForceTorque(frame).getForceInaccuracy();
 		//robot.getExternalForceTorque(frame).getTorqueInaccuracy();
 		// to give an estimation of the accuracy of the force/torque?
@@ -576,7 +576,6 @@ public class iiwaMessageGenerator {
 	}
 
 	/**
-	 * 
 	 * Checks if all the component of a JointQuantity are greater than the given value.
 	 * @param value
 	 * @return

@@ -114,7 +114,7 @@ public class ROSMonitor extends ROSBaseApplication {
 			if (gravCompSwitched) {
 				gravCompSwitched = false;
 				getLogger().warn("Disabling gravity compensation");
-				controlMode.setStiffnessForAllJoints(1500); // TODO : which is the max?
+				controlMode.setStiffnessForAllJoints(1500); // TODO : max is 5000
 				motion.getRuntime().changeControlModeSettings(controlMode);
 				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 			}

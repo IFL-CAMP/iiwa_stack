@@ -85,7 +85,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Boolean new_jpv = new Boolean("false");
 	private Boolean new_jv = new Boolean("false");
 
-	// current control strategy TODO: set this with a service; for now it is the last message arrived
+	// Current control strategy
 	CommandType currentCommandType = null;
 
 	// Name to use to build the name of the ROS topics
@@ -114,7 +114,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		iiwaName = robotName;
 		helper = new iiwaMessageGenerator(iiwaName);
 
-		//TODO : needed?
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);

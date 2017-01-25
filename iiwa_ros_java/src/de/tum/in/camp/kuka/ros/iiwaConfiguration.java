@@ -143,7 +143,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 				boolean matches = components[0].equals(master_components[0])
 						&& components[1].equals(master_components[1])
-						&& components[2].equals(master_components[2]); //TODO : check this
+						&& components[2].equals(master_components[2]);
 				if (matches) {
 					localhostIpFound = true;
 					break;
@@ -401,7 +401,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		}
 	}
 
-	// one of the dirtiest things I did in my life. but I can't see a better way
 	/**
 	 * Get the toolbar configuration to build buttons on the SmartPad from the param <b>toolbarSpecifications</b> in the ROS param server.
 	 * 
@@ -447,7 +446,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		try {
 			ret = params.getDouble(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
-			// TODO
 		}
 
 		return ret;
@@ -464,7 +462,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		try {
 			ret = params.getBoolean(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
-			// TODO
 		}
 
 		return ret;
@@ -481,7 +478,6 @@ public class iiwaConfiguration extends AbstractNodeMain {
 		try {
 			ret = params.getString(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
-			// TODO
 		}
 
 		return ret;

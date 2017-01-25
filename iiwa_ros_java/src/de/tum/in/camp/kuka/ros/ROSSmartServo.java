@@ -195,7 +195,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 		switch (request.getControlMode()) {
 		
 		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
-			// TODO: test this, this should prevent the robot to jump back to the commanded position when in another control mode that allows for path deviation.
 			PositionControlMode pcm = new PositionControlMode(true);
 			cm = pcm;
 			break;
@@ -414,7 +413,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			case CARTESIAN_POSE: {
 				/* This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
 				 * If the robot can move, then it will move to this new position. */
-				PoseStamped commandPosition = subscriber.getCartesianPose(); // TODO: check that frame_id is consistent
+				PoseStamped commandPosition = subscriber.getCartesianPose();
 				if (commandPosition != null) {
 					Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
 					if (robot.isReadyToMove()) 
