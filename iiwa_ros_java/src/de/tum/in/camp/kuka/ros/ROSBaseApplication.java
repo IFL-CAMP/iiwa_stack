@@ -1,5 +1,5 @@
  /**  
- * Copyright (C) 2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -23,7 +23,7 @@
 
 package de.tum.in.camp.kuka.ros;
 
-//ROS imports
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -219,13 +219,18 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 				decimationCounter++;
 
 				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) && iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime(); //TODO check if throws and print it (could avoid thread hanging if no NTP server is on the other side)
+					try {
+					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
+					}
+					catch (IOException e) {
+						getLogger().error("The TimeProvider failed to update. Are you running an NTP Server?");
+					}
 				}
 
 				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 
-				if ((decimationCounter % controlDecimation) == 0) // TODO is this neeed with the new implemantation?
+				if ((decimationCounter % controlDecimation) == 0)
 					controlLoop();  // Perform control loop specified by subclass
 			} 
 		}
