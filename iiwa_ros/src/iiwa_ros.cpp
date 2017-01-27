@@ -25,7 +25,7 @@
  * \date 07/03/2016
  */
 
-#include "iiwaRos.h"
+#include "iiwa_ros.h"
 
 using namespace std;
 
