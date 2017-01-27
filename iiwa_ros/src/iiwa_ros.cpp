@@ -42,15 +42,15 @@ void iiwaRos::init()
     holder_state_joint_torque.init("state/JointTorque");
     holder_state_wrench.init("state/CartesianWrench");
     holder_state_joint_stiffness.init("state/JointStiffness");
-	holder_state_joint_position_velocity("state/JointPositionVelocity");
+	holder_state_joint_position_velocity.init("state/JointPositionVelocity");
 	holder_state_joint_damping.init("state/JointDamping");
 	holder_state_joint_velocity.init("state/JointVelocity");
-	holder_state_destination_reached();
+	holder_state_destination_reached.init("state/DestinationReached");
 	
     holder_command_pose.init("command/CartesianPose");
     holder_command_joint_position.init("command/JointPosition");
-     holder_command_joint_position_velocity.init("/command/JointPositionVelocity");
-     holder_command_joint_velocity.init("command/JointVelocity");
+    holder_command_joint_position_velocity.init("/command/JointPositionVelocity");
+    holder_command_joint_velocity.init("command/JointVelocity");
 }
 
 
@@ -88,13 +88,35 @@ bool iiwaRos::getReceivedJointTorque(iiwa_msgs::JointTorque& value) {
     return holder_state_joint_torque.get(value);
 }
 
-geometry_msgs::PoseStamped iiwaRos::getCommandCartesianPose() {
-    return holder_command_pose.get();
+
+bool iiwaRos::getReceivedJointStiffness(iiwa_msgs::JointStiffness& value) {
+    return holder_state_joint_stiffness.get(value);
+}
+bool iiwaRos::getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value) {
+    return holder_state_wrench.get(value);
+}
+bool iiwaRos::getReceivedJointVelocity(iiwa_msgs::JointVelocity& value) {
+    return holder_state_joint_velocity.get(value);
+}
+    
+bool iiwaRos::getReceivedJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value) {
+    return holder_state_joint_position_velocity.get(value);
+}
+bool iiwaRos::getReceivedJointDamping(iiwa_msgs::JointDamping& value) {
+    return holder_state_joint_damping.get(value);
+}
+bool iiwaRos::getReceivedDestinationReached(std_msgs::Time& value) {
+    return holder_state_destination_reached.get(value);
 }
 
-iiwa_msgs::JointPosition iiwaRos::getCommandJointPosition(){
-    return holder_command_joint_position.get();
-}
+
+// geometry_msgs::PoseStamped iiwaRos::getCommandCartesianPose() {
+//    return holder_command_pose.get();
+//}
+
+//iiwa_msgs::JointPosition iiwaRos::getCommandJointPosition(){
+//    return holder_command_joint_position.get();
+//}
 // geometry_msgs::WrenchStamped iiwaRos::getCommandCartesianWrench(){
 //     return command_cartesian_wrench_;
 // }
@@ -114,19 +136,15 @@ void iiwaRos::setCommandCartesianPose(const geometry_msgs::PoseStamped& position
 void iiwaRos::setCommandJointPosition(const iiwa_msgs::JointPosition& position)  {
     holder_command_joint_position.set(position);
 }
-// void iiwaRos::setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench) {
-//     command_cartesian_wrench_ = wrench;
-// }
-//
-// void iiwaRos::setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness)  {
-//     command_joint_stiffness_ = stiffness;
-// }
-// void iiwaRos::setCommandJointTorque(const iiwa_msgs::JointTorque& torque)  {
-//     command_joint_torque_ = torque;
-// }
-// void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity)  {
-//     command_joint_velocity_ = velocity;
-// }
+
+void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity) {
+    iiwaRos::holder_command_joint_velocity.set(velocity);
+}
+void iiwaRos::setCommandJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value) {
+    holder_command_joint_position_velocity.set(value);
+}
+
+
 
 bool iiwaRos::publish() {
     holder_command_pose.publishIfNew();

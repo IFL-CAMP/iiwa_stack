@@ -32,6 +32,9 @@
 #include <iiwa_msgs/JointStiffness.h>
 #include <iiwa_msgs/JointTorque.h>
 #include <iiwa_msgs/JointVelocity.h>
+#include <iiwa_msgs/JointPositionVelocity.h>
+#include <iiwa_msgs/JointDamping.h>
+#include <std_msgs//Time.h>
 
 #include <geometry_msgs/WrenchStamped.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -158,32 +161,23 @@ public:
     bool getReceivedJointPosition(iiwa_msgs::JointPosition& value);
     bool getReceivedJointTorque(iiwa_msgs::JointTorque& value);
     
-//    bool getReceivedJointStiffness(iiwa_msgs::JointStiffness& value);
-//    bool getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value);
-//    bool getReceivedCartesianVelocity(iiwa_msgs::CartesianVelocity& value);
-//    bool getReceivedJointVelocity(iiwa_msgs::JointVelocity& value);
+    bool getReceivedJointStiffness(iiwa_msgs::JointStiffness& value);
+    bool getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value);
+    bool getReceivedJointVelocity(iiwa_msgs::JointVelocity& value);
     
-    geometry_msgs::PoseStamped getCommandCartesianPose();
-    iiwa_msgs::JointPosition getCommandJointPosition();
-    
-//     iiwa_msgs::JointStiffness getCommandJointStiffness();
-//     iiwa_msgs::JointTorque getCommandJointTorque();
-//     geometry_msgs::WrenchStamped getCommandCartesianWrench();
-//     iiwa_msgs::CartesianVelocity getCommandCartesianVelocity();
-//     iiwa_msgs::JointVelocity getCommandJointVelocity();
-    
-    /*
-     * 
-     */
-    void setCommandCartesianPose(const geometry_msgs::PoseStamped& position);
+	bool getReceivedJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value);
+	bool getReceivedJointDamping(iiwa_msgs::JointDamping& value);
+	bool getReceivedDestinationReached(std_msgs::Time& value);
+	
+
+	void setCommandCartesianPose(const geometry_msgs::PoseStamped& position);
     void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
     
-//     void setCommandCartesianWrench(const geometry_msgs::WrenchStamped& wrench);
-//     void setCommandJointStiffness(const iiwa_msgs::JointStiffness& stiffness);
-//     void setCommandJointTorque(const iiwa_msgs::JointTorque& torque);
-    //     void setCommandCartesianVelocity(const iiwa_msgs::CartesianVelocity& velocity);
-    //     void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
-    
+	void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
+	void setCommandJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value);
+  
+	 
+	 
     /**
      * \brief Sends new commands to the connected IIWA robot, if any
      */
@@ -193,23 +187,26 @@ public:
      * \brief Returns the current connection status of an IIWA robot.
      */
     bool getRobotIsConnected();
-    
+	
+	
+
+	
 private:
     iiwaStateHolder<geometry_msgs::PoseStamped> holder_state_pose;
     iiwaStateHolder<iiwa_msgs::JointPosition> holder_state_joint_position;
     iiwaStateHolder<iiwa_msgs::JointTorque> holder_state_joint_torque;
-//     iiwaStateHolder<geometry_msgs::WrenchStamped> holder_state_wrench;
-//     iiwaStateHolder<iiwa_msgs::JointDamping> holder_state_joint_damping;
-//     iiwaStateHolder<iiwa_msgs::JointStiffness> holder_state_joint_stiffness;
+    iiwaStateHolder<geometry_msgs::WrenchStamped> holder_state_wrench;
+    iiwaStateHolder<iiwa_msgs::JointDamping> holder_state_joint_damping;
+    iiwaStateHolder<iiwa_msgs::JointStiffness> holder_state_joint_stiffness;
+	iiwaStateHolder<iiwa_msgs::JointVelocity> holder_state_joint_velocity;
+	iiwaStateHolder<iiwa_msgs::JointPositionVelocity> holder_state_joint_position_velocity;
+	iiwaStateHolder<std_msgs::Time> holder_state_destination_reached;
     
     iiwaCommandHolder<geometry_msgs::PoseStamped> holder_command_pose;
     iiwaCommandHolder<iiwa_msgs::JointPosition> holder_command_joint_position;
+	iiwaCommandHolder<iiwa_msgs::JointVelocity> holder_command_joint_velocity;
+	iiwaCommandHolder<iiwa_msgs::JointPositionVelocity> holder_command_joint_position_velocity;
     
-//     iiwaCommandHolder<iiwa_msgs::JointTorque> holder_command_joint_torque;
-//     iiwaCommandHolder<geometry_msgs::WrenchStamped> holder_command_wrench;
-//     iiwaCommandHolder<iiwa_msgs::JointDamping> holder_command_joint_damping;
-//     iiwaCommandHolder<iiwa_msgs::JointStiffness> holder_command_joint_stiffness;
-    
-    
+
     bool robot_is_connected_; /**< Stores the current connection state */
 };
