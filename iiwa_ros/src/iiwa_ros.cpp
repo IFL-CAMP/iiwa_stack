@@ -40,14 +40,17 @@ void iiwaRos::init()
     holder_state_pose.init("state/CartesianPose");
     holder_state_joint_position.init("state/JointPosition");
     holder_state_joint_torque.init("state/JointTorque");
-//     holder_state_wrench.init("state/CartesianWrench");
-//     holder_state_joint_stiffness.init("state/JointStiffness");
-
+    holder_state_wrench.init("state/CartesianWrench");
+    holder_state_joint_stiffness.init("state/JointStiffness");
+	holder_state_joint_position_velocity("state/JointPositionVelocity");
+	holder_state_joint_damping.init("state/JointDamping");
+	holder_state_joint_velocity.init("state/JointVelocity");
+	holder_state_destination_reached();
+	
     holder_command_pose.init("command/CartesianPose");
     holder_command_joint_position.init("command/JointPosition");
-//     holder_command_wrench.init("command/CartesianWrench");
-//     holder_command_joint_stiffness.init("command/JointStiffness");
-//     holder_command_joint_torque.init("command/JointTorque");
+     holder_command_joint_position_velocity.init("/command/JointPositionVelocity");
+     holder_command_joint_velocity.init("command/JointVelocity");
 }
 
 
