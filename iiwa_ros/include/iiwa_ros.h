@@ -19,10 +19,6 @@
  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
  * THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * \author Salvatore Virga
- * \version 2.0.0
- * \date 07/03/2016
  */
 
 #pragma once
@@ -139,74 +135,144 @@ private:
 
 class iiwaRos {
 public:
-    /**
-     * Class constructor
-     */
-    iiwaRos();
+	
+	/**
+	 * @brief Constructor for class iiwaRos holding all the methods to command and get states of the robot.
+	 */
+	iiwaRos();
+        
+	/**
+	 * @brief Initializes the necessary topic strings for the states.
+	 * 
+	 * @return void
+	 */
+	void init();
     
-    /**
-     * Class destructor
-     */
-    virtual ~iiwaRos();
+	/**
+	 * @brief Method to get the cartesian pose of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the pose is written to.
+	 * @return bool
+	 */
+	bool getReceivedCartesianPose(geometry_msgs::PoseStamped& value);
+	
+	/**
+	 * @brief Method to get the joint position of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
+	bool getReceivedJointPosition(iiwa_msgs::JointPosition& value);
+	
+	/**
+	 * @brief Method to get the joint torque of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
+	bool getReceivedJointTorque(iiwa_msgs::JointTorque& value);
     
-    /** 
-     * Init
-     */
-    void init();
+	/**
+	 * @brief Method to get the joint stiffness of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
+	bool getReceivedJointStiffness(iiwa_msgs::JointStiffness& value);
+	
+	/**
+	 * @brief Method to get the cartesian wrench of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
+	bool getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value);
+	
+	/**
+	 * @brief Method to get the joint velocity of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
+	bool getReceivedJointVelocity(iiwa_msgs::JointVelocity& value);
     
-    /**
-     * Getters
-     */
-    bool getReceivedCartesianPose(geometry_msgs::PoseStamped& value);
-    bool getReceivedJointPosition(iiwa_msgs::JointPosition& value);
-    bool getReceivedJointTorque(iiwa_msgs::JointTorque& value);
-    
-    bool getReceivedJointStiffness(iiwa_msgs::JointStiffness& value);
-    bool getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value);
-    bool getReceivedJointVelocity(iiwa_msgs::JointVelocity& value);
-    
+	/**
+	 * @brief Method to get the joint position velocity of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
 	bool getReceivedJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value);
+	
+	/**
+	 * @brief Method to get the joint damping of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
 	bool getReceivedJointDamping(iiwa_msgs::JointDamping& value);
+	
+	/**
+	 * @brief Method to get the time of destination reaching of the robot and additionally returns true if it is a new value.
+	 * 
+	 * @param value Reference to the variable where the state is written to.
+	 * @return bool
+	 */
 	bool getReceivedDestinationReached(std_msgs::Time& value);
 	
 
+	/**
+	 * @brief Method to set the cartesian pose of the robot.
+	 * 
+	 * @param position Reference to the variable with the state.
+	 * @return void
+	 */
 	void setCommandCartesianPose(const geometry_msgs::PoseStamped& position);
-    void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
+	
+	/**
+	 * @brief Method to set the joint position of the robot.
+	 * 
+	 * @param position Reference to the variable with the state.
+	 * @return void
+	 */
+	void setCommandJointPosition(const iiwa_msgs::JointPosition& position);
     
+	/**
+	 * @brief Method to set the joint velocity of the robot.
+	 * 
+	 * @param velocity Reference to the variable with the state.
+	 * @return void
+	 */
 	void setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity);
+	
+	/**
+	 * @brief Method to set the joint position velocity of the robot.
+	 * 
+	 * @param value Reference to the variable with the state.
+	 * @return void
+	 */
 	void setCommandJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value);
-  
-	 
-	 
-    /**
-     * \brief Sends new commands to the connected IIWA robot, if any
-     */
-    bool publish();
-    
+      
     /**
      * \brief Returns the current connection status of an IIWA robot.
      */
-    bool getRobotIsConnected();
-	
-	
-
+    bool getRobotIsConnected(bool verbose = false);
 	
 private:
-    iiwaStateHolder<geometry_msgs::PoseStamped> holder_state_pose;
-    iiwaStateHolder<iiwa_msgs::JointPosition> holder_state_joint_position;
-    iiwaStateHolder<iiwa_msgs::JointTorque> holder_state_joint_torque;
-    iiwaStateHolder<geometry_msgs::WrenchStamped> holder_state_wrench;
-    iiwaStateHolder<iiwa_msgs::JointDamping> holder_state_joint_damping;
-    iiwaStateHolder<iiwa_msgs::JointStiffness> holder_state_joint_stiffness;
-	iiwaStateHolder<iiwa_msgs::JointVelocity> holder_state_joint_velocity;
-	iiwaStateHolder<iiwa_msgs::JointPositionVelocity> holder_state_joint_position_velocity;
-	iiwaStateHolder<std_msgs::Time> holder_state_destination_reached;
+    iiwaStateHolder<geometry_msgs::PoseStamped> holder_state_pose_;
+    iiwaStateHolder<iiwa_msgs::JointPosition> holder_state_joint_position_;
+    iiwaStateHolder<iiwa_msgs::JointTorque> holder_state_joint_torque_;
+    iiwaStateHolder<geometry_msgs::WrenchStamped> holder_state_wrench_;
+    iiwaStateHolder<iiwa_msgs::JointDamping> holder_state_joint_damping_;
+    iiwaStateHolder<iiwa_msgs::JointStiffness> holder_state_joint_stiffness_;
+	iiwaStateHolder<iiwa_msgs::JointVelocity> holder_state_joint_velocity_;
+	iiwaStateHolder<iiwa_msgs::JointPositionVelocity> holder_state_joint_position_velocity_;
+	iiwaStateHolder<std_msgs::Time> holder_state_destination_reached_;
     
-    iiwaCommandHolder<geometry_msgs::PoseStamped> holder_command_pose;
-    iiwaCommandHolder<iiwa_msgs::JointPosition> holder_command_joint_position;
-	iiwaCommandHolder<iiwa_msgs::JointVelocity> holder_command_joint_velocity;
-	iiwaCommandHolder<iiwa_msgs::JointPositionVelocity> holder_command_joint_position_velocity;
+    iiwaCommandHolder<geometry_msgs::PoseStamped> holder_command_pose_;
+    iiwaCommandHolder<iiwa_msgs::JointPosition> holder_command_joint_position_;
+	iiwaCommandHolder<iiwa_msgs::JointVelocity> holder_command_joint_velocity_;
+	iiwaCommandHolder<iiwa_msgs::JointPositionVelocity> holder_command_joint_position_velocity_;
     
-
     bool robot_is_connected_; /**< Stores the current connection state */
 };
