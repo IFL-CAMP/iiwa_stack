@@ -274,9 +274,9 @@ bool IIWA_HW::write(ros::Duration period) {
             // TODO
         }
         
-        iiwa_ros_conn_.publish();
     } else if (delta.toSec() >= 10) {
-        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
+		ROS_INFO_STREAM("Apparently robot is not connected: " << iiwa_ros_conn_.getRobotIsConnected(true));
+        ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
     }
     

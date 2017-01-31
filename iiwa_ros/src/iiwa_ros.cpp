@@ -19,10 +19,6 @@
  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * \author Salvatore Virga
- * \version 2.0.0
- * \date 07/03/2016
  */
 
 #include "iiwa_ros.h"
@@ -35,27 +31,23 @@ iiwaRos::iiwaRos() { }
 
 void iiwaRos::init()
 {
-    robot_is_connected_ = false;
-
-    holder_state_pose.init("state/CartesianPose");
-    holder_state_joint_position.init("state/JointPosition");
-    holder_state_joint_torque.init("state/JointTorque");
-    holder_state_wrench.init("state/CartesianWrench");
-    holder_state_joint_stiffness.init("state/JointStiffness");
-	holder_state_joint_position_velocity.init("state/JointPositionVelocity");
-	holder_state_joint_damping.init("state/JointDamping");
-	holder_state_joint_velocity.init("state/JointVelocity");
-	holder_state_destination_reached.init("state/DestinationReached");
+	robot_is_connected_ = false;
 	
-    holder_command_pose.init("command/CartesianPose");
-    holder_command_joint_position.init("command/JointPosition");
-    holder_command_joint_position_velocity.init("/command/JointPositionVelocity");
-    holder_command_joint_velocity.init("command/JointVelocity");
+	holder_state_pose_.init("state/CartesianPose");
+	holder_state_joint_position_.init("state/JointPosition");
+	holder_state_joint_torque_.init("state/JointTorque");
+	holder_state_wrench_.init("state/CartesianWrench");
+	holder_state_joint_stiffness_.init("state/JointStiffness");
+	holder_state_joint_position_velocity_.init("state/JointPositionVelocity");
+	holder_state_joint_damping_.init("state/JointDamping");
+	holder_state_joint_velocity_.init("state/JointVelocity");
+	holder_state_destination_reached_.init("state/DestinationReached");
+	
+	holder_command_pose_.init("command/CartesianPose");
+	holder_command_joint_position_.init("command/JointPosition");
+	holder_command_joint_position_velocity_.init("/command/JointPositionVelocity");
+	holder_command_joint_velocity_.init("command/JointVelocity");
 }
-
-
-
-iiwaRos::~iiwaRos() { }
 
 // bool iiwaRos::getRobotIsConnected() {
 //     static int counter = 0;
@@ -71,82 +63,57 @@ iiwaRos::~iiwaRos() { }
 //     return robot_is_connected_;
 // }
 
-bool iiwaRos::getRobotIsConnected() {
-    return (ros::Time::now() - last_update_time) < ros::Duration(0.1);
+bool iiwaRos::getRobotIsConnected(bool verbose) {
+	ros::Duration diff = (ros::Time::now() - last_update_time);
+	if (verbose) {
+		ROS_INFO_STREAM("getRobotIsConnect - The time difference is: " << diff.toSec() << " It is checked against: " << ros::Duration(0.1).toSec() );
+	}
+	return (diff < ros::Duration(0.1));
 }
-
 
 bool iiwaRos::getReceivedCartesianPose(geometry_msgs::PoseStamped& value) {
-    return holder_state_pose.get(value);
+	return holder_state_pose_.get(value);
 }
-
 bool iiwaRos::getReceivedJointPosition(iiwa_msgs::JointPosition& value) {
-    return holder_state_joint_position.get(value);
+	return holder_state_joint_position_.get(value);
 }
-
 bool iiwaRos::getReceivedJointTorque(iiwa_msgs::JointTorque& value) {
-    return holder_state_joint_torque.get(value);
+	return holder_state_joint_torque_.get(value);
 }
-
-
 bool iiwaRos::getReceivedJointStiffness(iiwa_msgs::JointStiffness& value) {
-    return holder_state_joint_stiffness.get(value);
+	return holder_state_joint_stiffness_.get(value);
 }
 bool iiwaRos::getReceivedCartesianWrench(geometry_msgs::WrenchStamped& value) {
-    return holder_state_wrench.get(value);
+	return holder_state_wrench_.get(value);
 }
 bool iiwaRos::getReceivedJointVelocity(iiwa_msgs::JointVelocity& value) {
-    return holder_state_joint_velocity.get(value);
+	return holder_state_joint_velocity_.get(value);
 }
-    
 bool iiwaRos::getReceivedJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value) {
-    return holder_state_joint_position_velocity.get(value);
+	return holder_state_joint_position_velocity_.get(value);
 }
 bool iiwaRos::getReceivedJointDamping(iiwa_msgs::JointDamping& value) {
-    return holder_state_joint_damping.get(value);
+	return holder_state_joint_damping_.get(value);
 }
 bool iiwaRos::getReceivedDestinationReached(std_msgs::Time& value) {
-    return holder_state_destination_reached.get(value);
+	return holder_state_destination_reached_.get(value);
 }
 
-
-// geometry_msgs::PoseStamped iiwaRos::getCommandCartesianPose() {
-//    return holder_command_pose.get();
-//}
-
-//iiwa_msgs::JointPosition iiwaRos::getCommandJointPosition(){
-//    return holder_command_joint_position.get();
-//}
-// geometry_msgs::WrenchStamped iiwaRos::getCommandCartesianWrench(){
-//     return command_cartesian_wrench_;
-// }
-// iiwa_msgs::JointStiffness iiwaRos::getCommandJointStiffness(){
-//     return command_joint_stiffness_;
-// }
-// iiwa_msgs::JointTorque iiwaRos::getCommandJointTorque(){
-//     return command_joint_torque_;
-// }
-
-/*
- * Setters for command messages - set the message that you want to send
- */
 void iiwaRos::setCommandCartesianPose(const geometry_msgs::PoseStamped& position) {
-    holder_command_pose.set(position);
+	holder_command_pose_.set(position);
+	holder_command_pose_.publishIfNew();
 }
 void iiwaRos::setCommandJointPosition(const iiwa_msgs::JointPosition& position)  {
-    holder_command_joint_position.set(position);
+	holder_command_joint_position_.set(position);
+	holder_command_joint_position_.publishIfNew();
 }
-
 void iiwaRos::setCommandJointVelocity(const iiwa_msgs::JointVelocity& velocity) {
-    iiwaRos::holder_command_joint_velocity.set(velocity);
+	holder_command_joint_velocity_.set(velocity);
+	holder_command_joint_velocity_.publishIfNew();
+	
 }
 void iiwaRos::setCommandJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value) {
-    holder_command_joint_position_velocity.set(value);
-}
-
-
-
-bool iiwaRos::publish() {
-    holder_command_pose.publishIfNew();
-    holder_command_joint_position.publishIfNew();
+	holder_command_joint_position_velocity_.set(value);
+	holder_command_joint_position_velocity_.publishIfNew();
+	
 }
