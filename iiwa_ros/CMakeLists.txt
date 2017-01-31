@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
   cmake_modules
+  roscpp
 )
 
 catkin_package(
@@ -23,6 +24,9 @@ include_directories(include
 add_library(${PROJECT_NAME}
 	src/iiwa_ros.cpp
 )
+
+add_executable(iiwa_command_test src/main.cpp) 
+target_link_libraries(iiwa_command_test ${PROJECT_NAME} ${catkin_LIBRARIES})
 			
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)
