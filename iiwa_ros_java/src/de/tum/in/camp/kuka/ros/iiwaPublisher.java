@@ -1,5 +1,5 @@
- /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+/**  
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -23,13 +23,6 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import geometry_msgs.PoseStamped;
-import geometry_msgs.WrenchStamped;
-import iiwa_msgs.JointPosition;
-import iiwa_msgs.JointPositionVelocity;
-import iiwa_msgs.JointStiffness;
-import iiwa_msgs.JointTorque;
-
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
@@ -38,6 +31,7 @@ import org.ros.node.topic.Publisher;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 
 /**
  * This class implements a ROS Node that publishes the current state of the robot. <br>
@@ -55,18 +49,22 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private Publisher<iiwa_msgs.JointStiffness> jointStiffnessPublisher;
 	private Publisher<iiwa_msgs.JointDamping> jointDampingPublisher;
 	private Publisher<iiwa_msgs.JointTorque> jointTorquePublisher;
+	private Publisher<iiwa_msgs.JointVelocity> jointVelocityPublisher;
 	// UserKey Event Publisher
 	private Publisher<std_msgs.String> iiwaButtonPublisher; // TODO: iiwa_msgs.ButtonEvent
 	// JointState publisher (optional)
 	private Publisher<sensor_msgs.JointState> jointStatesPublisher;
 	private boolean publishJointState = false;
-	
+	//DestinationReachedFlag publisher
+	private Publisher<std_msgs.Time> destinationReachedPublisher;
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
-	
+
 	// Object to easily build iiwa_msgs from the current robot state
 	private iiwaMessageGenerator helper;
 	
+	private ConnectedNode node = null;
+
 	// Cache objects
 	private geometry_msgs.PoseStamped cp;
 	private geometry_msgs.WrenchStamped cw;
@@ -76,8 +74,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private iiwa_msgs.JointDamping jd;
 	private iiwa_msgs.JointTorque jt;
 	private sensor_msgs.JointState js;
-
-
+	private iiwa_msgs.JointVelocity jv;
+	private std_msgs.Time t;
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -88,17 +86,19 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public iiwaPublisher(String robotName) {
 		iiwaName = robotName;
 		helper = new iiwaMessageGenerator(iiwaName);
-		
-		cp = helper.buildMessage(PoseStamped._TYPE);
-		cw = helper.buildMessage(WrenchStamped._TYPE);
-		jp = helper.buildMessage(JointPosition._TYPE);
-		jpv = helper.buildMessage(JointPositionVelocity._TYPE);
-		jst = helper.buildMessage(JointStiffness._TYPE);
+
+		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);
+		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
+		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
+		jst = helper.buildMessage(iiwa_msgs.JointStiffness._TYPE);
 		jd = helper.buildMessage(iiwa_msgs.JointDamping._TYPE);
-		jt = helper.buildMessage(JointTorque._TYPE);
+		jt = helper.buildMessage(iiwa_msgs.JointTorque._TYPE);
+		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
+		t = helper.buildMessage(std_msgs.Time._TYPE);
 	}
-	
+
 	/**
 	 * Set if also joint_states should be published
 	 * @param publishJointState
@@ -132,6 +132,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
+		node = connectedNode;
+		
 		cartesianPosePublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
@@ -140,15 +142,18 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jointStiffnessPublisher = connectedNode.newPublisher(iiwaName + "/state/JointStiffness", iiwa_msgs.JointStiffness._TYPE);
 		jointDampingPublisher = connectedNode.newPublisher(iiwaName + "/state/JointDamping", iiwa_msgs.JointDamping._TYPE);
 		jointTorquePublisher = connectedNode.newPublisher(iiwaName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
-		
+		jointVelocityPublisher = connectedNode.newPublisher(iiwaName + "/state/JointVelocity",  iiwa_msgs.JointVelocity._TYPE);
+
 		iiwaButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/buttonEvent", std_msgs.String._TYPE);
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
+
+		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Time._TYPE);
 	}
-	
+
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
-	 * <b>Cartesian information published will be relativge to the robot's flange</b>
+	 * <b>Cartesian information published will be relative to the robot's flange</b>
 	 * 
 	 * @param robot : the state of this robot will be published
 	 * @param motion : the dynamic of this motion will be published
@@ -157,7 +162,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public void publishCurrentState(LBR robot, SmartServo motion) throws InterruptedException {
 		publishCurrentState(robot, motion, robot.getFlange());
 	}
-		
+
 	/**
 	 * Publishes to the respective topics all the iiwa_msgs with the values they are currently set to.<p>
 	 * Only the nodes that currently have subscribers will publish the messages.<br>
@@ -188,17 +193,22 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.incrementSeqNumber(jpv.getHeader());
 			jointPositionVelocityPublisher.publish(jpv);
 		}
+		if (jointVelocityPublisher.getNumberOfSubscribers() > 0) {
+			helper.getCurrentJointVelocity(jv, robot);
+			helper.incrementSeqNumber(jv.getHeader());
+			jointVelocityPublisher.publish(jv);
+		}
 		if (jointTorquePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointTorque(jt, robot);
 			helper.incrementSeqNumber(jt.getHeader());
 			jointTorquePublisher.publish(jt);
 		}
-		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0) {
+		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0 && motion.getMode() instanceof JointImpedanceControlMode) {
 			helper.getCurrentJointStiffness(jst, robot, motion);
 			helper.incrementSeqNumber(jst.getHeader());
 			jointStiffnessPublisher.publish(jst);
 		}
-		if (jointDampingPublisher.getNumberOfSubscribers() > 0) {
+		if (jointDampingPublisher.getNumberOfSubscribers() > 0  && motion.getMode() instanceof JointImpedanceControlMode) {
 			helper.getCurrentJointDamping(jd, robot, motion);
 			helper.incrementSeqNumber(jp.getHeader());
 			jointDampingPublisher.publish(jd);
@@ -207,11 +217,21 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.getCurrentJointState(js, robot);
 			helper.incrementSeqNumber(js.getHeader());
 			jointStatesPublisher.publish(js);
+		}		
+	}
+
+	/**
+	 * Publishes the current timestamp on the destinationReached topic.
+	 */
+	public void publishDestinationReached() {
+		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
+			t.setData(node.getCurrentTime());
+			destinationReachedPublisher.publish(t);
 		}
 	}
-	
+
 	/**
-	 * Publishes the even of a button on the SmartPad toolbar being <b>pressed</b>
+	 * Publishes the event of a button on the SmartPad toolbar being <b>pressed</b>
 	 * @param name : name of the button
 	 */
 	public void publishButtonPressed(String name) {
@@ -219,9 +239,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 		msg.setData(name + "_pressed");
 		iiwaButtonPublisher.publish(msg);
 	}
-	
+
 	/**
-	 * Publishes the even of a button on the SmartPad toolbar being <b>released</b>
+	 * Publishes the event of a button on the SmartPad toolbar being <b>released</b>
 	 * @param name : name of the button
 	 */
 	public void publishButtonReleased(String name) {

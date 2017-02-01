@@ -1,15 +1,14 @@
 <?xml version="1.0"?>
 <package>
   <name>iiwa_msgs</name>
-  <version>1.7.0</version>
+  <version>2.0.0</version>
   <description>ROS Messages to communicate with a KUKA LBR IIWA Robot</description>
   <author email="salvo.virga@tum.de">Salvo Virga</author>
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
 
   <license>BSD</license>
 
-   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend> roscpp </build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>

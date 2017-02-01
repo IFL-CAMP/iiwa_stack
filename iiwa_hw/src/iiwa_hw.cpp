@@ -10,31 +10,27 @@
  * Manuel Bonilla - josemanuelbonilla@gmail.com
  * 
  * LICENSE :
- * 
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ *
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
  * http://campar.in.tum.de
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
- * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * \author Salvatore Virga
- * \version 1.4.0
- * \date 07/03/2016
  */
 
 #include "iiwa_hw.h"
@@ -99,7 +95,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No URDF model available");
     }
     
-    iiwa_ros_conn_.init(false);
+    iiwa_ros_conn_.init();
     
     // initialize and set to zero the state and command values
     device_->init();
@@ -215,8 +211,8 @@ bool IIWA_HW::read(ros::Duration period)
     
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         
-        iiwa_ros_conn_.getReceivedJointPosition(joint_position_);
-        iiwa_ros_conn_.getReceivedJointTorque(joint_torque_);
+        iiwa_ros_conn_.getJointPosition(joint_position_);
+        iiwa_ros_conn_.getJointTorque(joint_torque_);
         
         device_->joint_position_prev = device_->joint_position;
         iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
@@ -263,7 +259,7 @@ bool IIWA_HW::write(ros::Duration period) {
             vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
             command_joint_position_.header.stamp = ros::Time::now();
             
-            iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);
+            iiwa_ros_conn_.setJointPosition(command_joint_position_);
         }
         // Joint Impedance Control
         else if (interface_ == interface_type_.at(1)) {
@@ -274,9 +270,8 @@ bool IIWA_HW::write(ros::Duration period) {
             // TODO
         }
         
-        iiwa_ros_conn_.publish();
     } else if (delta.toSec() >= 10) {
-        ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
+        ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
     }
     
