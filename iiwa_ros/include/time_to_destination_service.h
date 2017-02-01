@@ -38,6 +38,8 @@ namespace iiwa_ros {
 	class TimeToDestinationService : public iiwaServices<iiwa_msgs::TimeToDestination> {
 	public:
 		
+		TimeToDestinationService();
+		
 		/**
 		 * @brief Creates a Service client given the name of the timeToDestination service: e.g. "/iiwa/state/timeToDestination"
 		 * 

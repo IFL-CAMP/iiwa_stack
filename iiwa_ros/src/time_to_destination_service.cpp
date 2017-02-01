@@ -24,20 +24,25 @@
 #include <time_to_destination_service.h>
 
 namespace iiwa_ros {
+	
+	TimeToDestinationService::TimeToDestinationService() : iiwaServices< iiwa_msgs::TimeToDestination >() {}
+	
 	TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose) : iiwaServices< iiwa_msgs::TimeToDestination >(service_name, verbose) {}
-		
-	double TimeToDestinationService::getTimeToDestination()
-	{
-		if (callService()) {
-			return time_to_destination_;
+	
+	double TimeToDestinationService::getTimeToDestination() {
+		if (service_ready_) {
+			
+			if (callService()) {
+				return time_to_destination_;
+			}
+			else {
+				return -999; // It cannot return -1 since it might be a meaningfull result.
+			}
 		}
-		else {
-			return -999; // It cannot return -1 since it might be a meaningfull result.
-		}
+		ROS_ERROR_STREAM("The service client was not intialized yet.");
 	}
 	
-	bool TimeToDestinationService::callService()
-	{
+	bool TimeToDestinationService::callService() {
 		if (client_.call(config_)) {
 			if(verbose_) {
 				ROS_INFO_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");

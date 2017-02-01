@@ -30,11 +30,57 @@ namespace iiwa_ros {
 	
 	class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters> {
 	public:
+		
+		PathParametersService();
+		
+		/**
+		 * @brief ...
+		 * 
+		 * @param service_name ...
+		 * @param verbose ...
+		 */
 		PathParametersService(const std::string& service_name, const bool verbose = true);
+		/**
+		 * @brief ...
+		 * 
+		 * @param joint_relative_velocity ...
+		 * @return bool
+		 */
 		bool setJointRelativeVelocity(const double joint_relative_velocity);
+		
+		/**
+		 * @brief ...
+		 * 
+		 * @param joint_relative_acceleration ...
+		 * @return bool
+		 */
 		bool setJointRelativeAcceleration(const double joint_relative_acceleration);
+		
+		/**
+		 * @brief ...
+		 * 
+		 * @param override_joint_acceleration ...
+		 * @return bool
+		 */
 		bool setOverrideJointAcceleration(const double override_joint_acceleration);
+		
+		/**
+		 * @brief ...
+		 * 
+		 * @param joint_relative_velocity ...
+		 * @param joint_relative_acceleration ...
+		 * @return bool
+		 */
 		bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration);
+		
+		/**
+		 * @brief ...
+		 * 
+		 * @param joint_relative_velocity ...
+		 * @param joint_relative_acceleration ...
+		 * @param override_joint_acceleration ...
+		 * @return bool
+		 */
 		bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration, const double override_joint_acceleration);
 		
 	protected:
