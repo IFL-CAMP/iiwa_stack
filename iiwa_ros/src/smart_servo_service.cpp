@@ -26,23 +26,30 @@
 #include <conversions.h>
 
 namespace iiwa_ros {	
+	
+	SmartServoService::SmartServoService() : iiwaServices<iiwa_msgs::ConfigureSmartServo>() {}
+	
 	SmartServoService::SmartServoService(const std::string& service_name, const bool verbose) : iiwaServices<iiwa_msgs::ConfigureSmartServo>(service_name, verbose) {}
 	
 	bool SmartServoService::callService() {
-		if (client_.call(config_)) {
-			if(!config_.response.success && verbose_) {
-				service_error_ = config_.response.error;
-				ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
+		if (service_ready_) {
+			if (client_.call(config_)) {
+				if(!config_.response.success && verbose_) {
+					service_error_ = config_.response.error;
+					ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
+				}
+				else if (verbose_) {
+					ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+				}
 			}
 			else if (verbose_) {
-				ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+				ROS_ERROR_STREAM(service_name_ << " could not be called");
 			}
+			return config_.response.success;
 		}
-		else if (verbose_) {
-			ROS_ERROR_STREAM(service_name_ << " could not be called");
-		}
-		return config_.response.success;
+		ROS_ERROR_STREAM("The service client was not intialized yet.");
 	}
+	
 	
 	void SmartServoService::initCartesianLimits(const iiwa_msgs::CartesianQuantity& max_path_deviation, 
 												const iiwa_msgs::CartesianQuantity& max_cartesian_velocity, 

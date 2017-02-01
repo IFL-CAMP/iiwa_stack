@@ -211,8 +211,8 @@ bool IIWA_HW::read(ros::Duration period)
     
     if (iiwa_ros_conn_.getRobotIsConnected()) {
         
-        iiwa_ros_conn_.getReceivedJointPosition(joint_position_);
-        iiwa_ros_conn_.getReceivedJointTorque(joint_torque_);
+        iiwa_ros_conn_.getJointPosition(joint_position_);
+        iiwa_ros_conn_.getJointTorque(joint_torque_);
         
         device_->joint_position_prev = device_->joint_position;
         iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
@@ -259,7 +259,7 @@ bool IIWA_HW::write(ros::Duration period) {
             vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
             command_joint_position_.header.stamp = ros::Time::now();
             
-            iiwa_ros_conn_.setCommandJointPosition(command_joint_position_);
+            iiwa_ros_conn_.setJointPosition(command_joint_position_);
         }
         // Joint Impedance Control
         else if (interface_ == interface_type_.at(1)) {
@@ -271,7 +271,6 @@ bool IIWA_HW::write(ros::Duration period) {
         }
         
     } else if (delta.toSec() >= 10) {
-		ROS_INFO_STREAM("Apparently robot is not connected: " << iiwa_ros_conn_.getRobotIsConnected(true));
         ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
     }

@@ -199,7 +199,7 @@ private:
     ros::Rate* loop_rate_;
     double control_frequency_;
     
-    iiwaRos iiwa_ros_conn_;
+    iiwa_ros::iiwaRos iiwa_ros_conn_;
     iiwa_msgs::JointPosition joint_position_;
     iiwa_msgs::JointTorque joint_torque_;
     
