@@ -19,7 +19,6 @@
  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 #pragma once
@@ -29,18 +28,28 @@
 
 namespace iiwa_ros {
 	
+	/**
+	 * @brief This class provides a wrapper for service call of the TimeToDestination service.
+	 * Once an object of this class is created using the appropriate service name (e.g. /iiwa/state/timeToDestination), 
+	 * it is possible to just call its functions to get the time left - in <b>seconds</b> - to reach the last given destination.
+	 * If the robot already reached its last commanded destination, a negative number will be returned. That is the time - in <b>seconds</b> - since the robot reached that destination.
+	 * The value <b>-999</b> will be returned if an error occurs.
+	 */
 	class TimeToDestinationService : public iiwaServices<iiwa_msgs::TimeToDestination> {
 	public:
+		
 		/**
-		 * @brief ...
+		 * @brief Creates a Service client given the name of the timeToDestination service: e.g. "/iiwa/state/timeToDestination"
 		 * 
-		 * @param service_name ...
-		 * @param verbose ...
+		 * @param service_name Name of the ROS Service server to connect to.
+		 * @param verbose If true some ROS_INFO messages will be printed out during service calls.
 		 */
 		TimeToDestinationService(const std::string& service_name, const bool verbose = true);
 		
 		/**
-		 * @brief ...
+		 * @brief Returns the time left to reach the last commanded destination in <b>seconds</b>.
+		 * A negative value represents the time since the robot reached its last commanded destination.
+		 * The value <b>-999</b> will be returned if an error occurs.
 		 * 
 		 * @return double
 		 */

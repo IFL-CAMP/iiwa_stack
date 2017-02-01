@@ -19,7 +19,6 @@
  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 #pragma once
@@ -124,11 +123,11 @@ namespace iiwa_ros {
 		 * @param max_control_force_stop Indicates whether a stop condition is fired if the maximum control force is exceeded.
 		 * @return bool
 		 */
+		
 		bool setCartesianImpedanceMode(const iiwa_msgs::CartesianQuantity& cartesian_stiffness, const iiwa_msgs::CartesianQuantity& cartesian_damping, 
 									   const double nullspace_stiffness, const double nullspace_damping,
 								 const iiwa_msgs::CartesianQuantity& max_path_deviation, const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
 								 const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
-
 		
 		/**
 		 * @brief Sets the control mode to DesiredForce.
