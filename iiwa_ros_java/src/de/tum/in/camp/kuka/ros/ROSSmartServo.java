@@ -173,6 +173,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
 	
+	/**
+	 * Adds Cartesian limits - maxPathDeviation, maxCartesianVelocity, maxControlForce - to a CartesianImpedanceControlMode
+	 * @param controlMode
+	 * @param limits
+	 */
 	private void addControlModeLimits(CartesianImpedanceControlMode controlMode, iiwa_msgs.CartesianControlModeLimits limits) {
 		CartesianQuantity maxPathDeviation = limits.getMaxPathDeviation();
 		if (helper.isCartesianQuantityGreaterThan(maxPathDeviation, 0)) {
@@ -262,54 +267,22 @@ public class ROSSmartServo extends ROSBaseApplication {
 			cm = ccm;
 			break;
 		}
-		
-		// TODO: get rid of duplicated code
 
 		case iiwa_msgs.ControlMode.DESIRED_FORCE : {
 			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
-			CartDOF direction = null;
-			switch (request.getDesiredForce().getCartesianDof()) {
-			case iiwa_msgs.DOF.X :
-				direction = CartDOF.X;
-				break;
-			case iiwa_msgs.DOF.Y :
-				direction = CartDOF.Y;
-				break;
-			case iiwa_msgs.DOF.Z :
-				direction = CartDOF.Z;
-				break;
-			default:
-				getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
-				break;
-			}
+			CartDOF direction = selectDegreeOfFreedom(request.getDesiredForce().getCartesianDof());
 
 			if (direction != null && request.getDesiredForce().getDesiredForce() >= 0 && request.getDesiredForce().getDesiredStiffness() >= 0) {
 				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(),  request.getDesiredForce().getDesiredStiffness());
 				addControlModeLimits(cscm, request.getLimits());
 				cm = cscm;
 			}
-			
-			
 			break;
 		}
 		
 		case iiwa_msgs.ControlMode.SINE_PATTERN : {
 			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
-			CartDOF direction = null;
-			switch (request.getDesiredForce().getCartesianDof()) {
-			case iiwa_msgs.DOF.X :
-				direction = CartDOF.X;
-				break;
-			case iiwa_msgs.DOF.Y :
-				direction = CartDOF.Y;
-				break;
-			case iiwa_msgs.DOF.Z :
-				direction = CartDOF.Z;
-				break;
-			default:
-				getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
-				break;
-			}
+			CartDOF direction = selectDegreeOfFreedom(request.getSinePattern().getCartesianDof());
 
 			if (direction != null && request.getSinePattern().getFrequency() >= 0 && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
 				cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern().getFrequency(), request.getSinePattern().getAmplitude(), request.getSinePattern().getStiffness());
@@ -318,7 +291,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 			break;
 		}
-
+		
 		default:				
 			getLogger().error("Control Mode not supported.");
 			throw new UnsupportedControlModeException();  // this should just not happen
@@ -332,7 +305,35 @@ public class ROSSmartServo extends ROSBaseApplication {
 		}
 	}
 	
-	public SmartServo createSmartServoMotion() {
+	/**
+	 * Transforms a iiwa_msgs.DOF to a KUKA CartDOF object
+	 * @param dof
+	 * @return
+	 */
+	private CartDOF selectDegreeOfFreedom(int dof) {
+		CartDOF direction = null;
+		switch (dof) {
+		case iiwa_msgs.DOF.X :
+			direction = CartDOF.X;
+			break;
+		case iiwa_msgs.DOF.Y :
+			direction = CartDOF.Y;
+			break;
+		case iiwa_msgs.DOF.Z :
+			direction = CartDOF.Z;
+			break;
+		default:
+			getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
+			break;
+		}
+		return direction;
+	}
+
+	/**
+	 * Generates a new smartServoMotion with the current parameters.
+	 * @return
+	 */
+	private SmartServo createSmartServoMotion() {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
@@ -342,7 +343,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 		return mot;
 	}	
 	
-	public void switchSmartServoMotion(iiwa_msgs.ConfigureSmartServoRequest request) {
+	/**
+	 * Allows to switch control mode on the fly. Kills a smartServo motion and creates a new one with the given request.
+	 * If null is given as argument, the last received request will be used. This is the case if only velocity and/or acceleration need(s) to be changed.
+	 * @param request
+	 */
+	private void switchSmartServoMotion(iiwa_msgs.ConfigureSmartServoRequest request) {
 		configureSmartServoLock.lock();
 
 		SmartServo oldmotion = motion;
@@ -377,7 +383,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
 	 * @return boolean
 	 */
-	public boolean isSameControlMode(IMotionControlMode kukacm, int roscm) {
+	private boolean isSameControlMode(IMotionControlMode kukacm, int roscm) {
 		if (kukacm == null) return false;
 		String roscmname = null;
 		switch (roscm) {
