@@ -6,22 +6,24 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
   cmake_modules
+  roscpp
 )
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS  
+	CATKIN_DEPENDS iiwa_msgs roscpp
 )
 
 ## Specify additional locations of header files
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
 	src/iiwaRos.cpp
+	src/smart_servo_service.cpp
+	src/path_parameters_service.cpp
+	src/time_to_destination_service.cpp
 )
 			
 ## Add dependence to the iiwa_msg module for the library

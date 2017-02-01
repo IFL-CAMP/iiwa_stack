@@ -534,18 +534,6 @@ public class iiwaMessageGenerator {
 	}
 	
 	/**
-	 * Builds a string from an exception, adding the class name of the one that has thrown the exception.
-	 * @param e 
-	 * @return
-	 */
-	public String execeptionToString(Exception e) {
-		java.io.StringWriter sw = new java.io.StringWriter();
-		java.io.PrintWriter pw = new java.io.PrintWriter(sw);
-		e.printStackTrace(pw);
-		return (e.getClass().getName() + ": " + e.getMessage() + ", " + sw.toString());
-	}
-
-	/**
 	 * Checks if all the component of a CartesianQuantity are greater than the given value.
 	 * @param quantity
 	 * @param value
