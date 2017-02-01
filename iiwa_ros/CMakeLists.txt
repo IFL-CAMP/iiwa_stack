@@ -20,7 +20,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-	src/iiwaRos.cpp
+	src/iiwa_ros.cpp
 	src/smart_servo_service.cpp
 	src/path_parameters_service.cpp
 	src/time_to_destination_service.cpp
