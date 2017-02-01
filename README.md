@@ -26,7 +26,7 @@ We **_strongly_** suggest to have a look at the wiki to have a better understand
 Do you have problems? First, please check the [**FAQs**](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ). Issues or emails are always welcome!
 
 ___
-## Citation
+### Citation
 
 If you use iiwa_stack for reseach, you could cite the following work. It is the first publication where it is used.
 
