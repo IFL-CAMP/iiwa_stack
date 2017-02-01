@@ -73,6 +73,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private long previousTime; // Timestamp of previous setDestination() in s
 	private long currentTime; // Timestamp of last setDestination() in s
 	private long loopCounter;
+	
+	private ConfigureSmartServoRequest latestSmartServoRequest;
 
 	@Override
 	protected void configureNodes(URI uri) {
@@ -88,11 +90,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
-		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, 
-				iiwa_msgs.ConfigureSmartServoResponse>() {
+		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
 			@Override
-			public void build(ConfigureSmartServoRequest req,
-					ConfigureSmartServoResponse res) throws ServiceException {
+			public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
 				try {
 					if (isSameControlMode(motion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
 						if (!(motion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
@@ -104,32 +104,31 @@ public class ROSSmartServo extends ROSBaseApplication {
 				} catch (Exception e) {
 					res.setSuccess(false);
 					if (e.getMessage() != null) {
-						res.setError(helper.execeptionToString(e));
+						res.setError(e.getClass().getName() + ": " + e.getMessage());
 					} else {
 						res.setError("because I hate you :)");
 					}
 					return;
 				}
 				res.setSuccess(true);
+				latestSmartServoRequest = req;
 
 				getLogger().info("Changed SmartServo configuration!");
 				getLogger().info("Mode: " + motion.getMode().toString());
 			}
 		});
 
-		subscriber.setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, 
-				iiwa_msgs.TimeToDestinationResponse>() {
+		subscriber.setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse>() {
 
 			@Override
-			public void build(TimeToDestinationRequest req,
-					TimeToDestinationResponse res) throws ServiceException {
+			public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
 				try {
 					motion.getRuntime().updateWithRealtimeSystem();
 					res.setRemainingTime(motion.getRuntime().getRemainingTime());
 				}
 				catch(Exception e) {
 					// An exception should be thrown only if a motion/runtime is not available.
-					res.setRemainingTime(-1); 
+					res.setRemainingTime(-999); 
 				}
 			}
 		});
@@ -137,13 +136,20 @@ public class ROSSmartServo extends ROSBaseApplication {
 		subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
 			@Override
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
-				if (req.getJointRelativeVelocity() >= 0)
-					jointVelocity = req.getJointRelativeVelocity();
-				if (req.getJointRelativeAcceleration() >= 0)
-					jointAcceleration = req.getJointRelativeAcceleration();
-				if (req.getOverrideJointAcceleration() >= 0)
-					overrideJointAcceleration = req.getOverrideJointAcceleration();
-				switchSmartServoMotion(null);
+				try {
+					if (req.getJointRelativeVelocity() >= 0)
+						jointVelocity = req.getJointRelativeVelocity();
+					if (req.getJointRelativeAcceleration() >= 0)
+						jointAcceleration = req.getJointRelativeAcceleration();
+					if (req.getOverrideJointAcceleration() >= 0)
+						overrideJointAcceleration = req.getOverrideJointAcceleration();
+					switchSmartServoMotion(null);
+					res.setSuccess(true);
+				}
+				catch(Exception e) {
+					res.setError(e.getClass().getName() + ": " + e.getMessage());
+					res.setSuccess(false);
+				}
 			}
 		});
 
@@ -318,10 +324,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 			throw new UnsupportedControlModeException();  // this should just not happen
 		}
 
-		if (cm != null)
+		if (cm != null) {
 			return cm;
-		else
+		}
+		else {
 			throw new UnsupportedControlModeException();
+		}
 	}
 	
 	public SmartServo createSmartServoMotion() {
@@ -337,7 +345,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 	public void switchSmartServoMotion(iiwa_msgs.ConfigureSmartServoRequest request) {
 		configureSmartServoLock.lock();
 
-		IMotionControlMode currentControlMode = motion.getMode();
 		SmartServo oldmotion = motion;
 		if (tool != null) {
 			ServoMotion.validateForImpedanceMode(tool);
@@ -350,8 +357,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 			motion.setMode(buildMotionControlMode(request));
 		}
 		else {
-			if (currentControlMode != null) {
-				motion.setMode(currentControlMode);
+			if (latestSmartServoRequest != null) {
+				motion.setMode(buildMotionControlMode(latestSmartServoRequest));
+			}
+			else {
+				motion.setMode(new PositionControlMode());
 			}
 		}
 		toolFrame.moveAsync(motion);
@@ -416,8 +426,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 				PoseStamped commandPosition = subscriber.getCartesianPose();
 				if (commandPosition != null) {
 					Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
-					if (robot.isReadyToMove()) 
-						motion.getRuntime().setDestination(destinationFrame);
+					if (robot.isReadyToMove())
+						try {
+							// try to move to the commanded cartesian pose, it something goes wrong catch the exception.
+							motion.getRuntime().setDestination(destinationFrame);
+						}
+					catch (Exception e) {
+						getLogger().error(e.getClass().getName() + ": " + e.getMessage());
+					}	
 				}
 			}
 			break;
