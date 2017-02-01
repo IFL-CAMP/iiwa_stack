@@ -34,13 +34,19 @@ namespace iiwa_ros {
 	 */
 	class iiwaServices {
 	public:
+		
 		/**
-		 * @brief Creates a ROS Service client for the Service server with the given name
+		 * @brief Creates a ROS Service client for the Service server with the given name.
+		 */
+		iiwaServices() : service_name_(""), verbose_(true), service_ready_(false) {}
+		
+		/**
+		 * @brief Creates a ROS Service client for the Service server with the given name.
 		 * 
 		 * @param service_name Name of the ROS Service server to connect to.
 		 * @param verbose If true some ROS_INFO messages will be printed out during service calls.
 		 */
-		iiwaServices(const std::string& service_name, const bool verbose = true) : service_name_(service_name), verbose_(verbose) {
+		iiwaServices(const std::string& service_name, const bool verbose = true) : service_name_(service_name), verbose_(verbose), service_ready_(false) {
 			initService();
 		}
 
@@ -49,7 +55,7 @@ namespace iiwa_ros {
 		 * A client is created by the class constructor, this function might be useful to switch to another Service server with another name on the fly.
 		 * To do that, first set the new server name with setServiceName.
 		 */
-		virtual void initService() { client_ = nh_.serviceClient<T>(service_name_); };
+		virtual void initService() { client_ = nh_.serviceClient<T>(service_name_); service_ready_ = true; };
 		
 		/**
 		 * @brief Sets the name of the ROS Service serve to connect to. Use initService to create a Service client to a service with this name.
@@ -84,6 +90,7 @@ namespace iiwa_ros {
 		T config_;
 		bool verbose_ = true;
 		std::string service_error_;
+		bool service_ready_;
 	};
 	
 }
