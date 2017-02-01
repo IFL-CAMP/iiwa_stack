@@ -19,7 +19,6 @@
  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
 #include "iiwa_ros.h"
@@ -67,7 +66,7 @@ void iiwaRos::init()
 bool iiwaRos::getRobotIsConnected(bool verbose) {
 	ros::Duration diff = (ros::Time::now() - last_update_time);
 	if (verbose) {
-		ROS_INFO_STREAM("getRobotIsConnect - The time difference is: " << diff.toSec() << " It is checked against: " << ros::Duration(0.1).toSec() );
+		ROS_ERROR_STREAM("getRobotIsConnect - The time difference is: " << diff.toSec() << " It is checked against: " << ros::Duration(0.1).toSec() );
 	}
 	return (diff < ros::Duration(0.1));
 }
