@@ -1,0 +1,13 @@
+# This service allows to set relative joint velocity and acceleration of the robot at runtime.
+
+# Relative velocity of the individual joints, 0 < value <= 1
+float64 joint_relative_velocity
+
+# Relative acceleration of the individual joints, 0 < value <= 1
+float64 joint_relative_acceleration
+
+# Override the acceleration factor for all joints. Must be between 0.0 and 10.0. 
+float64 override_joint_acceleration
+---
+bool success
+string error

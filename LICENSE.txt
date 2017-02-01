@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Most of the files were drastically modified, but the original authors inspired our work.
 For everything else :
 
-Copyright (c) 2016, Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+Copyright (c) 2016-2017, Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
 Technische Universität München
 Chair for Computer Aided Medical Procedures and Augmented Reality
 Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
