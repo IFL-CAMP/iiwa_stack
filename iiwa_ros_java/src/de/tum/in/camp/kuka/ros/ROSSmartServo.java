@@ -137,12 +137,15 @@ public class ROSSmartServo extends ROSBaseApplication {
 			@Override
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
 				try {
-					if (req.getJointRelativeVelocity() >= 0)
+					if (req.getJointRelativeVelocity() >= 0) {
 						jointVelocity = req.getJointRelativeVelocity();
-					if (req.getJointRelativeAcceleration() >= 0)
+					}
+					if (req.getJointRelativeAcceleration() >= 0) {
 						jointAcceleration = req.getJointRelativeAcceleration();
-					if (req.getOverrideJointAcceleration() >= 0)
+					}
+					if (req.getOverrideJointAcceleration() >= 0) {
 						overrideJointAcceleration = req.getOverrideJointAcceleration();
+					}
 					switchSmartServoMotion(null);
 					res.setSuccess(true);
 				}
