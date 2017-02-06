@@ -186,21 +186,16 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			} else {
 				return null;
 			}
-		}	}
+		}	
+	}
 
 	/**
 	 * Returns the last received Joint Velocity message. Returns null if no new message is available.<p>
 	 * @return the received Joint Velocity message.
 	 */
 	public iiwa_msgs.JointVelocity getJointVelocity() {
-		synchronized(new_jv) {
-			if (new_jv) {
-				new_jv = false;
 				return jv;
-			} else {
-				return null;
-			}
-		}	}
+	}
 
 	/**
 	 * @see org.ros.node.NodeMain#getDefaultNodeName()

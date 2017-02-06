@@ -203,16 +203,20 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.incrementSeqNumber(jt.getHeader());
 			jointTorquePublisher.publish(jt);
 		}
-		if (jointStiffnessPublisher.getNumberOfSubscribers() > 0 && motion.getMode() instanceof JointImpedanceControlMode) {
-			helper.getCurrentJointStiffness(jst, robot, motion);
-			helper.incrementSeqNumber(jst.getHeader());
-			jointStiffnessPublisher.publish(jst);
+		
+		if (motion != null) {
+			if (jointStiffnessPublisher.getNumberOfSubscribers() > 0 && motion.getMode() instanceof JointImpedanceControlMode) {
+				helper.getCurrentJointStiffness(jst, robot, motion);
+				helper.incrementSeqNumber(jst.getHeader());
+				jointStiffnessPublisher.publish(jst);
+			}
+			if (jointDampingPublisher.getNumberOfSubscribers() > 0  && motion.getMode() instanceof JointImpedanceControlMode) {
+				helper.getCurrentJointDamping(jd, robot, motion);
+				helper.incrementSeqNumber(jp.getHeader());
+				jointDampingPublisher.publish(jd);
+			}
 		}
-		if (jointDampingPublisher.getNumberOfSubscribers() > 0  && motion.getMode() instanceof JointImpedanceControlMode) {
-			helper.getCurrentJointDamping(jd, robot, motion);
-			helper.incrementSeqNumber(jp.getHeader());
-			jointDampingPublisher.publish(jd);
-		}
+		
 		if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentJointState(js, robot);
 			helper.incrementSeqNumber(js.getHeader());
