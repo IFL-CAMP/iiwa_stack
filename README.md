@@ -28,7 +28,7 @@ Do you have problems? First, please check the [**FAQs**](https://github.com/Salv
 ___
 ### Citation
 
-If you use iiwa_stack for reseach, you could cite the following work. It is the first publication where it is used.
+If you use iiwa_stack for reseach, you could cite the following work. It is the first publication where it was used.
 
     @article{hennersperger2016towards,
         title={Towards MRI-based Autonomous Robotic US Acquisitions: A First Feasibility Study},
