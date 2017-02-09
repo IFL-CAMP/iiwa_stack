@@ -191,14 +191,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			tool.attachTo(robot.getFlange());
 			toolFrameID = toolFromConfig + toolFrameIDSuffix;
 			toolFrame = tool.getFrame("/" + toolFrameID);
-			if (!SmartServo.validateForImpedanceMode(tool))
-				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		} else {
 			getLogger().info("No tool attached. Using flange.");
 			toolFrameID = iiwaConfiguration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = robot.getFlange();
-			if (!SmartServo.validateForImpedanceMode(robot))
-				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		}
 
 		// Publish joint state?

@@ -72,7 +72,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private double loopPeriod; // Loop period in s
 	private long previousTime; // Timestamp of previous setDestination() in s
 	private long currentTime; // Timestamp of last setDestination() in s
-	private long loopCounter;
 	
 	private ConfigureSmartServoRequest latestSmartServoRequest;
 
@@ -417,10 +416,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 
 		// Initialize time stamps
-		previousTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
-		currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
+		previousTime = motion.getRuntime().updateWithRealtimeSystem();
+		currentTime = motion.getRuntime().updateWithRealtimeSystem();
 		loopPeriod = 0.0;
-		loopCounter = 0;
 	}
 
 	@Override
@@ -484,14 +482,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 					if (robot.isReadyToMove())
 						motion.getRuntime().setDestination(jp);
 
-					currentTime = motion.getRuntime().getTimeStampOfSetRealtimeDestination();
-
-					if (loopCounter == 0)
-						loopPeriod = 0;
-					else
-						loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
-
-					++loopCounter;
+					currentTime = motion.getRuntime().updateWithRealtimeSystem();
+					loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
 				}
 			}
 			break;

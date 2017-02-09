@@ -468,15 +468,7 @@ public class iiwaMessageGenerator {
 	 * @param kukaJointPos : resulting JointPosition
 	 */
 	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos) {
-		kukaJointPos.set(
-				rosJointPos.getA1(),
-				rosJointPos.getA2(),
-				rosJointPos.getA3(),
-				rosJointPos.getA4(),
-				rosJointPos.getA5(),
-				rosJointPos.getA6(),
-				rosJointPos.getA7()
-				);
+		rosJointQuantityToKuka(rosJointPos, kukaJointPos, 1.0);
 	}
 
 	/**
