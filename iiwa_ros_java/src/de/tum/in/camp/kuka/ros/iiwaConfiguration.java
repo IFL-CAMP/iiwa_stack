@@ -248,7 +248,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	public Double getDefaultRelativeJointVelocity() {
 		Double defaultRelativeJointVelocity = getDoubleParameter("defaultRelativeJointSpeed");
 		if (defaultRelativeJointVelocity == null)
-			defaultRelativeJointVelocity = 1.0; // TODO: from config.txt or ProcessData, this is the default by KUKA doc
+			defaultRelativeJointVelocity = 0.5; // TODO: from config.txt or ProcessData
 		return defaultRelativeJointVelocity;
 	}
 

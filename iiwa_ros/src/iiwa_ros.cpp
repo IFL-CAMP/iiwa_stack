@@ -48,9 +48,9 @@ namespace iiwa_ros {
 		holder_command_joint_position_velocity_.init("/command/JointPositionVelocity");
 		holder_command_joint_velocity_.init("command/JointVelocity");
 		
-		smart_servo_service_.setServiceName("/configuration/configureSmartServo");
-		path_parameters_service_.setServiceName("/configuration/pathParameters");
-		time_to_destination_service_.setServiceName("/state/timeToDestination");
+		smart_servo_service_.setServiceName("configuration/configureSmartServo");
+		path_parameters_service_.setServiceName("configuration/pathParameters");
+		time_to_destination_service_.setServiceName("state/timeToDestination");
 	}
 	
 	bool iiwaRos::getRobotIsConnected() {
