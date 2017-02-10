@@ -55,7 +55,10 @@ namespace iiwa_ros {
 		 * A client is created by the class constructor, this function might be useful to switch to another Service server with another name on the fly.
 		 * To do that, first set the new server name with setServiceName.
 		 */
-		virtual void initService() { client_ = nh_.serviceClient<T>(service_name_); service_ready_ = true; };
+		virtual void initService() { 		
+			ros::NodeHandle nh_;
+			client_ = nh_.serviceClient<T>(service_name_); service_ready_ = true;
+		};
 		
 		/**
 		 * @brief Sets the name of the ROS Service serve to connect to. Use initService to create a Service client to a service with this name.
@@ -85,7 +88,6 @@ namespace iiwa_ros {
 		virtual bool callService() = 0;
 		
 		std::string service_name_ = "";
-		ros::NodeHandle nh_;
 		ros::ServiceClient client_;
 		T config_;
 		bool verbose_ = true;
