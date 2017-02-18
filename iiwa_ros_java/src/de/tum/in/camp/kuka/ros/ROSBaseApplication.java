@@ -23,10 +23,10 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
@@ -85,7 +85,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected abstract void controlLoop();
 
 	/*
-	 * Performing NTP synchronization and SmartServo control makes the control loop very slow
+	 * SmartServo control makes the control loop very slow
 	 * These variables are used to run them every *decimation* times, 
 	 * In order to balance the load, they alternate at *decimationCounter* % *decimation* == 0 and
 	 * *decimationCounter* % *decimation* == *decimation* / 2
@@ -94,7 +94,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	// TODO : in config.txt or processData
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
-	protected int ntpDecimation = 1024;
 
 
 	public void initialize() {
@@ -202,6 +201,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		// Initialize motion.
 		toolFrame.moveAsync(motion);
+		
+		if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+			((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
+		}
 
 		// Run what is needed before the control loop in the subclasses.
 		beforeControlLoop();
@@ -213,15 +216,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		try {
 			while(running) { 
 				decimationCounter++;
-
-				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) && iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-					try {
-					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime();
-					}
-					catch (IOException e) {
-						getLogger().error("The TimeProvider failed to update. Are you running an NTP Server?");
-					}
-				}
 
 				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
