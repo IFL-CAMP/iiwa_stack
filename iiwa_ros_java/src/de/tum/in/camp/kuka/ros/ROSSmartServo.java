@@ -217,7 +217,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
 
 			JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
-			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0));
+			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0))
 				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
 
 			JointQuantity damping = request.getJointImpedance().getJointDamping();
