@@ -104,7 +104,7 @@ bool IIWA_HW::start() {
         throw std::runtime_error("No URDF model available");
     }
     
-    iiwa_ros_conn_.init(false);
+    iiwa_ros_conn_.init();
     
     // initialize and set to zero the state and command values
     device_->init();
@@ -279,8 +279,6 @@ void IIWA_HW::write(const ros::Time& time, const ros::Duration& period) {
         else if (interface_ == interface_type_.at(2)) {
             // TODO
         }
-        
-        iiwa_ros_conn_.publish();
     } else if (delta.toSec() >= 10) {
         ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
         timer_ = ros::Time::now();
