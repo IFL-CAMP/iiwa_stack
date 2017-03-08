@@ -1,0 +1,27 @@
+- git:
+    local-name: control_msgs
+    uri: https://github.com/ros-controls/control_msgs.git
+    version: c0b322b2e833b82506039bd8e57d7fae0514b1ed
+
+- git:
+    local-name: control_toolbox
+    uri: https://github.com/ros-controls/control_toolbox.git
+    version: ba1100638a48a461e4e642150f4ae666303e3ecc
+
+- git:
+    local-name: realtime_tools
+    uri: https://github.com/ros-controls/realtime_tools.git
+    version: bf552984ff2b52817c2b673aef6b55df9af90c60
+
+- git:
+    local-name: ros_control
+    uri: https://github.com/ros-controls/ros_control.git
+    version: cac90740a71e506677a7fcc26c3e5fd4f8297e4b
+
+# For kinetic, use F_enable_part_traj_kinetic branch until this PR has been merged: https://github.com/ros-controls/ros_controllers/pull/226
+# For indigo, use the branch below instead
+- git:
+    local-name: ros_controllers
+    uri: https://github.com/shadow-robot/ros_controllers.git
+    version: indigo_compatible_enable_part_traj_kinetic
+
