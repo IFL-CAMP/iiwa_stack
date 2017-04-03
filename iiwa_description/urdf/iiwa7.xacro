@@ -114,7 +114,7 @@
 	<inertia ixx="0.02076"  ixy="0"  ixz="-0.003626" iyy="0.02179" iyz="0" izz="0.00779" />
       </inertial>
       <visual>
-	<origin xyz="0 0 -0.0060" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
 	<geometry>
 	  <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_2.stl"/>
 	</geometry>
@@ -122,7 +122,7 @@
       </visual>
       
       <collision>
-	<origin xyz="0 0 -0.0060" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
 	<geometry>
 	  <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_2.stl"/>
 	</geometry>
@@ -152,7 +152,7 @@
       </inertial>
       
       <visual>
-	<origin xyz="0 -0.005 -0.026" rpy="0 0 0"/>
+	<origin xyz="0 0 -0.026" rpy="0 0 0"/>
 	<geometry>
 	  <mesh filename="package://iiwa_description/meshes/iiwa7/visual/link_3.stl"/>
 	</geometry>
@@ -160,7 +160,7 @@
       </visual>
       
       <collision>
-	<origin xyz="0 -0.005 -0.026" rpy="0 0 0"/>
+	<origin xyz="0 0 -0.026" rpy="0 0 0"/>
 	<geometry>
 	  <mesh filename="package://iiwa_description/meshes/iiwa7/collision/link_3.stl"/>
 	</geometry>
