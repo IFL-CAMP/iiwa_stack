@@ -324,20 +324,10 @@
     <joint name="${robot_name}_joint_ee" type="fixed">
       <parent link="${robot_name}_link_7"/>
       <child link="${robot_name}_link_ee"/>
-      <origin xyz="0 0 0.045" rpy="0 -${PI/2} 0"/>
+      <origin xyz="0 0 0.045" rpy="0 0 0"/>
     </joint>
     
     <link name="${robot_name}_link_ee">
-    </link>
-    
-    <joint name="${robot_name}_joint_ee_kuka" type="fixed">
-      <parent link="${robot_name}_link_7"/>
-      <child link="${robot_name}_link_ee_kuka"/>
-      <origin xyz="0 0 0.045" rpy="${PI} ${PI} ${PI}"/>
-      <axis xyz="0 0 1"/>
-    </joint>
-    
-    <link name="${robot_name}_link_ee_kuka">
     </link>
     
     <!--Extensions -->
