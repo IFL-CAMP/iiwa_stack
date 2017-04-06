@@ -37,6 +37,10 @@ add_library(${PROJECT_NAME}
   src/iiwa_hw.cpp
 )
 
+target_link_libraries(${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
 ## Declare a cpp executable
 add_executable(${PROJECT_NAME}-bin
     src/main.cpp

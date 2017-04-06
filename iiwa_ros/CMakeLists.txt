@@ -26,5 +26,9 @@ add_library(${PROJECT_NAME}
 	src/time_to_destination_service.cpp
 )
 
+target_link_libraries(${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)
