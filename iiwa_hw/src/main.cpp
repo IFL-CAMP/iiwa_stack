@@ -30,12 +30,8 @@
  */
 
 #include "iiwa_hw.h"
-
-#include <sys/mman.h>
-#include <cmath>
-#include <time.h>
 #include <signal.h>
-#include <stdexcept>
+#include <ros/ros.h>
 
 bool g_quit = false;
 
@@ -63,27 +59,20 @@ int main( int argc, char** argv ) {
     // configuration routines
     iiwa_robot.start();
     
-    // timer variables
-    struct timespec ts = {0, 0};
-    ros::Time last(ts.tv_sec, ts.tv_nsec), now(ts.tv_sec, ts.tv_nsec);
+    ros::Time last(ros::Time::now());
+    ros::Time now;
     ros::Duration period(1.0);
     
     //the controller manager
     controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
     
-    
     // run as fast as possible
     while( !g_quit ) {
+        
         // get the time / period
-        if (!clock_gettime(CLOCK_REALTIME, &ts)) {
-            now.sec = ts.tv_sec;
-            now.nsec = ts.tv_nsec;
-            period = now - last;
-            last = now;
-        } else {
-            ROS_FATAL("Failed to poll realtime clock!");
-            break;
-        } 
+        now = ros::Time::now();
+        period = now - last;
+        last = now;
         
         // read current robot position
         iiwa_robot.read(period);
@@ -96,7 +85,6 @@ int main( int argc, char** argv ) {
         
         // wait for some milliseconds defined in controlFrequency
         iiwa_robot.getRate()->sleep();
-        
     }
     
     std::cerr << "Stopping spinner..." << std::endl;

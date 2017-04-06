@@ -45,7 +45,7 @@ namespace iiwa_ros {
 		
 		holder_command_pose_.init("command/CartesianPose");
 		holder_command_joint_position_.init("command/JointPosition");
-		holder_command_joint_position_velocity_.init("/command/JointPositionVelocity");
+		holder_command_joint_position_velocity_.init("command/JointPositionVelocity");
 		holder_command_joint_velocity_.init("command/JointVelocity");
 		
 		smart_servo_service_.setServiceName("configuration/configureSmartServo");
@@ -99,6 +99,5 @@ namespace iiwa_ros {
 	void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value) {
 		holder_command_joint_position_velocity_.set(value);
 		holder_command_joint_position_velocity_.publishIfNew();
-		
 	}
 }
