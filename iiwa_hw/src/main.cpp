@@ -36,61 +36,61 @@
 bool g_quit = false;
 
 void quitRequested(int sig) {
-    g_quit = true;
+  g_quit = true;
 }
 
 int main( int argc, char** argv ) {
-    // initialize ROS
-    ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
+  // initialize ROS
+  ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
+  
+  // ros spinner
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+  
+  // custom signal handlers
+  signal(SIGTERM, quitRequested);
+  signal(SIGINT, quitRequested);
+  signal(SIGHUP, quitRequested);
+  
+  // construct the lbr iiwa
+  ros::NodeHandle iiwa_nh;
+  IIWA_HW iiwa_robot(iiwa_nh);
+  
+  // configuration routines
+  iiwa_robot.start();
+  
+  ros::Time last(ros::Time::now());
+  ros::Time now;
+  ros::Duration period(1.0);
+  
+  //the controller manager
+  controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
+  
+  // run as fast as possible
+  while( !g_quit ) {
     
-    // ros spinner
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    // get the time / period
+    now = ros::Time::now();
+    period = now - last;
+    last = now;
     
-    // custom signal handlers
-    signal(SIGTERM, quitRequested);
-    signal(SIGINT, quitRequested);
-    signal(SIGHUP, quitRequested);
+    // read current robot position
+    iiwa_robot.read(period);
     
-    // construct the lbr iiwa
-    ros::NodeHandle iiwa_nh;
-    IIWA_HW iiwa_robot(iiwa_nh);
+    // update the controllers
+    manager.update(now, period);
     
-    // configuration routines
-    iiwa_robot.start();
+    // send command position to the robot
+    iiwa_robot.write(period);
     
-    ros::Time last(ros::Time::now());
-    ros::Time now;
-    ros::Duration period(1.0);
-    
-    //the controller manager
-    controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
-    
-    // run as fast as possible
-    while( !g_quit ) {
-        
-        // get the time / period
-        now = ros::Time::now();
-        period = now - last;
-        last = now;
-        
-        // read current robot position
-        iiwa_robot.read(period);
-        
-        // update the controllers
-        manager.update(now, period);
-        
-        // send command position to the robot
-        iiwa_robot.write(period);
-        
-        // wait for some milliseconds defined in controlFrequency
-        iiwa_robot.getRate()->sleep();
-    }
-    
-    std::cerr << "Stopping spinner..." << std::endl;
-    spinner.stop();
-    
-    std::cerr << "Bye!" << std::endl;
-    
-    return 0;
+    // wait for some milliseconds defined in controlFrequency
+    iiwa_robot.getRate()->sleep();
+  }
+  
+  std::cerr << "Stopping spinner..." << std::endl;
+  spinner.stop();
+  
+  std::cerr << "Bye!" << std::endl;
+  
+  return 0;
 }
