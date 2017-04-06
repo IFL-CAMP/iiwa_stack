@@ -42,7 +42,7 @@ ___
 ### Acknowledgements
 This repository takes inspiration from the work of :
 - _Centro E. Piaggio_ and their [ROS interface for the KUKA LBR 4+][1]
-- _Mohammad Khansari_ and his [IIWA-ROS communication inteface] [2] 
+- _Mohammad Khansari_ and his [IIWA-ROS communication inteface][2] 
 - _Robert Krug_ and his [IIWA URDF and Gazebo package][7]      
 
 Most of the original files were completely refactored though.
