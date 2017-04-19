@@ -274,7 +274,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
 			CartDOF direction = selectDegreeOfFreedom(request.getDesiredForce().getCartesianDof());
 
-			if (direction != null && request.getDesiredForce().getDesiredForce() >= 0 && request.getDesiredForce().getDesiredStiffness() >= 0) {
+			if (direction != null && request.getDesiredForce().getDesiredStiffness() >= 0) {
 				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(),  request.getDesiredForce().getDesiredStiffness());
 				addControlModeLimits(cscm, request.getLimits());
 				cm = cscm;
