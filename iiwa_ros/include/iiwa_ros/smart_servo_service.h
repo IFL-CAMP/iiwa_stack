@@ -24,7 +24,7 @@
 #pragma once
 
 #include <iiwa_msgs/ConfigureSmartServo.h>
-#include <iiwa_services.hpp>
+#include <iiwa_ros/iiwa_services.hpp>
 
 namespace iiwa_ros {
   
@@ -195,12 +195,10 @@ namespace iiwa_ros {
                              const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
     
     void initJointImpedanceMode(const iiwa_msgs::JointQuantity& joint_stiffnes, const iiwa_msgs::JointQuantity& joint_damping);
-    
     void initCartesianImpedanceMode(const iiwa_msgs::CartesianQuantity& cartesian_stiffness, const iiwa_msgs::CartesianQuantity& cartesian_damping, 
                                     const double nullspace_stiffness, const double nullspace_damping,
                                     const iiwa_msgs::CartesianQuantity& max_path_deviation, const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
                                     const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
-    
     void initDesiredForceMode(const int cartesian_dof, const  double desired_force, const double desired_stiffness, 
                               const iiwa_msgs::CartesianQuantity& max_path_deviation, const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
                               const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
