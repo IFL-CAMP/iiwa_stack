@@ -30,6 +30,7 @@ import org.ros.node.NodeMainExecutor;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
@@ -115,7 +116,7 @@ public class ROSMonitor extends ROSBaseApplication {
 				gravCompSwitched = false;
 				getLogger().warn("Disabling gravity compensation");
 				controlMode.setStiffnessForAllJoints(1500); // TODO : max is 5000
-				motion.getRuntime().changeControlModeSettings(controlMode);
+				motion.getRuntime().changeControlModeSettings(new PositionControlMode());
 				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 			}
 		}

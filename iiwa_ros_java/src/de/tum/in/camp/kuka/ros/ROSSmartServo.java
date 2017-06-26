@@ -51,6 +51,11 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceC
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
+import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 /*
  * This application allows to command the robot using SmartServo motions.
@@ -74,6 +79,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private long currentTime; // Timestamp of last setDestination() in s
 	
 	private ConfigureSmartServoRequest latestSmartServoRequest;
+	
+	protected JointImpedanceControlMode controlMode; 
+	private IUserKeyBar gravcompKeybar;
+	private IUserKey gravCompKey;
+	private IUserKeyListener gravCompKeyList;
+	private boolean gravCompEnabled = false;
+	private boolean gravCompSwitched = false;
 
 	@Override
 	protected void configureNodes(URI uri) {
@@ -165,6 +177,25 @@ public class ROSSmartServo extends ROSBaseApplication {
 		jp = new JointPosition(robot.getJointCount());
 		jv = new JointPosition(robot.getJointCount());
 		jointDisplacement = new JointPosition(robot.getJointCount());
+		
+		gravcompKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
+		gravCompKeyList = new IUserKeyListener() {
+			@Override
+			public void onKeyEvent(IUserKey key,
+					com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+				if (event == UserKeyEvent.FirstKeyDown) {
+					gravCompEnabled = true;
+					gravCompSwitched = true;
+				} else if (event == UserKeyEvent.SecondKeyDown) {
+					gravCompEnabled = false;
+					gravCompSwitched = true;
+				}
+			};
+		};
+		gravCompKey = gravcompKeybar.addDoubleUserKey(0, gravCompKeyList, true);
+		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
+		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
+		gravcompKeybar.publish();
 	}
 
 	public static class UnsupportedControlModeException extends RuntimeException {
@@ -338,7 +369,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private SmartServo createSmartServoMotion() {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
 		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
-		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
+		mot.setTimeoutAfterGoalReach(3600); //TODO : parametrize
 		mot.setJointVelocityRel(jointVelocity);
 		mot.setJointAccelerationRel(jointAcceleration);
 		mot.overrideJointAcceleration(overrideJointAcceleration);
@@ -409,11 +440,72 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 		return roscmname.equals(kukacmname);
 	}
+	
+	private void gravComp() {
+		configureSmartServoLock.lock();
+				
+		if (gravCompEnabled) {
+			if (gravCompSwitched) {
+				gravCompSwitched = false;
+				getLogger().warn("Enabling gravity compensation");
+				controlMode.setStiffness(50,50,50,50,50,0,0);
+				//controlMode.setStiffnessForAllJoints(50);
+				controlMode.setDampingForAllJoints(0.7);
+				
+				SmartServo oldmotion = motion;
+				if (tool != null) {
+					ServoMotion.validateForImpedanceMode(tool);
+				}
+				else {
+					ServoMotion.validateForImpedanceMode(robot);
+				}
+				motion = createSmartServoMotion();
+				motion.setMode(controlMode);
+				toolFrame.moveAsync(motion);
+				oldmotion.getRuntime().stopMotion();
+				
+				motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
+				motion.getRuntime().setGoalReachedEventHandler(handler);
+			}
+
+			/*
+			 * Continuously updating the commanded position to the current robot
+			 * position If this is not done, when setting the stiffness back to
+			 * a high value the robot will go back to that position at full
+			 * speed: do not try that at home!!
+			 */
+			motion.getRuntime().setDestination(robot.getCurrentJointPosition());
+		} else {
+			if (gravCompSwitched) {
+				gravCompSwitched = false;
+				getLogger().warn("Disabling gravity compensation");
+				
+				SmartServo oldmotion = motion;
+				if (tool != null) {
+					ServoMotion.validateForImpedanceMode(tool);
+				}
+				else {
+					ServoMotion.validateForImpedanceMode(robot);
+				}
+				motion = createSmartServoMotion();
+				motion.setMode(new PositionControlMode());
+				toolFrame.moveAsync(motion);
+				oldmotion.getRuntime().stopMotion();
+				
+				motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
+				motion.getRuntime().setGoalReachedEventHandler(handler);
+				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
+			}
+		}
+		
+		configureSmartServoLock.unlock();
+	}
 
 	@Override
 	protected void beforeControlLoop() { 
 		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
 		motion.getRuntime().setGoalReachedEventHandler(handler);
+		controlMode = new JointImpedanceControlMode(robot.getJointCount());
 
 		// Initialize time stamps
 		previousTime = motion.getRuntime().updateWithRealtimeSystem();
@@ -423,7 +515,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void controlLoop() {
-		if (subscriber.currentCommandType != null) {
+		
+		gravComp();
+		
+		if (subscriber.currentCommandType != null && !gravCompEnabled) {
 			configureSmartServoLock.lock();
 
 			switch (subscriber.currentCommandType) {

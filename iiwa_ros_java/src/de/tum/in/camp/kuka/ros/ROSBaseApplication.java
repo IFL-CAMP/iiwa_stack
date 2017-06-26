@@ -53,7 +53,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected LBR robot;
 	protected Tool tool;
 	protected String toolFrameID;
-	protected static final String toolFrameIDSuffix = "_link_ee";
+	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
 	protected double jointVelocity;
@@ -177,7 +177,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
 		motion.setJointVelocityRel(jointVelocity);
 		motion.setJointAccelerationRel(jointAcceleration);
-		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
+		motion.setTimeoutAfterGoalReach(3600); // TODO : Parametrize
 		
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
