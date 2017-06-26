@@ -53,7 +53,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected LBR robot;
 	protected Tool tool;
 	protected String toolFrameID;
-	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
+	protected static final String toolFrameIDSuffix = "_link_ee";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
 	protected double jointVelocity;

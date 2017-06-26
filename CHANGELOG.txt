@@ -1,5 +1,18 @@
 # IIWA_STACK Changelog
 
+## Version 1.2.5
+
+#### New
+* `NTP updates are now automatic`
+* `Desired force accepts also negative force values (force toward the negative axis)`
+
+
+#### Bug Fixes
+* `Fixed joint velocity command mode`
+* `Removed useless "iiwa_link_ee_kuka" frame from URDF`
+* `Small fixes in the URDF: link misalignments, robot_name specific variables`
+* `Small fixes and improvements`
+
 ## Version 1.2.0 (release date: 01.02.2016)
 
 #### New

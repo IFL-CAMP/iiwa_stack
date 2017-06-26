@@ -7,13 +7,15 @@
   
   <xacro:arg name="hardware_interface" default="PositionJointInterface"/>
   <xacro:arg name="robot_name" default="iiwa"/>
-
+  <xacro:arg name="origin_xyz" default="0 0 0"/>
+  <xacro:arg name="origin_rpy" default="0 0 0"/>
+  
   <!-- Fix to world just for testing -->
   <link name="world"/>
-
+  
   <!--iiwa-->
   <xacro:iiwa14 hardware_interface="$(arg hardware_interface)" robot_name="$(arg robot_name)" parent="world">
-    <origin xyz="0 0 0.0" rpy="0 0 0" />
+    <origin xyz="$(arg origin_xyz)" rpy="$(arg origin_rpy)" />
   </xacro:iiwa14>
-
+  
 </robot>
