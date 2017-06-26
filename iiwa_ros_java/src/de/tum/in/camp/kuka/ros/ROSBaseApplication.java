@@ -182,7 +182,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
 		motion.setJointVelocityRel(jointVelocity);
 		motion.setJointAccelerationRel(jointAcceleration);
-		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
+		motion.setTimeoutAfterGoalReach(3600); // TODO : Parametrize
 
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
