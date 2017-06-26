@@ -41,8 +41,11 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
+import com.kuka.connectivity.motionModel.smartServo.ISmartServoRuntime;
 import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.ISmartServoLINRuntime;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.Frame;
@@ -51,6 +54,8 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceC
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
+
+import de.tum.in.camp.kuka.ros.iiwaSubscriber.CommandType;
 
 /*
  * This application allows to command the robot using SmartServo motions.
@@ -72,8 +77,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private double loopPeriod; // Loop period in s
 	private long previousTime; // Timestamp of previous setDestination() in s
 	private long currentTime; // Timestamp of last setDestination() in s
-	
-	private ConfigureSmartServoRequest latestSmartServoRequest;
+
+	private CommandType lastCommand = CommandType.JOINT_POSITION;
+	private IMotionControlMode controlMode;
+
 
 	@Override
 	protected void configureNodes(URI uri) {
@@ -90,15 +97,25 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
 				try {
-					if (isSameControlMode(motion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
-						if (!(motion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
-							motion.getRuntime().changeControlModeSettings(buildMotionControlMode(req));
+
+					ServoMotion currentMotion;
+					if (lastCommand != CommandType.CARTESIAN_POSE_LIN) {
+						currentMotion = motion;
+					}
+					else {
+						currentMotion = linearMotion;
+					}
+
+					if (isSameControlMode(controlMode, req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
+						if (!(controlMode instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
+							currentMotion.getRuntime().changeControlModeSettings(buildMotionControlMode(req));
 						}
 					} else {
-						switchSmartServoMotion(req);
+						switchSmartServoMotion(currentMotion, req);
 					}
 				} catch (Exception e) {
 					res.setSuccess(false);
@@ -110,7 +127,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 					return;
 				}
 				res.setSuccess(true);
-				latestSmartServoRequest = req;
 
 				getLogger().info("Changed SmartServo configuration!");
 				getLogger().info("Mode: " + motion.getMode().toString());
@@ -131,7 +147,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				}
 			}
 		});
-		
+
 		subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
 			@Override
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
@@ -145,7 +161,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 					if (req.getOverrideJointAcceleration() >= 0) {
 						overrideJointAcceleration = req.getOverrideJointAcceleration();
 					}
-					switchSmartServoMotion(null);
+					switchSmartServoMotion(motion, null);
 					res.setSuccess(true);
 				}
 				catch(Exception e) {
@@ -174,7 +190,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		public UnsupportedControlModeException(String message, Throwable cause) { super(message, cause); }
 		public UnsupportedControlModeException(Throwable cause) { super(cause); }
 	}
-	
+
 	/**
 	 * Adds Cartesian limits - maxPathDeviation, maxCartesianVelocity, maxControlForce - to a CartesianImpedanceControlMode
 	 * @param controlMode
@@ -185,12 +201,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 		if (helper.isCartesianQuantityGreaterThan(maxPathDeviation, 0)) {
 			controlMode.setMaxPathDeviation(maxPathDeviation.getX(), maxPathDeviation.getY(), maxPathDeviation.getZ(), maxPathDeviation.getA(), maxPathDeviation.getB(), maxPathDeviation.getC());
 		}
-		
+
 		CartesianQuantity maxControlForce = limits.getMaxControlForce();
 		if (helper.isCartesianQuantityGreaterThan(maxControlForce, 0)) {
 			controlMode.setMaxControlForce(maxControlForce.getX(), maxControlForce.getY(), maxControlForce.getZ(), maxControlForce.getA(), maxControlForce.getB(), maxControlForce.getC(), limits.getMaxControlForceStop());
 		}
-		
+
 		CartesianQuantity maxCartesianVelocity = limits.getMaxCartesianVelocity();
 		if (helper.isCartesianQuantityGreaterThan(maxCartesianVelocity, 0)) {
 			controlMode.setMaxCartesianVelocity(maxCartesianVelocity.getX(), maxCartesianVelocity.getY(), maxCartesianVelocity.getZ(), maxCartesianVelocity.getA(), maxCartesianVelocity.getB(),maxCartesianVelocity.getC());
@@ -206,64 +222,66 @@ public class ROSSmartServo extends ROSBaseApplication {
 		IMotionControlMode cm = null;
 
 		switch (request.getControlMode()) {
-		
+
 		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
 			PositionControlMode pcm = new PositionControlMode(true);
 			cm = pcm;
 			break;
 		}
-		
+
 		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
 			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
 
 			JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
-			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0))
-				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
+			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0)) { 
+				jcm.setStiffness(helper.jointQuantityToVector(stiffness)); 
+			}
 
 			JointQuantity damping = request.getJointImpedance().getJointDamping();
-			if (helper.isJointQuantityGreaterEqualThan(damping, 0))
-				jcm.setDamping(helper.jointQuantityToVector(damping));
+			if (helper.isJointQuantityGreaterEqualThan(damping, 0)) { 
+				jcm.setDamping(helper.jointQuantityToVector(damping)); 
+			}
 
 			cm = jcm;
 			break;
 		}
-		
+
 		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
 			CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
 
 			iiwa_msgs.CartesianQuantity stiffness = request.getCartesianImpedance().getCartesianStiffness();
 			if (stiffness.getX() >= 0)
-				ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
+			{ ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX()); }
 			if (stiffness.getY() >= 0)
-				ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getY());
+			{ ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getY()); }
 			if (stiffness.getZ() >= 0)
-				ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getZ());
+			{ ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getZ()); }
 			if (stiffness.getA() >= 0)
-				ccm.parametrize(CartDOF.A).setStiffness(stiffness.getA());
+			{ ccm.parametrize(CartDOF.A).setStiffness(stiffness.getA()); }
 			if (stiffness.getB() >= 0)
-				ccm.parametrize(CartDOF.B).setStiffness(stiffness.getB());
+			{ ccm.parametrize(CartDOF.B).setStiffness(stiffness.getB()); }
 			if (stiffness.getC() >= 0)
-				ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
+			{ ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC()); }
 
 			CartesianQuantity damping = request.getCartesianImpedance().getCartesianDamping();
 			if (damping.getX() > 0)
-				ccm.parametrize(CartDOF.X).setDamping(damping.getX());
+			{ ccm.parametrize(CartDOF.X).setDamping(damping.getX()); }
 			if (damping.getY() > 0)
-				ccm.parametrize(CartDOF.Y).setDamping(damping.getY());
+			{ ccm.parametrize(CartDOF.Y).setDamping(damping.getY()); }
 			if (damping.getZ() > 0)
-				ccm.parametrize(CartDOF.Z).setDamping(damping.getZ());
+			{ ccm.parametrize(CartDOF.Z).setDamping(damping.getZ()); }
 			if (damping.getA() > 0)
-				ccm.parametrize(CartDOF.A).setDamping(damping.getA());
+			{ ccm.parametrize(CartDOF.A).setDamping(damping.getA()); }
 			if (damping.getB() > 0)
-				ccm.parametrize(CartDOF.B).setDamping(damping.getB());
+			{ ccm.parametrize(CartDOF.B).setDamping(damping.getB()); }
 			if (damping.getC() > 0)
-				ccm.parametrize(CartDOF.C).setDamping(damping.getC());
+			{ ccm.parametrize(CartDOF.C).setDamping(damping.getC()); }
 
 			if (request.getCartesianImpedance().getNullspaceStiffness() >= 0)
-				ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness());
+			{ ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness()); }
 			if (request.getCartesianImpedance().getNullspaceDamping() > 0)
-				ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping());
-			
+			{ ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping()); }
+
 			addControlModeLimits(ccm, request.getLimits());
 
 			cm = ccm;
@@ -281,7 +299,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 			break;
 		}
-		
+
 		case iiwa_msgs.ControlMode.SINE_PATTERN : {
 			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
 			CartDOF direction = selectDegreeOfFreedom(request.getSinePattern().getCartesianDof());
@@ -293,10 +311,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 			break;
 		}
-		
-		default:				
+
+		default: {
 			getLogger().error("Control Mode not supported.");
 			throw new UnsupportedControlModeException();  // this should just not happen
+		}
 		}
 
 		if (cm != null) {
@@ -306,7 +325,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 			throw new UnsupportedControlModeException();
 		}
 	}
-	
+
 	/**
 	 * Transforms a iiwa_msgs.DOF to a KUKA CartDOF object
 	 * @param dof
@@ -315,18 +334,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private CartDOF selectDegreeOfFreedom(int dof) {
 		CartDOF direction = null;
 		switch (dof) {
-		case iiwa_msgs.DOF.X :
-			direction = CartDOF.X;
-			break;
-		case iiwa_msgs.DOF.Y :
-			direction = CartDOF.Y;
-			break;
-		case iiwa_msgs.DOF.Z :
-			direction = CartDOF.Z;
-			break;
-		default:
-			getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
-			break;
+		case iiwa_msgs.DOF.X : { direction = CartDOF.X; break; }
+		case iiwa_msgs.DOF.Y : { direction = CartDOF.Y; break; }
+		case iiwa_msgs.DOF.Z : { direction = CartDOF.Z; break; }
+		default: { getLogger().error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively."); }
+		break;
 		}
 		return direction;
 	}
@@ -336,49 +348,95 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * @return
 	 */
 	private SmartServo createSmartServoMotion() {
-		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
-		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
-		mot.setJointVelocityRel(jointVelocity);
-		mot.setJointAccelerationRel(jointAcceleration);
-		mot.overrideJointAcceleration(overrideJointAcceleration);
-		return mot;
-	}	
-	
+		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		motion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
+		motion.setJointVelocityRel(jointVelocity);
+		motion.setJointAccelerationRel(jointAcceleration);
+		motion.overrideJointAcceleration(overrideJointAcceleration);
+		return motion;
+	}
+
+	// TODO: doc
+	private SmartServoLIN createSmartServoLinMotion() {
+		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
+		linearMotion.setMinimumTrajectoryExecutionTime(20e-3);
+		linearMotion.setTimeoutAfterGoalReach(3600);
+		//		linearMotion.setMaxNullSpaceAcceleration(value);
+		//		linearMotion.setMaxNullSpaceVelocity(value);
+		//		linearMotion.setMaxOrientationAcceleration(value);
+		//		linearMotion.setMaxOrientationVelocity(value);
+		//		linearMotion.setMaxTranslationAcceleration(value);
+		//		linearMotion.setMaxTranslationVelocity(value);		
+		return linearMotion;
+
+	}
+
 	/**
-	 * Allows to switch control mode on the fly. Kills a smartServo motion and creates a new one with the given request.
+	 * Allows to switch control mode on the fly. Kills a servo motion and creates a new one with the given request.
 	 * If null is given as argument, the last received request will be used. This is the case if only velocity and/or acceleration need(s) to be changed.
 	 * @param request
 	 */
-	private void switchSmartServoMotion(iiwa_msgs.ConfigureSmartServoRequest request) {
+	@SuppressWarnings("rawtypes")
+	private void switchSmartServoMotion(ServoMotion motion, iiwa_msgs.ConfigureSmartServoRequest request) {
 		configureSmartServoLock.lock();
-
-		SmartServo oldmotion = motion;
+		ServoMotion oldMotion = motion;
 		if (tool != null) {
 			ServoMotion.validateForImpedanceMode(tool);
 		}
 		else {
 			ServoMotion.validateForImpedanceMode(robot);
 		}
-		motion = createSmartServoMotion();
+		if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
+		else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+
 		if (request != null) {
-			motion.setMode(buildMotionControlMode(request));
+			controlMode = buildMotionControlMode(request);
+			motion.setMode(controlMode);
 		}
 		else {
-			if (latestSmartServoRequest != null) {
-				motion.setMode(buildMotionControlMode(latestSmartServoRequest));
+			if (controlMode != null) {
+				motion.setMode(controlMode);
 			}
 			else {
 				motion.setMode(new PositionControlMode());
 			}
 		}
-		toolFrame.moveAsync(motion);
-		oldmotion.getRuntime().stopMotion();
-		
-		motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
-		motion.getRuntime().setGoalReachedEventHandler(handler);
+		switchMotion(linearMotion, oldMotion);	
+		if (motion instanceof SmartServo) { ((ISmartServoRuntime) motion.getRuntime()).activateVelocityPlanning(true); }
+		else if (motion instanceof SmartServoLIN) { ((ISmartServoLINRuntime) motion.getRuntime()).activateVelocityPlanning(true); }
 
 		configureSmartServoLock.unlock();
+	}
+
+	// TODO: doc
+	@SuppressWarnings("rawtypes")
+	private void switchMotion(ServoMotion motion, ServoMotion oldMotion) {
+		toolFrame.moveAsync(motion);
+		if (oldMotion != null) {
+			oldMotion.getRuntime().stopMotion();
+		}
+		motion.getRuntime().setGoalReachedEventHandler(handler);
+	}
+
+	// TODO: doc
+	private void servoMotionToLinear() {
+		if (linearMotion == null) {
+			linearMotion = createSmartServoLinMotion();
+		}
+		linearMotion.setMode(controlMode);
+		switchMotion(linearMotion, motion);
+		linearMotion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
+	}
+
+	// TODO: doc
+	private void linearMotionToServo() {
+		if (motion == null) {
+			motion = createSmartServoMotion();
+		}
+		motion.setMode(controlMode);
+		switchMotion(motion, linearMotion);
+		linearMotion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
 	}
 
 	/**
@@ -386,25 +444,31 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 * @return boolean
 	 */
 	private boolean isSameControlMode(IMotionControlMode kukacm, int roscm) {
-		if (kukacm == null) return false;
+		if (kukacm == null) { return false; }
 		String roscmname = null;
 		switch (roscm) {
-		case iiwa_msgs.ControlMode.POSITION_CONTROL:
+		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
 			roscmname = "PositionControlMode";
-			break;
-		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE:
-			roscmname = "JointImpedanceControlMode";
-			break;
-		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE:
-			roscmname = "CartesianImpedanceControlMode";
-			break;
-		case iiwa_msgs.ControlMode.DESIRED_FORCE:
-			roscmname = "CartesianSineImpedanceControlMode";
-			break;
-		case iiwa_msgs.ControlMode.SINE_PATTERN:
-			roscmname = "CartesianSineImpedanceControlMode";
-			break;
 		}
+		break;
+		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
+			roscmname = "JointImpedanceControlMode";
+		}
+		break;
+		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
+			roscmname = "CartesianImpedanceControlMode";
+		}
+		break;
+		case iiwa_msgs.ControlMode.DESIRED_FORCE: {
+			roscmname = "CartesianSineImpedanceControlMode";
+		}
+		break;
+		case iiwa_msgs.ControlMode.SINE_PATTERN: {
+			roscmname = "CartesianSineImpedanceControlMode";
+		}
+		break;
+		}
+
 		String kukacmname = kukacm.getClass().getSimpleName();
 
 		return roscmname.equals(kukacmname);
@@ -430,66 +494,105 @@ public class ROSSmartServo extends ROSBaseApplication {
 			case CARTESIAN_POSE: {
 				/* This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
 				 * If the robot can move, then it will move to this new position. */
+				if (lastCommand == CommandType.CARTESIAN_POSE_LIN) {
+					linearMotionToServo();
+				}
 				PoseStamped commandPosition = subscriber.getCartesianPose();
 				if (commandPosition != null) {
 					Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
-					if (robot.isReadyToMove())
+					if (robot.isReadyToMove()) {
 						try {
-							// try to move to the commanded cartesian pose, it something goes wrong catch the exception.
+							// try to move to the commanded cartesian pose, if something goes wrong catch the exception.
 							motion.getRuntime().setDestination(destinationFrame);
 						}
-					catch (Exception e) {
-						getLogger().error(e.getClass().getName() + ": " + e.getMessage());
-					}	
+						catch (Exception e) {
+							getLogger().error(e.getClass().getName() + ": " + e.getMessage());
+						}	
+					}
 				}
+				lastCommand = CommandType.CARTESIAN_POSE;
+				break;
 			}
-			break;
+
+			case CARTESIAN_POSE_LIN: {
+				if (lastCommand != CommandType.CARTESIAN_POSE_LIN) {
+					servoMotionToLinear();
+				}
+				PoseStamped commandPosition = subscriber.getCartesianPoseLin();
+				if (commandPosition != null) {
+					Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
+					if (robot.isReadyToMove()) {
+						try {
+							// try to move to the commanded cartesian pose, if something goes wrong catch the exception.
+							linearMotion.getRuntime().setDestination(destinationFrame);
+						}
+						catch (Exception e) {
+							getLogger().error(e.getClass().getName() + ": " + e.getMessage());
+						}
+					}
+				}
+				lastCommand = CommandType.CARTESIAN_POSE_LIN;
+				break;
+			}
 			case JOINT_POSITION: {
 				/* This will acquire the last received JointPosition command from the commanding ROS node, if there is any available.
 				 * If the robot can move, then it will move to this new position. */
+				if (lastCommand == CommandType.CARTESIAN_POSE_LIN) {
+					linearMotionToServo();
+				}
 				iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
 				if (commandPosition != null) {
 					helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
-					if (robot.isReadyToMove())
+					if (robot.isReadyToMove()) {
 						motion.getRuntime().setDestination(jp);
+					}
 				}
+				lastCommand = CommandType.JOINT_POSITION;
+				break;
 			}
-			break;
 			case JOINT_POSITION_VELOCITY: {
 				/* This will acquire the last received JointPositionVelocity command from the commanding ROS node, if there is any available.
 				 * If the robot can move, then it will move to this new position. */
+				if (lastCommand == CommandType.CARTESIAN_POSE_LIN) {
+					linearMotionToServo();
+				}
 				iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
 				if (commandPositionVelocity != null) {
 					helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
 					helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
-					if (robot.isReadyToMove()) 
+					if (robot.isReadyToMove()) {
 						motion.getRuntime().setDestination(jp, jv);
+					}
 				}
+				lastCommand = CommandType.JOINT_POSITION_VELOCITY;
+				break;
 			}
-			break;
 			case JOINT_VELOCITY: {
 				/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
 				 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
+				if (lastCommand == CommandType.CARTESIAN_POSE_LIN) {
+					linearMotionToServo();
+				}
 				iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
 
 				if (commandVelocity != null) {
 					jp = motion.getRuntime().getCurrentJointDestination();
 					helper.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod); // compute the joint displacement over the current period.
 
-					for(int i = 0; i < robot.getJointCount(); ++i) jp.set(i, jp.get(i) + jointDisplacement.get(i)); //add the displacement to the joint destination.
+					for(int i = 0; i < robot.getJointCount(); ++i) { jp.set(i, jp.get(i) + jointDisplacement.get(i)); } //add the displacement to the joint destination.
 					previousTime = currentTime;
 
-					if (robot.isReadyToMove())
+					if (robot.isReadyToMove()) {
 						motion.getRuntime().setDestination(jp);
+					}
 
 					currentTime = motion.getRuntime().updateWithRealtimeSystem();
 					loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
 				}
+				lastCommand = CommandType.JOINT_VELOCITY;
+				break;
 			}
-			break;
-
-			default:
-				throw new UnsupportedControlModeException();
+			default: { throw new UnsupportedControlModeException(); }
 			}
 
 			configureSmartServoLock.unlock();

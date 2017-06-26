@@ -43,6 +43,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	public enum CommandType {
 		CARTESIAN_POSE,
+		CARTESIAN_POSE_LIN,
 		JOINT_POSITION,
 		JOINT_POSITION_VELOCITY,
 		JOINT_VELOCITY
@@ -58,14 +59,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
-	
+
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersCallback = null;
 
 	// ROSJava Subscribers for iiwa_msgs
-	// Cartesian Message Subscribers
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
+	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseLinSubscriber;
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
 	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
@@ -76,12 +77,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
+	private geometry_msgs.PoseStamped cp_lin;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointVelocity jv;
 
 	private Boolean new_jp = new Boolean("false");
 	private Boolean new_cp = new Boolean("false");
+	private Boolean new_cp_lin = new Boolean("false");
 	private Boolean new_jpv = new Boolean("false");
 	private Boolean new_jv = new Boolean("false");
 
@@ -115,6 +118,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		helper = new iiwaMessageGenerator(iiwaName);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
@@ -137,7 +141,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public void setTimeToDestinationCallback(ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
 		timeToDestinationCallback = callback;
 	}
-	
+
 	/**
 	 * Add a callback to the SetPathParameters service
 	 */
@@ -146,7 +150,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	}
 
 	/**
-	 * Get the last received PoseStamped message. Returns null if no new message is available.<p>
+	 * Returns the last PoseStamped message received from the /command/CartesianPose topic. Returns null if no new message is available.<p>
 	 * @return the received PoseStamped message.
 	 */
 	public geometry_msgs.PoseStamped getCartesianPose() {
@@ -157,7 +161,23 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			} else {
 				return null;
 			}
-		}	}
+		}	
+	}
+
+	/**
+	 * Returns the last PoseStamped message received from the /command/CartesianPoseLin topic. Returns null if no new message is available.<p>
+	 * @return the received PoseStamped message.
+	 */
+	public geometry_msgs.PoseStamped getCartesianPoseLin() {
+		synchronized(new_cp_lin) {
+			if (new_cp_lin) {
+				new_cp_lin = false;
+				return cp_lin;
+			} else {
+				return null;
+			}
+		}	
+	}
 
 	/**
 	 * Returns the last received Joint Position message. Returns null if no new message is available.<p>
@@ -194,7 +214,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @return the received Joint Velocity message.
 	 */
 	public iiwa_msgs.JointVelocity getJointVelocity() {
-				return jv;
+		return jv;
 	}
 
 	/**
@@ -217,6 +237,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 		// Creating the subscribers
 		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
+		cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin", geometry_msgs.PoseStamped._TYPE);
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
@@ -230,6 +251,17 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					cp = position;
 					currentCommandType = CommandType.CARTESIAN_POSE;
 					new_cp = true;
+				}
+			}
+		});
+
+		cartesianPoseLinSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
+			@Override
+			public void onNewMessage(geometry_msgs.PoseStamped position) {
+				synchronized (new_cp_lin) {
+					cp_lin = position;
+					currentCommandType = CommandType.CARTESIAN_POSE_LIN;
+					new_cp_lin = true;
 				}
 			}
 		});
@@ -282,7 +314,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					"iiwa_msgs/TimeToDestination", 
 					timeToDestinationCallback);
 		}
-		
+
 		// Creating TimeToDestination service if a callback has been defined.
 		if (setPathParametersCallback != null) {
 			setPathParametersServer = node.newServiceServer(
