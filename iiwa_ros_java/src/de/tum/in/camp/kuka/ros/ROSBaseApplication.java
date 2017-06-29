@@ -56,9 +56,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
-	protected double jointVelocity;
-	protected double jointAcceleration;
-	protected double overrideJointAcceleration;
 	protected ControlModeHandler controlModeHandler;
 	protected ROSGoalReachedEventListener handler;
 

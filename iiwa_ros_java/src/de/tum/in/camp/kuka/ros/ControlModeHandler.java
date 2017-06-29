@@ -25,9 +25,9 @@ public class ControlModeHandler {
 	private ITaskLogger logger;
 	private iiwaPublisher publisher;
 
-	private double jointVelocity;
-	private double jointAcceleration;
-	private double overrideJointAcceleration;
+	public double jointVelocity;
+	public double jointAcceleration;
+	public double overrideJointAcceleration;
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 	
@@ -52,7 +52,7 @@ public class ControlModeHandler {
 		this.jointAcceleration = jointAcceleration;
 		this.overrideJointAcceleration = overrideJointAcceleration;
 	}
-
+	
 	/**
 	 * Allows to switch control mode on the fly. Kills a smartServo motion and creates a new one with the given request.
 	 * If null is given as argument, the last received request will be used. This is the case if only velocity and/or acceleration need(s) to be changed.

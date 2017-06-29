@@ -155,13 +155,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 				configureSmartServoLock.lock();
 				try {
 					if (req.getJointRelativeVelocity() >= 0) {
-						jointVelocity = req.getJointRelativeVelocity();
+						controlModeHandler.jointVelocity = req.getJointRelativeVelocity();
 					}
 					if (req.getJointRelativeAcceleration() >= 0) {
-						jointAcceleration = req.getJointRelativeAcceleration();
+						controlModeHandler.jointAcceleration = req.getJointRelativeAcceleration();
 					}
 					if (req.getOverrideJointAcceleration() >= 0) {
-						overrideJointAcceleration = req.getOverrideJointAcceleration();
+						controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
 					}
 					// TODO: test me!!!
 					iiwa_msgs.ConfigureSmartServoRequest request = null;
