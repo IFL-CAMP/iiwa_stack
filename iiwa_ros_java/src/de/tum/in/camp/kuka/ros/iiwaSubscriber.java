@@ -86,7 +86,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Boolean new_jv = new Boolean("false");
 
 	// Current control strategy
-	CommandType currentCommandType = null;
+	public CommandType currentCommandType = null;
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
