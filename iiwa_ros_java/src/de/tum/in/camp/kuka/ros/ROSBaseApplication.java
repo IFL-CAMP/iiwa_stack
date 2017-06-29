@@ -59,6 +59,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected double jointVelocity;
 	protected double jointAcceleration;
 	protected double overrideJointAcceleration;
+	protected ControlModeHandler controlModeHandler;
 	protected ROSGoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
@@ -95,14 +96,12 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
 
-
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
-		handler = new ROSGoalReachedEventListener(publisher);
 		
 		// ROS initialization.
 		try {
@@ -146,6 +145,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info(e.toString());
 			return;
 		}
+		// END of ROS initialization.
+		
 		
 		 // Additional initialization from subclasses.
 		initializeApp();
@@ -168,17 +169,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
-
-		jointVelocity = configuration.getDefaultRelativeJointVelocity();
-		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
-		overrideJointAcceleration = 1.0;
-		
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
-		motion.setJointVelocityRel(jointVelocity);
-		motion.setJointAccelerationRel(jointAcceleration);
-		motion.setTimeoutAfterGoalReach(3600); // TODO : Parametrize
-		
+				
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 
@@ -195,6 +186,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			toolFrameID = iiwaConfiguration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = robot.getFlange();
 		}
+		
+		controlModeHandler = new ControlModeHandler(robot, tool, toolFrame, publisher, configuration, getLogger());
+		motion = controlModeHandler.createSmartServoMotion();
 
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
