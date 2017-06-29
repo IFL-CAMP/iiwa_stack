@@ -21,13 +21,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.tum.in.camp.kuka.ros;
+package de.tum.in.camp.kuka.ros.app;
 
 //ROS imports
 import java.net.URI;
 
 import org.ros.node.NodeMainExecutor;
 
+import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
@@ -36,6 +37,8 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
+
+import de.tum.in.camp.kuka.ros.ROSBaseApplication;
 
 /*
  * This application allows to turn on/off a pseudo Gravity Compensation mode via buttons on the SmartPad.
@@ -88,6 +91,14 @@ public class ROSMonitor extends ROSBaseApplication {
 		motion.setMinimumTrajectoryExecutionTime(20e-3);
 		motion.setJointVelocityRel(configuration.getDefaultRelativeJointVelocity());
 		motion.setTimeoutAfterGoalReach(300);
+		
+		if (tool != null) {
+			ServoMotion.validateForImpedanceMode(tool);
+		}
+		else {
+			ServoMotion.validateForImpedanceMode(robot);
+		}
+		
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
 		toolFrame.moveAsync(motion.setMode(controlMode)); 
 		oldmotion.getRuntime().stopMotion();
@@ -116,7 +127,7 @@ public class ROSMonitor extends ROSBaseApplication {
 				gravCompSwitched = false;
 				getLogger().warn("Disabling gravity compensation");
 				controlMode.setStiffnessForAllJoints(1500); // TODO : max is 5000
-				motion.getRuntime().changeControlModeSettings(new PositionControlMode());
+				motion.getRuntime().changeControlModeSettings(controlMode);
 				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 			}
 		}
