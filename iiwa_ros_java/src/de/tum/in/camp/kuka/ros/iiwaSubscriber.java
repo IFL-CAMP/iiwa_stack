@@ -58,7 +58,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
-	
+
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersCallback = null;
@@ -72,7 +72,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 
 	// Object to easily build iiwa_msgs from the current robot state
-	private iiwaMessageGenerator helper;
+	private MessageGenerator helper;
 
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
@@ -86,7 +86,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Boolean new_jv = new Boolean("false");
 
 	// Current control strategy
-	CommandType currentCommandType = null;
+	public CommandType currentCommandType = null;
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
@@ -112,16 +112,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
 		iiwaName = robotName;
-		helper = new iiwaMessageGenerator(iiwaName);
+		helper = new MessageGenerator(iiwaName);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
-
-		helper.getCurrentCartesianPose(cp, robot, frame);
-		helper.getCurrentJointPosition(jp, robot);
-		helper.getCurrentJointPositionVelocity(jpv, robot);
 	}
 
 	/**
@@ -137,7 +133,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public void setTimeToDestinationCallback(ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
 		timeToDestinationCallback = callback;
 	}
-	
+
 	/**
 	 * Add a callback to the SetPathParameters service
 	 */
@@ -194,7 +190,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @return the received Joint Velocity message.
 	 */
 	public iiwa_msgs.JointVelocity getJointVelocity() {
-				return jv;
+		return jv;
 	}
 
 	/**
@@ -282,7 +278,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					"iiwa_msgs/TimeToDestination", 
 					timeToDestinationCallback);
 		}
-		
+
 		// Creating TimeToDestination service if a callback has been defined.
 		if (setPathParametersCallback != null) {
 			setPathParametersServer = node.newServiceServer(

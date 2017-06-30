@@ -1,4 +1,4 @@
- /**  
+/**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
@@ -21,7 +21,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.tum.in.camp.kuka.ros;
+package de.tum.in.camp.kuka.ros.app;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -43,6 +43,11 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 
+import de.tum.in.camp.kuka.ros.ControlModeHandler;
+import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
+import de.tum.in.camp.kuka.ros.Configuration;
+import de.tum.in.camp.kuka.ros.iiwaPublisher;
+
 /*
  * Base application for all ROS-Sunrise applications. 
  * Manages lifetime of ROS Nodes, NTP synchronization, loading the configuration from the ROS parameter server,
@@ -56,17 +61,15 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
-	protected double jointVelocity;
-	protected double jointAcceleration;
-	protected double overrideJointAcceleration;
-	protected ROSGoalReachedEventListener handler;
+	protected ControlModeHandler controlModeHandler;
+	protected GoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
 	protected boolean debug;
 	protected boolean running;
 
 	protected iiwaPublisher publisher;
-	protected iiwaConfiguration configuration;
+	protected Configuration configuration;
 
 	// ROS Configuration and Node execution objects.
 	protected NodeConfiguration nodeConfPublisher;
@@ -90,34 +93,32 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	 * In order to balance the load, they alternate at *decimationCounter* % *decimation* == 0 and
 	 * *decimationCounter* % *decimation* == *decimation* / 2
 	 */
-	
+
 	// TODO : in config.txt or processData
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
-
 
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
-		configuration = new iiwaConfiguration();
-		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
-		handler = new ROSGoalReachedEventListener(publisher);
-		
+		configuration = new Configuration();
+		publisher = new iiwaPublisher(Configuration.getRobotName());
+
 		// ROS initialization.
 		try {
-			URI uri = new URI(iiwaConfiguration.getMasterURI());
+			URI uri = new URI(Configuration.getMasterURI());
 
-			nodeConfConfiguration = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfConfiguration.setTimeProvider(iiwaConfiguration.getTimeProvider());
-			nodeConfConfiguration.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_configuration");
+			nodeConfConfiguration = NodeConfiguration.newPublic(Configuration.getRobotIp());
+			nodeConfConfiguration.setTimeProvider(Configuration.getTimeProvider());
+			nodeConfConfiguration.setNodeName(Configuration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);
 
-			nodeConfPublisher = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
-			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
+			nodeConfPublisher = NodeConfiguration.newPublic(Configuration.getRobotIp());
+			nodeConfPublisher.setTimeProvider(Configuration.getTimeProvider());
+			nodeConfPublisher.setNodeName(Configuration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
-			
+
 			// Additional configuration needed in subclasses.
 			configureNodes(uri);
 		}
@@ -134,7 +135,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			nodeMainExecutor.execute(publisher, nodeConfPublisher);
 			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
 
-			 // Additional Nodes from subclasses.
+			// Additional Nodes from subclasses.
 			addNodesToExecutor(nodeMainExecutor); 
 
 			if (debug) 
@@ -146,8 +147,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info(e.toString());
 			return;
 		}
-		
-		 // Additional initialization from subclasses.
+		// END of ROS initialization.
+
+
+		// Additional initialization from subclasses.
 		initializeApp();
 
 		initSuccessful = true;  // We cannot throw here.
@@ -167,18 +170,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 
-		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
+		getLogger().info("Using time provider: " + Configuration.getTimeProvider().getClass().getSimpleName());
 
-		jointVelocity = configuration.getDefaultRelativeJointVelocity();
-		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
-		overrideJointAcceleration = 1.0;
-		
-		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
-		motion.setJointVelocityRel(jointVelocity);
-		motion.setJointAccelerationRel(jointAcceleration);
-		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
-		
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 
@@ -192,23 +185,28 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			toolFrame = tool.getFrame("/" + toolFrameID);
 		} else {
 			getLogger().info("No tool attached. Using flange.");
-			toolFrameID = iiwaConfiguration.getRobotName() + toolFrameIDSuffix;
+			toolFrameID = Configuration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = robot.getFlange();
 		}
+
+		controlModeHandler = new ControlModeHandler(robot, tool, toolFrame, publisher, configuration, getLogger());
+		motion = controlModeHandler.createSmartServoMotion();
 
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		// Initialize motion.
 		toolFrame.moveAsync(motion);
-		
-		if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-			((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
+		// Hook the GoalReachedEventHandler
+		motion.getRuntime().setGoalReachedEventHandler(handler);
+
+		if (Configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+			((NtpTimeProvider) Configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
 		}
 
 		// Run what is needed before the control loop in the subclasses.
 		beforeControlLoop();
-		
+
 		running = true;
 
 		// The run loop

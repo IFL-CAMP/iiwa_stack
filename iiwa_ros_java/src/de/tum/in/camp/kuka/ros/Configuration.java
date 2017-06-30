@@ -59,7 +59,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 /**
  * Utility class to get configuration at startup from the config.txt file or from ROS params in the ROS param server.
  */
-public class iiwaConfiguration extends AbstractNodeMain {
+public class Configuration extends AbstractNodeMain {
 
 	// Name to use to build the name of the ROS topics
 	private static Map<String, String> config;
@@ -78,7 +78,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
 
-	public iiwaConfiguration() {
+	public Configuration() {
 		checkConfiguration();
 	}
 
@@ -93,7 +93,7 @@ public class iiwaConfiguration extends AbstractNodeMain {
 
 	private static void parseConfigFile() {
 		config = new HashMap<String, String>();
-		BufferedReader br = new BufferedReader(new InputStreamReader(iiwaConfiguration.class.getResourceAsStream("config.txt")));
+		BufferedReader br = new BufferedReader(new InputStreamReader(Configuration.class.getResourceAsStream("config.txt")));
 		try {
 			String line = null;
 			while((line = br.readLine()) != null) {
