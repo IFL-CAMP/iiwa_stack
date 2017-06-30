@@ -25,18 +25,18 @@ package de.tum.in.camp.kuka.ros;
 
 import com.kuka.connectivity.motionModel.smartServo.IServoOnGoalReachedEvent;
 
-public class ROSGoalReachedEventListener implements IServoOnGoalReachedEvent {
+public class GoalReachedEventListener implements IServoOnGoalReachedEvent {
 
-	protected iiwaPublisher publisher_;
+	protected iiwaPublisher publisher;
 
-	public ROSGoalReachedEventListener(iiwaPublisher publisher) {
-		publisher_ = publisher;
+	public GoalReachedEventListener(iiwaPublisher publisher) {
+		this.publisher = publisher;
 	}
 
 	@Override
 	public void onGoalReachedEvent(String state, double[] currentAxisPos, int[] osTimestamp, int targetId) {
-		if (publisher_ != null) {
-		publisher_.publishDestinationReached();
+		if (publisher != null) {
+		publisher.publishDestinationReached();
 		}
 	}
 }
