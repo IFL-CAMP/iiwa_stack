@@ -25,11 +25,11 @@ package de.tum.in.camp.kuka.ros;
 
 import com.kuka.connectivity.motionModel.smartServo.IServoOnGoalReachedEvent;
 
-public class ROSGoalReachedEventListener implements IServoOnGoalReachedEvent {
+public class GoalReachedEventListener implements IServoOnGoalReachedEvent {
 
 	protected iiwaPublisher publisher_;
 
-	public ROSGoalReachedEventListener(iiwaPublisher publisher) {
+	public GoalReachedEventListener(iiwaPublisher publisher) {
 		publisher_ = publisher;
 	}
 
