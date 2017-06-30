@@ -40,9 +40,9 @@ public class ControlModeHandler {
 		this.toolFrame = toolFrame;
 		this.publisher = publisher;
 		this.logger = logger;
-		this.jointVelocity = configuration.getDefaultRelativeJointVelocity();
-		this.jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
-		this.overrideJointAcceleration = 1.0;
+		jointVelocity = configuration.getDefaultRelativeJointVelocity();
+		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
+		overrideJointAcceleration = 1.0;
 	}
 
 	public void setLastSmartServoRequest(ConfigureSmartServoRequest request) { this.lastSmartServoRequest = request; }
