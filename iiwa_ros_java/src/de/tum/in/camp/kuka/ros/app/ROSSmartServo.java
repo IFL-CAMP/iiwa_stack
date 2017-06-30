@@ -38,12 +38,15 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
+import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
 import de.tum.in.camp.kuka.ros.Configuration;
 import de.tum.in.camp.kuka.ros.iiwaSubscriber;
+import de.tum.in.camp.kuka.ros.iiwaSubscriber.CommandType;
 
 /*
  * This application allows to command the robot using SmartServo motions.
@@ -55,7 +58,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private iiwaSubscriber subscriber; // IIWARos Subscriber.
 	private NodeConfiguration nodeConfSubscriber; 	// Configuration of the subscriber ROS node.
 
+	private CommandType lastCommandType = CommandType.JOINT_POSITION;
 	private Motions motions;
+	private boolean motionSwitched = false;
 
 	@Override
 	protected void configureNodes(URI uri) {
@@ -76,12 +81,25 @@ public class ROSSmartServo extends ROSBaseApplication {
 			public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
 				configureSmartServoLock.lock();
 				try {
-					if (controlModeHandler.isSameControlMode(motion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
-						if (!(motion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
-							motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
+					// TODO: reduce code duplication
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						if (controlModeHandler.isSameControlMode(linearMotion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
+							if (!(linearMotion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
+								linearMotion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
+							}
+						} else {
+							linearMotion = (SmartServoLIN) controlModeHandler.switchSmartServoMotion(linearMotion, req);
 						}
-					} else {
-						motion = controlModeHandler.switchSmartServoMotion(motion, req);
+					}
+					else {
+
+						if (controlModeHandler.isSameControlMode(motion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
+							if (!(motion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
+								motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
+							}
+						} else {
+							motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, req);
+						}
 					}
 
 					res.setSuccess(true);
@@ -107,8 +125,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 			@Override
 			public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
 				try {
-					motion.getRuntime().updateWithRealtimeSystem();
-					res.setRemainingTime(motion.getRuntime().getRemainingTime());
+					currentMotion.getRuntime().updateWithRealtimeSystem();
+					res.setRemainingTime(currentMotion.getRuntime().getRemainingTime());
 				}
 				catch(Exception e) {
 					// An exception should be thrown only if a motion/runtime is not available.
@@ -123,18 +141,24 @@ public class ROSSmartServo extends ROSBaseApplication {
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
 				configureSmartServoLock.lock();
 				try {
-					if (req.getJointRelativeVelocity() >= 0) {
-						controlModeHandler.jointVelocity = req.getJointRelativeVelocity();
+					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
+						if (req.getJointRelativeVelocity() >= 0) {
+							controlModeHandler.jointVelocity = req.getJointRelativeVelocity();
+						}
+						if (req.getJointRelativeAcceleration() >= 0) {
+							controlModeHandler.jointAcceleration = req.getJointRelativeAcceleration();
+						}
+						if (req.getOverrideJointAcceleration() >= 0) {
+							controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
+						}
+						iiwa_msgs.ConfigureSmartServoRequest request = null;
+						motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, request);
+						res.setSuccess(true);
 					}
-					if (req.getJointRelativeAcceleration() >= 0) {
-						controlModeHandler.jointAcceleration = req.getJointRelativeAcceleration();
+					else {
+						res.setError("You are currently using a SmartServoLIN motion. This service is available only for SmartServo motions.");
+						res.setSuccess(false);
 					}
-					if (req.getOverrideJointAcceleration() >= 0) {
-						controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
-					}
-					iiwa_msgs.ConfigureSmartServoRequest request = null;
-					motion = controlModeHandler.switchSmartServoMotion(motion, request);
-					res.setSuccess(true);
 				}
 				catch(Exception e) {
 					res.setError(e.getClass().getName() + ": " + e.getMessage());
@@ -158,40 +182,60 @@ public class ROSSmartServo extends ROSBaseApplication {
 		motions = new Motions(robot, motion);
 	}
 
-
+	/**
+	 * TODO: doc, take something from 					
+	 * This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.			
+	 * If the robot can move, then it will move to this new position.
+	 */
 	private void moveRobot() {
 		if (subscriber.currentCommandType != null) {
 			try {
 				switch (subscriber.currentCommandType) {
 				case CARTESIAN_POSE: {
-					/* This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
-					 * If the robot can move, then it will move to this new position. */
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+						motionSwitched = true;
+					}
 					PoseStamped commandPosition = subscriber.getCartesianPose();
 					motions.cartesianPositionMotion(motion, commandPosition);
 					break;
 				}
+				case CARTESIAN_POSE_LIN: {
+					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) { 
+						linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
+						motionSwitched = true;
+					}
+					PoseStamped commandPosition = subscriber.getCartesianPoseLin();
+					motions.cartesianPositionLinMotion(linearMotion, commandPosition);
+					break;
+				}
 				case JOINT_POSITION: {
-					/* This will acquire the last received JointPosition command from the commanding ROS node, if there is any available.
-					 * If the robot can move, then it will move to this new position. */
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+						motionSwitched = true;
+					}					
 					iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
 					motions.jointPositionMotion(motion, commandPosition);
 					break;
 				}
 				case JOINT_POSITION_VELOCITY: {
-					/* This will acquire the last received JointPositionVelocity command from the commanding ROS node, if there is any available.
-					 * If the robot can move, then it will move to this new position. */
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+						motionSwitched = true;
+					}					
 					iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
 					motions.jointPositionVelocityMotion(motion, commandPositionVelocity);
 					break;
 				}
 				case JOINT_VELOCITY: {
-					/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
-					 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+						motionSwitched = true;
+					}
 					iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
 					motions.jointVelocityMotion(motion, commandVelocity);
 					break;
 				}
-
 				default:
 					throw new UnsupportedControlModeException();
 				}
@@ -199,6 +243,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 			catch (Exception e) {
 				getLogger().error(e.getClass().getName() + ": " + e.getMessage());
 			}
+		}
+		lastCommandType = subscriber.currentCommandType;
+		if (motionSwitched) {
+			if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { currentMotion = linearMotion; }
+			else { currentMotion = motion; }
+			motionSwitched = false;
 		}
 	}
 
