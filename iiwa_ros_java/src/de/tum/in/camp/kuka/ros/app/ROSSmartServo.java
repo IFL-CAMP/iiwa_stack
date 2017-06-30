@@ -23,7 +23,6 @@
 
 package de.tum.in.camp.kuka.ros.app;
 
-// ROS imports
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
@@ -39,20 +38,11 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
-import com.kuka.roboticsAPI.deviceModel.JointPosition;
-import com.kuka.roboticsAPI.geometricModel.Frame;
-import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
-import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
-import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
-import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
-import de.tum.in.camp.kuka.ros.ROSBaseApplication;
+import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
-import de.tum.in.camp.kuka.ros.iiwaConfiguration;
-import de.tum.in.camp.kuka.ros.iiwaMessageGenerator;
+import de.tum.in.camp.kuka.ros.Configuration;
 import de.tum.in.camp.kuka.ros.iiwaSubscriber;
 
 /*
@@ -62,39 +52,23 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	private Lock configureSmartServoLock = new ReentrantLock();
 
-	private iiwaMessageGenerator helper; // Helper class to generate iiwa_msgs from current robot state.
 	private iiwaSubscriber subscriber; // IIWARos Subscriber.
+	private NodeConfiguration nodeConfSubscriber; 	// Configuration of the subscriber ROS node.
 
-	// Configuration of the subscriber ROS node.
-	private NodeConfiguration nodeConfSubscriber;
-
-	private JointPosition jp; 
-	private JointPosition jv;
-	private JointPosition jointDisplacement;
-
-	private double loopPeriod; // Loop period in s
-	private long previousTime; // Timestamp of previous setDestination() in s
-	private long currentTime; // Timestamp of last setDestination() in s
-
-	protected JointImpedanceControlMode gravCompControlMode; 
-	private IUserKeyBar gravcompKeybar;
-	private IUserKey gravCompKey;
-	private IUserKeyListener gravCompKeyList;
-	private boolean gravCompEnabled = false;
-	private boolean gravCompSwitched = false;
+	private Motions motions;
 
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
-		nodeConfSubscriber = NodeConfiguration.newPublic(iiwaConfiguration.getRobotIp());
-		nodeConfSubscriber.setTimeProvider(iiwaConfiguration.getTimeProvider());
-		nodeConfSubscriber.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_subscriber");
+		nodeConfSubscriber = NodeConfiguration.newPublic(Configuration.getRobotIp());
+		nodeConfSubscriber.setTimeProvider(Configuration.getTimeProvider());
+		nodeConfSubscriber.setNodeName(Configuration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
 	}
 
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-		subscriber = new iiwaSubscriber(robot, iiwaConfiguration.getRobotName());
+		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName());
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
@@ -107,16 +81,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 							motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
 						}
 					} else {
-						// TODO: TEST THIS!!!
 						motion = controlModeHandler.switchSmartServoMotion(motion, req);
 					}
 
 					res.setSuccess(true);
 					controlModeHandler.setLastSmartServoRequest(req);
-
-					getLogger().info("Changed SmartServo configuration!");
-					getLogger().info("Mode: " + motion.getMode().toString());
-
 				} catch (Exception e) {
 					res.setSuccess(false);
 					if (e.getMessage() != null) {
@@ -163,7 +132,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 					if (req.getOverrideJointAcceleration() >= 0) {
 						controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
 					}
-					// TODO: test me!!!
 					iiwa_msgs.ConfigureSmartServoRequest request = null;
 					motion = controlModeHandler.switchSmartServoMotion(motion, request);
 					res.setSuccess(true);
@@ -183,67 +151,15 @@ public class ROSSmartServo extends ROSBaseApplication {
 	}
 
 	@Override
-	protected void initializeApp() {
-		helper = new iiwaMessageGenerator(iiwaConfiguration.getRobotName());
-		jp = new JointPosition(robot.getJointCount());
-		jv = new JointPosition(robot.getJointCount());
-		jointDisplacement = new JointPosition(robot.getJointCount());
-
-		gravcompKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
-		gravCompKeyList = new IUserKeyListener() {
-			@Override
-			public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
-				configureSmartServoLock.lock();
-				if (event == UserKeyEvent.FirstKeyDown) {
-					gravCompEnabled = true;
-					gravCompSwitched = true;
-				} else if (event == UserKeyEvent.SecondKeyDown) {
-					gravCompEnabled = false;
-					gravCompSwitched = true;
-				}
-				configureSmartServoLock.unlock();
-			};
-		};
-
-		gravCompKey = gravcompKeybar.addDoubleUserKey(0, gravCompKeyList, true);
-		gravCompKey.setText(UserKeyAlignment.TopMiddle, "ON");
-		gravCompKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
-		gravcompKeybar.publish();
-	}
+	protected void initializeApp() {}
 
 	@Override
 	protected void beforeControlLoop() { 
-		motion.getRuntime().activateVelocityPlanning(true);  // TODO: do this whenever appropriate
-		motion.getRuntime().setGoalReachedEventHandler(handler);
-		gravCompControlMode = new JointImpedanceControlMode(robot.getJointCount());
-
-		// Initialize time stamps
-		previousTime = motion.getRuntime().updateWithRealtimeSystem();
-		currentTime = motion.getRuntime().updateWithRealtimeSystem();
-		loopPeriod = 0.0;
+		motions = new Motions(robot, motion);
 	}
 
-	// TODO: doc
-	private void gravityCompensationMode() {
-		if (gravCompEnabled) {
-			if (gravCompSwitched) {
-				gravCompSwitched = false;
-				getLogger().warn("Enabling gravity compensation");
-				gravCompControlMode.setStiffness(10, 10, 10, 10, 10, 0, 0);
-				gravCompControlMode.setDampingForAllJoints(0.7);
-				motion = controlModeHandler.switchSmartServoMotion(motion, gravCompControlMode);
-			}
-		} else {
-			if (gravCompSwitched) {
-				gravCompSwitched = false;
-				getLogger().warn("Disabling gravity compensation");
-				motion = controlModeHandler.switchSmartServoMotion(motion, new PositionControlMode(true));
-			}
-		}
-	}
 
 	private void moveRobot() {
-
 		if (subscriber.currentCommandType != null) {
 			try {
 				switch (subscriber.currentCommandType) {
@@ -251,61 +167,30 @@ public class ROSSmartServo extends ROSBaseApplication {
 					/* This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position. */
 					PoseStamped commandPosition = subscriber.getCartesianPose();
-					if (commandPosition != null) {
-						Frame destinationFrame = helper.rosPoseToKukaFrame(commandPosition.getPose());
-						if (robot.isReadyToMove()) {
-							// try to move to the commanded cartesian pose, it something goes wrong catch the exception.
-							motion.getRuntime().setDestination(destinationFrame);
-						}
-					}
+					motions.cartesianPositionMotion(motion, commandPosition);
+					break;
 				}
-				break;
 				case JOINT_POSITION: {
 					/* This will acquire the last received JointPosition command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position. */
 					iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
-					if (commandPosition != null) {
-						helper.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
-						if (robot.isReadyToMove()) {
-							motion.getRuntime().setDestination(jp);
-						}
-					}
+					motions.jointPositionMotion(motion, commandPosition);
+					break;
 				}
-				break;
 				case JOINT_POSITION_VELOCITY: {
 					/* This will acquire the last received JointPositionVelocity command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position. */
 					iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
-					if (commandPositionVelocity != null) {
-						helper.rosJointQuantityToKuka(commandPositionVelocity.getPosition(), jp);
-						helper.rosJointQuantityToKuka(commandPositionVelocity.getVelocity(), jv);
-						if (robot.isReadyToMove()) {
-							motion.getRuntime().setDestination(jp, jv);
-						}
-					}
+					motions.jointPositionVelocityMotion(motion, commandPositionVelocity);
+					break;
 				}
-				break;
 				case JOINT_VELOCITY: {
 					/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
 					iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
-
-					if (commandVelocity != null) {
-						jp = motion.getRuntime().getCurrentJointDestination();
-						helper.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod); // compute the joint displacement over the current period.
-
-						for(int i = 0; i < robot.getJointCount(); ++i) { jp.set(i, jp.get(i) + jointDisplacement.get(i)); } //add the displacement to the joint destination.
-						previousTime = currentTime;
-
-						if (robot.isReadyToMove()) {
-							motion.getRuntime().setDestination(jp);
-						}
-
-						currentTime = motion.getRuntime().updateWithRealtimeSystem();
-						loopPeriod = (double)(currentTime - previousTime) / 1000.0; // loopPerios is stored in seconds.
-					}
+					motions.jointVelocityMotion(motion, commandVelocity);
+					break;
 				}
-				break;
 
 				default:
 					throw new UnsupportedControlModeException();
@@ -319,15 +204,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void controlLoop() {
-
 		configureSmartServoLock.lock();
-
-		gravityCompensationMode();
-
-		if(!gravCompEnabled && !gravCompSwitched) {
-			moveRobot();
-		}
-
+		moveRobot();
 		configureSmartServoLock.unlock();
 	}
 }
