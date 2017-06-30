@@ -3,6 +3,7 @@ package de.tum.in.camp.kuka.ros;
 import geometry_msgs.PoseStamped;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.Frame;
@@ -35,8 +36,16 @@ public class Motions {
 		if (commandPosition != null) {
 			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
 			if (robot.isReadyToMove()) {
-				// try to move to the commanded cartesian pose, it something goes wrong catch the exception.
 				motion.getRuntime().setDestination(destinationFrame);
+			}
+		}
+	}
+	
+	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition) {
+		if (commandPosition != null) {
+			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
+			if (robot.isReadyToMove()) {
+					linearMotion.getRuntime().setDestination(destinationFrame);
 			}
 		}
 	}
