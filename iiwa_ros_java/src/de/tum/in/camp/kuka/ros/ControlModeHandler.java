@@ -30,11 +30,11 @@ public class ControlModeHandler {
 	public double overrideJointAcceleration;
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
-	
-	private iiwaMessageGenerator helper = new iiwaMessageGenerator(iiwaConfiguration.getRobotName());
-	private ROSGoalReachedEventListener handler = new ROSGoalReachedEventListener(publisher);
 
-	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, iiwaConfiguration configuration, ITaskLogger logger) {
+	private MessageGenerator helper = new MessageGenerator(Configuration.getRobotName());
+	private GoalReachedEventListener handler = new GoalReachedEventListener(publisher);
+
+	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration, ITaskLogger logger) {
 		this.robot = robot;
 		this.tool = tool;
 		this.toolFrame = toolFrame;
@@ -44,18 +44,19 @@ public class ControlModeHandler {
 		this.jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		this.overrideJointAcceleration = 1.0;
 	}
-		
+
 	public void setLastSmartServoRequest(ConfigureSmartServoRequest request) { this.lastSmartServoRequest = request; }
-	
+
 	public void setPathParamters(double jointVelocity, double jointAcceleration, double overrideJointAcceleration) {
 		this.jointVelocity = jointVelocity;
 		this.jointAcceleration = jointAcceleration;
 		this.overrideJointAcceleration = overrideJointAcceleration;
 	}
-	
+
 	/**
-	 * Allows to switch control mode on the fly. Kills a smartServo motion and creates a new one with the given request.
-	 * If null is given as argument, the last received request will be used. This is the case if only velocity and/or acceleration need(s) to be changed.
+	 * Allows to switch control mode on the fly. Kills the given smartServo motion and creates a new one with the given request.
+	 * If the given request is null, the last received request will be used. This is the case if only velocity and/or acceleration need(s) to be changed.
+	 * @param motion
 	 * @param request
 	 */
 	public SmartServo switchSmartServoMotion(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
@@ -64,7 +65,7 @@ public class ControlModeHandler {
 		validateForImpedanceMode();
 
 		motion = createSmartServoMotion();
-		
+
 		if (request != null) {
 			motion.setMode(buildMotionControlMode(request));
 		} 
@@ -74,16 +75,21 @@ public class ControlModeHandler {
 		else {
 			motion.setMode(new PositionControlMode());
 		}
-		
+
 		toolFrame.moveAsync(motion);
 		oldmotion.getRuntime().stopMotion();
 
-		motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
 		motion.getRuntime().setGoalReachedEventHandler(handler);
-				
+
 		return motion;
 	}
-	
+
+	/**
+	 * Allows to switch control mode on the fly. Kills the given smartServo motion and creates a new one with the given controlMode.
+	 * @param motion
+	 * @param controlMode
+	 * @return
+	 */
 	public SmartServo switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) {
 		if (controlMode != motion.getMode()) {
 
@@ -98,7 +104,6 @@ public class ControlModeHandler {
 			toolFrame.moveAsync(motion);
 			oldmotion.getRuntime().stopMotion();
 
-			motion.getRuntime().activateVelocityPlanning(true); // TODO: parametrize
 			motion.getRuntime().setGoalReachedEventHandler(handler);
 		}
 		else {
@@ -107,7 +112,12 @@ public class ControlModeHandler {
 		return motion;
 	}
 
-	// TODO: doc
+	/**
+	 * Validates the robot for Impedance control, it something fails here Impedance control is not possible.
+	 * Reasons might be: 
+	 *  - too much force is applied on the robot when the Impedance control mode is selected
+	 *  - the robot is in a singularity
+	 */
 	private void validateForImpedanceMode() {
 		if (tool != null) {
 			ServoMotion.validateForImpedanceMode(tool);
@@ -116,19 +126,98 @@ public class ControlModeHandler {
 			ServoMotion.validateForImpedanceMode(robot);
 		}
 	}
-	
+
 	/**
 	 * Generates a new smartServoMotion with the current parameters.
 	 * @return
 	 */
 	public SmartServo createSmartServoMotion() {
-		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
-		mot.setTimeoutAfterGoalReach(3600); //TODO : parametrize
-		mot.setJointVelocityRel(jointVelocity);
-		mot.setJointAccelerationRel(jointAcceleration);
-		mot.overrideJointAcceleration(overrideJointAcceleration);
-		return mot;
+		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
+		motion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		motion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
+		motion.setJointVelocityRel(jointVelocity);
+		motion.setJointAccelerationRel(jointAcceleration);
+		motion.overrideJointAcceleration(overrideJointAcceleration);
+		return motion;
+	}
+
+	/**
+	 * Generates a JointImpedanceControlMode from the given request.
+	 * @param request
+	 * @return
+	 */
+	private JointImpedanceControlMode buildJointImpedanceControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
+		JointImpedanceControlMode jcm = new JointImpedanceControlMode(robot.getJointCount());
+
+		JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
+		if (helper.isJointQuantityGreaterEqualThan(stiffness, 0)) {
+			jcm.setStiffness(Conversions.jointQuantityToVector(stiffness));
+		}
+
+		JointQuantity damping = request.getJointImpedance().getJointDamping();
+		if (helper.isJointQuantityGreaterEqualThan(damping, 0)) {
+			jcm.setDamping(Conversions.jointQuantityToVector(damping));
+		}
+		return jcm;
+	}
+
+	/**
+	 * Generates a CartesianImpedanceControlMode from the given request.
+	 * @param request
+	 * @return
+	 */
+	private CartesianImpedanceControlMode buildCartesianImpedanceControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
+		CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
+
+		iiwa_msgs.CartesianQuantity stiffness = request.getCartesianImpedance().getCartesianStiffness();
+		if (stiffness.getX() >= 0) {
+			ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
+		}
+		if (stiffness.getY() >= 0) {
+			ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getY()); 
+		}
+		if (stiffness.getZ() >= 0) {
+			ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getZ());
+		}
+		if (stiffness.getA() >= 0) {
+			ccm.parametrize(CartDOF.A).setStiffness(stiffness.getA());
+		}
+		if (stiffness.getB() >= 0) {
+			ccm.parametrize(CartDOF.B).setStiffness(stiffness.getB());
+		}
+		if (stiffness.getC() >= 0) {
+			ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
+		}
+
+		CartesianQuantity damping = request.getCartesianImpedance().getCartesianDamping();
+		if (damping.getX() > 0) {
+			ccm.parametrize(CartDOF.X).setDamping(damping.getX());
+		}
+		if (damping.getY() > 0) {
+			ccm.parametrize(CartDOF.Y).setDamping(damping.getY());
+		}
+		if (damping.getZ() > 0) {
+			ccm.parametrize(CartDOF.Z).setDamping(damping.getZ());
+		}
+		if (damping.getA() > 0) {
+			ccm.parametrize(CartDOF.A).setDamping(damping.getA());
+		}
+		if (damping.getB() > 0) {
+			ccm.parametrize(CartDOF.B).setDamping(damping.getB());
+		}
+		if (damping.getC() > 0) {
+			ccm.parametrize(CartDOF.C).setDamping(damping.getC());
+		}
+
+		if (request.getCartesianImpedance().getNullspaceStiffness() >= 0) {
+			ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness());
+		}
+		if (request.getCartesianImpedance().getNullspaceDamping() > 0) {
+			ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping());
+		}
+
+		addControlModeLimits(ccm, request.getLimits());
+		return ccm;
 	}
 
 	/**
@@ -142,65 +231,17 @@ public class ControlModeHandler {
 		switch (request.getControlMode()) {
 
 		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
-			PositionControlMode pcm = new PositionControlMode(true);
-			cm = pcm;
+			cm = new PositionControlMode(true);
 			break;
 		}
 
 		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
-			JointImpedanceControlMode jcm = new JointImpedanceControlMode(7);
-
-			JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
-			if (helper.isJointQuantityGreaterEqualThan(stiffness, 0))
-				jcm.setStiffness(helper.jointQuantityToVector(stiffness));
-
-			JointQuantity damping = request.getJointImpedance().getJointDamping();
-			if (helper.isJointQuantityGreaterEqualThan(damping, 0))
-				jcm.setDamping(helper.jointQuantityToVector(damping));
-
-			cm = jcm;
+			cm = buildJointImpedanceControlMode(request);
 			break;
 		}
 
 		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
-			CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
-
-			iiwa_msgs.CartesianQuantity stiffness = request.getCartesianImpedance().getCartesianStiffness();
-			if (stiffness.getX() >= 0)
-				ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
-			if (stiffness.getY() >= 0)
-				ccm.parametrize(CartDOF.Y).setStiffness(stiffness.getY());
-			if (stiffness.getZ() >= 0)
-				ccm.parametrize(CartDOF.Z).setStiffness(stiffness.getZ());
-			if (stiffness.getA() >= 0)
-				ccm.parametrize(CartDOF.A).setStiffness(stiffness.getA());
-			if (stiffness.getB() >= 0)
-				ccm.parametrize(CartDOF.B).setStiffness(stiffness.getB());
-			if (stiffness.getC() >= 0)
-				ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
-
-			CartesianQuantity damping = request.getCartesianImpedance().getCartesianDamping();
-			if (damping.getX() > 0)
-				ccm.parametrize(CartDOF.X).setDamping(damping.getX());
-			if (damping.getY() > 0)
-				ccm.parametrize(CartDOF.Y).setDamping(damping.getY());
-			if (damping.getZ() > 0)
-				ccm.parametrize(CartDOF.Z).setDamping(damping.getZ());
-			if (damping.getA() > 0)
-				ccm.parametrize(CartDOF.A).setDamping(damping.getA());
-			if (damping.getB() > 0)
-				ccm.parametrize(CartDOF.B).setDamping(damping.getB());
-			if (damping.getC() > 0)
-				ccm.parametrize(CartDOF.C).setDamping(damping.getC());
-
-			if (request.getCartesianImpedance().getNullspaceStiffness() >= 0)
-				ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness());
-			if (request.getCartesianImpedance().getNullspaceDamping() > 0)
-				ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping());
-
-			addControlModeLimits(ccm, request.getLimits());
-
-			cm = ccm;
+			cm = buildCartesianImpedanceControlMode(request);
 			break;
 		}
 
@@ -240,7 +281,7 @@ public class ControlModeHandler {
 			throw new UnsupportedControlModeException();
 		}
 	}
-	
+
 	/**
 	 * Transforms a iiwa_msgs.DOF to a KUKA CartDOF object
 	 * @param dof
@@ -249,18 +290,22 @@ public class ControlModeHandler {
 	private CartDOF selectDegreeOfFreedom(int dof) {
 		CartDOF direction = null;
 		switch (dof) {
-		case iiwa_msgs.DOF.X :
+		case iiwa_msgs.DOF.X : {
 			direction = CartDOF.X;
 			break;
-		case iiwa_msgs.DOF.Y :
+		}
+		case iiwa_msgs.DOF.Y : {
 			direction = CartDOF.Y;
 			break;
-		case iiwa_msgs.DOF.Z :
+		}
+		case iiwa_msgs.DOF.Z : {
 			direction = CartDOF.Z;
 			break;
-		default:
+		}
+		default: {
 			logger.error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
 			break;
+		}
 		}
 		return direction;
 	}
@@ -275,24 +320,24 @@ public class ControlModeHandler {
 		if (helper.isCartesianQuantityGreaterThan(maxPathDeviation, 0)) {
 			controlMode.setMaxPathDeviation(maxPathDeviation.getX(), maxPathDeviation.getY(), maxPathDeviation.getZ(), maxPathDeviation.getA(), maxPathDeviation.getB(), maxPathDeviation.getC());
 		}
-		
+
 		CartesianQuantity maxControlForce = limits.getMaxControlForce();
 		if (helper.isCartesianQuantityGreaterThan(maxControlForce, 0)) {
 			controlMode.setMaxControlForce(maxControlForce.getX(), maxControlForce.getY(), maxControlForce.getZ(), maxControlForce.getA(), maxControlForce.getB(), maxControlForce.getC(), limits.getMaxControlForceStop());
 		}
-		
+
 		CartesianQuantity maxCartesianVelocity = limits.getMaxCartesianVelocity();
 		if (helper.isCartesianQuantityGreaterThan(maxCartesianVelocity, 0)) {
 			controlMode.setMaxCartesianVelocity(maxCartesianVelocity.getX(), maxCartesianVelocity.getY(), maxCartesianVelocity.getZ(), maxCartesianVelocity.getA(), maxCartesianVelocity.getB(),maxCartesianVelocity.getC());
 		}
 	}
-	
+
 	/**
 	 * Checks if a SmartServoMode is of the same type as a MotionControlMode from KUKA APIs
 	 * @return boolean
 	 */
 	public boolean isSameControlMode(IMotionControlMode kukacm, int roscm) {
-		if (kukacm == null) return false;
+		if (kukacm == null) { return false; }
 		String roscmname = null;
 		switch (roscm) {
 		case iiwa_msgs.ControlMode.POSITION_CONTROL:
