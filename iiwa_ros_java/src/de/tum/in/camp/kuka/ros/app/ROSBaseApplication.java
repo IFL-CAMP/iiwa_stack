@@ -100,7 +100,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 	public void initialize() {
 		robot = getContext().getDeviceFromType(LBR.class);
-
+				
 		// Standard configuration.
 		configuration = new Configuration();
 		publisher = new iiwaPublisher(Configuration.getRobotName());
@@ -148,7 +148,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 		// END of ROS initialization.
-
 
 		// Additional initialization from subclasses.
 		initializeApp();
@@ -225,9 +224,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		catch (Exception e) {
 			getLogger().info("ROS control loop aborted. " + e.toString());
 		} finally {
-			cleanup();
 			getLogger().info("ROS control loop has ended. Application terminated.");
 		}
+	}
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		cleanup();
 	}
 
 	@Override 
