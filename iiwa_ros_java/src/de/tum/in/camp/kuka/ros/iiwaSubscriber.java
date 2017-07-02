@@ -43,6 +43,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	public enum CommandType {
 		CARTESIAN_POSE,
+		CARTESIAN_VELOCITY,
 		JOINT_POSITION,
 		JOINT_POSITION_VELOCITY,
 		JOINT_VELOCITY
@@ -66,6 +67,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	// ROSJava Subscribers for iiwa_msgs
 	// Cartesian Message Subscribers
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
+	private Subscriber<geometry_msgs.TwistStamped> cartesianVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
 	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
@@ -76,6 +78,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
+	private geometry_msgs.TwistStamped cv;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointVelocity jv;
@@ -83,7 +86,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Boolean new_jp = new Boolean("false");
 	private Boolean new_cp = new Boolean("false");
 	private Boolean new_jpv = new Boolean("false");
-	private Boolean new_jv = new Boolean("false");
 
 	// Current control strategy
 	public CommandType currentCommandType = null;
@@ -115,6 +117,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		helper = new MessageGenerator(iiwaName);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cv = helper.buildMessage(geometry_msgs.TwistStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
@@ -151,9 +154,18 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				new_cp = false;
 				return cp;
 			} else {
+				
 				return null;
 			}
 		}	}
+
+	/**
+	 * TODO
+	 * @return the received PoseStamped message.
+	 */
+	public geometry_msgs.TwistStamped getCartesianVelocity() {
+		return cv;
+	}
 
 	/**
 	 * Returns the last received Joint Position message. Returns null if no new message is available.<p>
@@ -213,10 +225,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 		// Creating the subscribers
 		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
+		cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", geometry_msgs.TwistStamped._TYPE);
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
-
 
 		// Subscribers' callbacks
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
@@ -227,6 +239,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					currentCommandType = CommandType.CARTESIAN_POSE;
 					new_cp = true;
 				}
+			}
+		});
+
+		cartesianVelocitySubscriber.addMessageListener(new MessageListener<geometry_msgs.TwistStamped>() {
+			@Override
+			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
+				cv = velocity;
+				currentCommandType = CommandType.CARTESIAN_VELOCITY;
 			}
 		});
 
@@ -255,11 +275,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
-				synchronized(new_jv) {
-					jv = velocity;
-					currentCommandType = CommandType.JOINT_VELOCITY;
-					new_jv = true;
-				}
+				jv = velocity;
+				currentCommandType = CommandType.JOINT_VELOCITY;
 			}
 		});
 
