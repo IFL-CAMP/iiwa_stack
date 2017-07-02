@@ -40,7 +40,29 @@ public class Motions {
 			}
 		}
 	}
-	
+
+	public void cartesianVelocityMotion(SmartServo motion, geometry_msgs.TwistStamped commandVelocity, ObjectFrame toolFrame) {
+		if (commandVelocity != null) {
+			if (loopPeriod > 1.0) { loopPeriod = 0.0; }
+
+			motion.getRuntime().updateWithRealtimeSystem(); 			
+			Frame destinationFrame = motion.getRuntime().getCurrentCartesianDestination(toolFrame);
+
+			destinationFrame.setX(commandVelocity.getTwist().getLinear().getX()* loopPeriod + destinationFrame.getX()); 					
+			destinationFrame.setY(commandVelocity.getTwist().getLinear().getY() * loopPeriod + destinationFrame.getY()); 					
+			destinationFrame.setZ(commandVelocity.getTwist().getLinear().getZ() * loopPeriod + destinationFrame.getZ()); 										
+			destinationFrame.setAlphaRad(commandVelocity.getTwist().getAngular().getX() * loopPeriod + destinationFrame.getAlphaRad()); 					
+			destinationFrame.setBetaRad(commandVelocity.getTwist().getAngular().getY() * loopPeriod + destinationFrame.getBetaRad()); 					
+			destinationFrame.setGammaRad(commandVelocity.getTwist().getAngular().getZ() * loopPeriod + destinationFrame.getGammaRad()); 					
+			previousTime = currentTime;
+			if (robot.isReadyToMove()) { 						
+				motion.getRuntime().setDestination(destinationFrame); 						
+			} 										
+			currentTime = System.nanoTime();
+			loopPeriod = (double) (currentTime - previousTime) / 1000000000.0; // loopPeriod is stored in seconds.
+		}
+	}
+
 	public void jointPositionMotion(SmartServo motion, iiwa_msgs.JointPosition commandPosition) {
 		if (commandPosition != null) {
 			Conversions.rosJointQuantityToKuka(commandPosition.getPosition(), jp);

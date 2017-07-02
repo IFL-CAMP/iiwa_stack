@@ -39,6 +39,7 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
+import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.Motions;
@@ -84,7 +85,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 							motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
 						}
 					} else {
-						motion = controlModeHandler.switchSmartServoMotion(motion, req);
+						motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, req);
 					}
 
 					res.setSuccess(true);
@@ -136,7 +137,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 						controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
 					}
 					iiwa_msgs.ConfigureSmartServoRequest request = null;
-					motion = controlModeHandler.switchSmartServoMotion(motion, request);
+					motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, request);
 					res.setSuccess(true);
 				}
 				catch(Exception e) {
@@ -173,6 +174,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 					motions.cartesianPositionMotion(motion, commandPosition);
 					break;
 				}
+				case CARTESIAN_VELOCITY: {
+					geometry_msgs.TwistStamped commandVelocity = subscriber.getCartesianVelocity();
+					motions.cartesianVelocityMotion(motion, commandVelocity, toolFrame);
+					break;
+				}
 				case JOINT_POSITION: {
 					/* This will acquire the last received JointPosition command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position. */
@@ -190,6 +196,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_VELOCITY: {
 					/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
 					 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
+					motion.getRuntime().activateVelocityPlanning(true);
+					motion.setSpeedTimeoutAfterGoalReach(0.1);
 					iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
 					motions.jointVelocityMotion(motion, commandVelocity);
 					break;
@@ -210,5 +218,5 @@ public class ROSSmartServo extends ROSBaseApplication {
 		configureSmartServoLock.lock();
 		moveRobot();
 		configureSmartServoLock.unlock();
-	}
+	}	
 }

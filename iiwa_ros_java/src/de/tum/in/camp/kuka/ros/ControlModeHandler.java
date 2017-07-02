@@ -133,7 +133,7 @@ public class ControlModeHandler {
 	 */
 	public SmartServo createSmartServoMotion() {
 		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		motion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		motion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
 		motion.setJointVelocityRel(jointVelocity);
 		motion.setJointAccelerationRel(jointAcceleration);
