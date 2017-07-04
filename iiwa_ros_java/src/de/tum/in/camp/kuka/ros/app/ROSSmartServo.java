@@ -184,6 +184,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 						}
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
 						linearMotion = (SmartServoLIN) controlModeHandler.switchSmartServoMotion(linearMotion, request);
+						res.setSuccess(true);
 					}
 				}
 				catch (Exception e) {
