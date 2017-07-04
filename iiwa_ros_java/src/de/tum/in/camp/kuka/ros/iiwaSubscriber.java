@@ -63,6 +63,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersCallback = null;
+	
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinCallback = null;
 
 	// ROSJava Subscribers for iiwa_msgs
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
@@ -143,6 +147,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public void setPathParametersCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> callback) {
 		setPathParametersCallback = callback;
+	}
+	
+	/**
+	 * Add a callback to the SetPathParametersLin service
+	 */
+	public void setPathParametersLinCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> callback) {
+		setPathParametersLinCallback = callback;
 	}
 
 	/**
@@ -317,6 +328,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					iiwaName + "/configuration/pathParameters", 
 					"iiwa_msgs/SetPathParameters",
 					setPathParametersCallback);
+		}
+		
+		// Creating TimeToDestination service if a callback has been defined.
+		if (setPathParametersLinCallback != null) {
+			setPathParametersLinServer = node.newServiceServer(
+					iiwaName + "/configuration/pathParametersLin", 
+					"iiwa_msgs/SetPathParametersLin",
+					setPathParametersLinCallback);
 		}
 	}
 }
