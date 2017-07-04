@@ -29,6 +29,8 @@ public class ControlModeHandler {
 	public double jointVelocity;
 	public double jointAcceleration;
 	public double overrideJointAcceleration;
+	
+	public double[] maxTranslationlVelocity = {1000.0, 1000.0, 1000.0};
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 
@@ -198,12 +200,13 @@ public class ControlModeHandler {
 		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
 		linearMotion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
 		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
-		//		linearMotion.setMaxNullSpaceAcceleration(value);
-		//		linearMotion.setMaxNullSpaceVelocity(value);
-		//		linearMotion.setMaxOrientationAcceleration(value);
-		//		linearMotion.setMaxOrientationVelocity(value);
-		//		linearMotion.setMaxTranslationAcceleration(value);
-		//		linearMotion.setMaxTranslationVelocity(value);		
+		linearMotion.setMaxTranslationVelocity(maxTranslationlVelocity);
+		//linearMotion.setMaxOrientationVelocity(maxOrientationlVelocity);
+		//linearMotion.setMaxTranslationAcceleration(value);
+		//linearMotion.setMaxNullSpaceAcceleration(value);
+		//linearMotion.setMaxNullSpaceVelocity(value);
+		//linearMotion.setMaxOrientationAcceleration(value);
+
 		return linearMotion;
 	}
 

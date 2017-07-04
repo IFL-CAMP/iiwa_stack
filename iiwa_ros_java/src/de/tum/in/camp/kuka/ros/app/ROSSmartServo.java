@@ -26,6 +26,8 @@ package de.tum.in.camp.kuka.ros.app;
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.ConfigureSmartServoResponse;
+import iiwa_msgs.SetPathParametersLinRequest;
+import iiwa_msgs.SetPathParametersLinResponse;
 import iiwa_msgs.TimeToDestinationRequest;
 import iiwa_msgs.TimeToDestinationResponse;
 
@@ -42,6 +44,7 @@ import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
+import de.tum.in.camp.kuka.ros.Conversions;
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
 import de.tum.in.camp.kuka.ros.Configuration;
@@ -170,8 +173,40 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 		});
 
+		subscriber.setPathParametersLinCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse>() {
+			@Override
+			public void build(SetPathParametersLinRequest req, SetPathParametersLinResponse res) throws ServiceException {
+				configureSmartServoLock.lock();
+				try {
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+						if (isTwistGreaterThan(req.getMaxCartesianVelocity(), 0)) {
+							controlModeHandler.maxTranslationlVelocity = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
+						}
+						iiwa_msgs.ConfigureSmartServoRequest request = null;
+						linearMotion = (SmartServoLIN) controlModeHandler.switchSmartServoMotion(linearMotion, request);
+					}
+				}
+				catch (Exception e) {
+					res.setError(e.getClass().getName() + ": " + e.getMessage());
+					res.setSuccess(false);
+				}
+				finally {
+					configureSmartServoLock.unlock();
+				}
+			}
+		});
+
 		// Execute the subscriber node.
 		nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
+	}
+
+	private boolean isTwistGreaterThan(geometry_msgs.Twist twist, double value) {
+		return (twist.getLinear().getX() > value && 
+				twist.getLinear().getY() > value &&
+				twist.getLinear().getZ() > value &&
+				twist.getAngular().getX() > value &&
+				twist.getAngular().getY() > value &&
+				twist.getAngular().getZ() > value);
 	}
 
 	@Override
