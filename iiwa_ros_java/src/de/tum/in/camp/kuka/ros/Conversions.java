@@ -249,5 +249,14 @@ public final class Conversions {
 		};
 		return ret;
 	}
+	
+	public static double[] rosVectorToArray(geometry_msgs.Vector3 vector) {
+		double[] ret = {
+				vector.getX(),
+				vector.getY(),
+				vector.getZ()
+		};
+		return ret;
+	}
 
 }
