@@ -60,6 +60,7 @@ void iiwaRos::init()
 
   smart_servo_service_.setServiceName("configuration/configureSmartServo");
   path_parameters_service_.setServiceName("configuration/pathParameters");
+  path_parameters_lin_service_.setServiceName("configuration/pathParametersLin");
   time_to_destination_service_.setServiceName("state/timeToDestination");
 }
 

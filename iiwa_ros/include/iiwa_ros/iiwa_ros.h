@@ -40,6 +40,7 @@
 #include <iiwa_msgs/JointTorque.h>
 #include <iiwa_msgs/JointVelocity.h>
 #include <iiwa_ros/path_parameters_service.h>
+#include <iiwa_ros/path_parameters_lin_service.h>
 #include <iiwa_ros/smart_servo_service.h>
 #include <iiwa_ros/time_to_destination_service.h>
 #include <ros/ros.h>
@@ -260,6 +261,16 @@ public:
   }
 
   /**
+   * @brief Returns the object that allows to call the timeToDestination service.
+   *
+   * @return iiwa_ros::PathParametersService
+   */
+  PathParametersLinService getPathParametersLinService()
+  {
+    return path_parameters_lin_service_;
+  }
+
+  /**
    * @brief Returns the object that allows to call the setPathParameters service.
    *
    * @return iiwa_ros::TimeToDestinationService
@@ -328,6 +339,7 @@ private:
 
   SmartServoService smart_servo_service_;
   PathParametersService path_parameters_service_;
+  PathParametersLinService path_parameters_lin_service_;
   TimeToDestinationService time_to_destination_service_;
 };
 }

@@ -28,50 +28,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iiwa_ros/time_to_destination_service.h>
+#pragma once
+
+#include <iiwa_msgs/SetPathParametersLin.h>
+#include <iiwa_ros/iiwa_services.hpp>
 
 namespace iiwa_ros
 {
-TimeToDestinationService::TimeToDestinationService() : iiwaServices<iiwa_msgs::TimeToDestination>()
+class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin>
 {
-}
+public:
+  PathParametersLinService();
 
-TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose)
-  : iiwaServices<iiwa_msgs::TimeToDestination>(service_name, verbose)
-{
-}
+  /**
+   * @brief ...
+   *
+   * @param service_name ...
+   * @param verbose ...
+   */
+  PathParametersLinService(const std::string& service_name, const bool verbose = true);
+  /**
+   * @brief ...
+   *
+   * @param max_cartesian_velocity ...
+   * @return bool
+   */
+  bool setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity);
 
-double TimeToDestinationService::getTimeToDestination()
-{
-  if (service_ready_)
-  {
-    if (callService())
-    {
-      return time_to_destination_;
-    }
-    else
-    {
-      return -999;  // It cannot return -1 since it might be a meaningfull result.
-    }
-  }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
-}
+  /**
+   * @brief ...
+   *
+   * @param max_cartesian_velocity ...
+   * @return bool
+   */
+  bool setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity);
 
-bool TimeToDestinationService::callService()
-{
-  if (client_.call(config_))
-  {
-    if (verbose_)
-    {
-        ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
-    }
-    time_to_destination_ = config_.response.remaining_time;
-    return true;
-  }
-  else if (verbose_)
-  {
-    ROS_ERROR_STREAM(service_name_ << " could not be called");
-  }
-  return false;
-}
+protected:
+  virtual bool callService();
+};
 }
