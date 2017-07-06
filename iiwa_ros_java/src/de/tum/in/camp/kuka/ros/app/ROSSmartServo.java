@@ -40,8 +40,6 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
-import com.kuka.connectivity.motionModel.smartServo.SmartServo;
-import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.Conversions;
@@ -91,7 +89,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 								linearMotion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
 							}
 						} else {
-							linearMotion = (SmartServoLIN) controlModeHandler.switchSmartServoMotion(linearMotion, req);
+							linearMotion = controlModeHandler.switchSmartServoMotion(linearMotion, req);
 						}
 					}
 					else {
@@ -101,7 +99,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 								motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
 							}
 						} else {
-							motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, req);
+							motion = controlModeHandler.switchSmartServoMotion(motion, req);
 						}
 					}
 
@@ -155,7 +153,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 							controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
 						}
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
-						motion = (SmartServo) controlModeHandler.switchSmartServoMotion(motion, request);
+						motion = controlModeHandler.switchSmartServoMotion(motion, request);
 						res.setSuccess(true);
 					}
 					else {
@@ -183,7 +181,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 							controlModeHandler.maxTranslationlVelocity = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
 						}
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
-						linearMotion = (SmartServoLIN) controlModeHandler.switchSmartServoMotion(linearMotion, request);
+						linearMotion = controlModeHandler.switchSmartServoMotion(linearMotion, request);
 						res.setSuccess(true);
 					}
 				}

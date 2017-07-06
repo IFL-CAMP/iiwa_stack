@@ -62,14 +62,36 @@ public class ControlModeHandler {
 	 * @param motion
 	 * @param request
 	 */
-	@SuppressWarnings("rawtypes")
-	public ServoMotion switchSmartServoMotion(ServoMotion motion, iiwa_msgs.ConfigureSmartServoRequest request) {
-		ServoMotion oldMotion = motion;
+//	@SuppressWarnings("rawtypes")
+//	public ServoMotion switchSmartServoMotion(ServoMotion motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+//		ServoMotion oldMotion = motion;
+//
+//		validateForImpedanceMode();
+//
+//		if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
+//		else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+//
+//		if (request != null) {
+//			motion.setMode(buildMotionControlMode(request));
+//		} 
+//		else if (lastSmartServoRequest != null) {
+//			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
+//		}
+//		else {
+//			motion.setMode(new PositionControlMode());
+//		}
+//
+//		switchMotion(motion, oldMotion);
+//
+//		return motion;
+//	}
+	
+	public SmartServo switchSmartServoMotion(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+		SmartServo oldMotion = motion;
 
 		validateForImpedanceMode();
 
-		if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
-		else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+		motion = createSmartServoMotion();
 
 		if (request != null) {
 			motion.setMode(buildMotionControlMode(request));
@@ -83,7 +105,29 @@ public class ControlModeHandler {
 
 		switchMotion(motion, oldMotion);
 
-		return motion;
+		return motion;		
+	}
+	
+	public SmartServoLIN switchSmartServoMotion(SmartServoLIN motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+		SmartServoLIN oldMotion = motion;
+
+		validateForImpedanceMode();
+
+		motion = createSmartServoLinMotion();
+
+		if (request != null) {
+			motion.setMode(buildMotionControlMode(request));
+		} 
+		else if (lastSmartServoRequest != null) {
+			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
+		}
+		else {
+			motion.setMode(new PositionControlMode());
+		}
+
+		switchMotion(motion, oldMotion);
+
+		return motion;		
 	}
 
 	/**
@@ -92,28 +136,28 @@ public class ControlModeHandler {
 	 * @param controlMode
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
-	public ServoMotion switchSmartServoMotion(ServoMotion motion, IMotionControlMode controlMode) {
-		if (controlMode != motion.getMode()) {
-
-			ServoMotion oldMotion = motion;
-
-			if (!(controlMode instanceof PositionControlMode)) {
-				validateForImpedanceMode();
-			}
-
-			if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
-			else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
-
-			motion.setMode(controlMode);
-
-			switchMotion(motion, oldMotion);
-		}
-		else {
-			motion.getRuntime().changeControlModeSettings(controlMode);
-		}
-		return motion;
-	}
+//	@SuppressWarnings("rawtypes")
+//	public ServoMotion switchSmartServoMotion(ServoMotion motion, IMotionControlMode controlMode) {
+//		if (controlMode != motion.getMode()) {
+//
+//			ServoMotion oldMotion = motion;
+//
+//			if (!(controlMode instanceof PositionControlMode)) {
+//				validateForImpedanceMode();
+//			}
+//
+//			if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
+//			else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+//
+//			motion.setMode(controlMode);
+//
+//			switchMotion(motion, oldMotion);
+//		}
+//		else {
+//			motion.getRuntime().changeControlModeSettings(controlMode);
+//		}
+//		return motion;
+//	}
 
 	public SmartServoLIN switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) { 
 		SmartServo oldMotion = motion;

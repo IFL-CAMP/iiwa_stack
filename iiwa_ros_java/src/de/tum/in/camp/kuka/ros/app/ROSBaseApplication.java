@@ -165,7 +165,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-
 		try {
 			getLogger().info("Waiting for ROS Master to connect... ");
 			configuration.waitForInitialization();
