@@ -1,4 +1,4 @@
 robot_name: iiwa
-master_ip: 172.31.1.100
+master_ip: 160.69.69.100
 master_port: 11311
 ntp_with_host: false

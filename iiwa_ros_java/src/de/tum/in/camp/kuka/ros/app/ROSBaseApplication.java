@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
@@ -115,19 +114,15 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		try {
 			URI uri = new URI(Configuration.getMasterURI());
 
-			nodeConfConfiguration = NodeConfiguration.newPublic("172.31.1.147");
+			nodeConfConfiguration = NodeConfiguration.newPublic(Configuration.getRobotIp());
 			nodeConfConfiguration.setTimeProvider(Configuration.getTimeProvider());
 			nodeConfConfiguration.setNodeName(Configuration.getRobotName() + "/iiwa_configuration");
-			nodeConfConfiguration.setMasterUri(uri);			
-			nodeConfConfiguration.setTcpRosBindAddress(BindAddress.newPublic(30000));
-			nodeConfConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(30001));			
-			
-			nodeConfPublisher = NodeConfiguration.newPublic("172.31.1.147");
+			nodeConfConfiguration.setMasterUri(uri);
+
+			nodeConfPublisher = NodeConfiguration.newPublic(Configuration.getRobotIp());
 			nodeConfPublisher.setTimeProvider(Configuration.getTimeProvider());
 			nodeConfPublisher.setNodeName(Configuration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
-			nodeConfPublisher.setTcpRosBindAddress(BindAddress.newPublic(30002));
-			nodeConfPublisher.setXmlRpcBindAddress(BindAddress.newPublic(30003));
 
 			// Additional configuration needed in subclasses.
 			configureNodes(uri);
@@ -246,12 +241,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		super.onApplicationStateChanged(state);
 	};
-	
-	@Override
-	public void dispose() {
-		cleanup();
-		super.dispose();
-	}
 
 	void cleanup() {
 		running = false;
