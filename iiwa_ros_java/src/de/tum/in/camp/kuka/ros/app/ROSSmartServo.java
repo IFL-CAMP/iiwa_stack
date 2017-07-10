@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.ros.address.BindAddress;
 import org.ros.exception.ServiceException;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
@@ -60,10 +61,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
-		nodeConfSubscriber = NodeConfiguration.newPublic(Configuration.getRobotIp());
+		nodeConfSubscriber = NodeConfiguration.newPublic("172.31.1.147");
 		nodeConfSubscriber.setTimeProvider(Configuration.getTimeProvider());
 		nodeConfSubscriber.setNodeName(Configuration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
+		nodeConfSubscriber.setTcpRosBindAddress(BindAddress.newPublic(30004));
+		nodeConfSubscriber.setXmlRpcBindAddress(BindAddress.newPublic(30005));
 	}
 
 	@Override
