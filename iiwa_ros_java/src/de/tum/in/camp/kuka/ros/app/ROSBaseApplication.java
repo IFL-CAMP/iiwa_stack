@@ -64,8 +64,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
 	protected SmartServoLIN linearMotion;
-	@SuppressWarnings("rawtypes")
-	protected ServoMotion currentMotion;
 	protected ControlModeHandler controlModeHandler;
 	protected GoalReachedEventListener handler;
 
@@ -195,7 +193,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		controlModeHandler = new ControlModeHandler(robot, tool, toolFrame, publisher, configuration, getLogger());
 		motion = controlModeHandler.createSmartServoMotion();
-		currentMotion = motion;
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 

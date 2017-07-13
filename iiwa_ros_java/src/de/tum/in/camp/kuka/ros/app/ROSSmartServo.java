@@ -61,8 +61,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	private CommandType lastCommandType = CommandType.JOINT_POSITION;
 	private Motions motions;
-	private boolean motionSwitched = false;
-
+	
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
@@ -126,8 +125,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 			@Override
 			public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
 				try {
-					currentMotion.getRuntime().updateWithRealtimeSystem();
-					res.setRemainingTime(currentMotion.getRuntime().getRemainingTime());
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
+						linearMotion.getRuntime().updateWithRealtimeSystem();
+						res.setRemainingTime(linearMotion.getRuntime().getRemainingTime());
+					}
+					else {
+						motion.getRuntime().updateWithRealtimeSystem();
+						res.setRemainingTime(motion.getRuntime().getRemainingTime());
+					}
 				}
 				catch(Exception e) {
 					// An exception should be thrown only if a motion/runtime is not available.
@@ -228,7 +233,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case CARTESIAN_POSE: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-						motionSwitched = true;
 					}
 					PoseStamped commandPosition = subscriber.getCartesianPose();
 					motions.cartesianPositionMotion(motion, commandPosition);
@@ -237,7 +241,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case CARTESIAN_POSE_LIN: {
 					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) { 
 						linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
-						motionSwitched = true;
 					}
 					PoseStamped commandPosition = subscriber.getCartesianPoseLin();
 					motions.cartesianPositionLinMotion(linearMotion, commandPosition);
@@ -246,7 +249,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_POSITION: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-						motionSwitched = true;
 					}					
 					iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
 					motions.jointPositionMotion(motion, commandPosition);
@@ -255,7 +257,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_POSITION_VELOCITY: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-						motionSwitched = true;
 					}					
 					iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
 					motions.jointPositionVelocityMotion(motion, commandPositionVelocity);
@@ -264,7 +265,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_VELOCITY: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-						motionSwitched = true;
 					}
 					iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
 					motions.jointVelocityMotion(motion, commandVelocity);
@@ -279,11 +279,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 			}
 		}
 		lastCommandType = subscriber.currentCommandType;
-		if (motionSwitched) {
-			if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { currentMotion = linearMotion; }
-			else { currentMotion = motion; }
-			motionSwitched = false;
-		}
 	}
 
 	@Override
