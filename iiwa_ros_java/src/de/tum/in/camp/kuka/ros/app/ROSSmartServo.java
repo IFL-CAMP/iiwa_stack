@@ -61,7 +61,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	private CommandType lastCommandType = CommandType.JOINT_POSITION;
 	private Motions motions;
-	
+
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
@@ -147,24 +147,20 @@ public class ROSSmartServo extends ROSBaseApplication {
 			public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
 				configureSmartServoLock.lock();
 				try {
+					if (req.getJointRelativeVelocity() >= 0) {
+						controlModeHandler.jointVelocity = req.getJointRelativeVelocity();
+					}
+					if (req.getJointRelativeAcceleration() >= 0) {
+						controlModeHandler.jointAcceleration = req.getJointRelativeAcceleration();
+					}
+					if (req.getOverrideJointAcceleration() >= 0) {
+						controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
+					}
 					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
-						if (req.getJointRelativeVelocity() >= 0) {
-							controlModeHandler.jointVelocity = req.getJointRelativeVelocity();
-						}
-						if (req.getJointRelativeAcceleration() >= 0) {
-							controlModeHandler.jointAcceleration = req.getJointRelativeAcceleration();
-						}
-						if (req.getOverrideJointAcceleration() >= 0) {
-							controlModeHandler.overrideJointAcceleration = req.getOverrideJointAcceleration();
-						}
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
 						motion = controlModeHandler.switchSmartServoMotion(motion, request);
-						res.setSuccess(true);
 					}
-					else {
-						res.setError("You are currently using a SmartServoLIN motion. This service is available only for SmartServo motions.");
-						res.setSuccess(false);
-					}
+					res.setSuccess(true);
 				}
 				catch(Exception e) {
 					res.setError(e.getClass().getName() + ": " + e.getMessage());
@@ -181,14 +177,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 			public void build(SetPathParametersLinRequest req, SetPathParametersLinResponse res) throws ServiceException {
 				configureSmartServoLock.lock();
 				try {
+					if (isVector3GreaterThan(req.getMaxCartesianVelocity().getLinear(), 0)) { // TODO: this just works for linear velocity atm
+						controlModeHandler.maxTranslationlVelocity = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
+					}
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-						if (isTwistGreaterThan(req.getMaxCartesianVelocity(), 0)) {
-							controlModeHandler.maxTranslationlVelocity = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
-						}
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
 						linearMotion = controlModeHandler.switchSmartServoMotion(linearMotion, request);
-						res.setSuccess(true);
 					}
+					res.setSuccess(true);
 				}
 				catch (Exception e) {
 					res.setError(e.getClass().getName() + ": " + e.getMessage());
@@ -204,6 +200,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 		nodeMainExecutor.execute(subscriber, nodeConfSubscriber);
 	}
 
+	// TODO move this somewhere else.
 	private boolean isTwistGreaterThan(geometry_msgs.Twist twist, double value) {
 		return (twist.getLinear().getX() > value && 
 				twist.getLinear().getY() > value &&
@@ -211,6 +208,12 @@ public class ROSSmartServo extends ROSBaseApplication {
 				twist.getAngular().getX() > value &&
 				twist.getAngular().getY() > value &&
 				twist.getAngular().getZ() > value);
+	}
+
+	private boolean isVector3GreaterThan(geometry_msgs.Vector3 vector, double value) {
+		return (vector.getX() > value &&
+				vector.getY() > value &&
+				vector.getZ() > value);
 	}
 
 	@Override
