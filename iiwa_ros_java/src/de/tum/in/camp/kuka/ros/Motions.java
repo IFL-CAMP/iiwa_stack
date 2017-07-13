@@ -32,7 +32,7 @@ public class Motions {
 		loopPeriod = 0.0;
 	}
 	
-	public void cartesianPositionMotion(SmartServo motion, PoseStamped commandPosition) {
+	public void cartesianPositionMotion(SmartServo motion, PoseStamped commandPosition) throws IllegalArgumentException {
 		if (commandPosition != null) {
 			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
 			if (robot.isReadyToMove()) {
@@ -41,7 +41,7 @@ public class Motions {
 		}
 	}
 	
-	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition) {
+	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition) throws IllegalArgumentException {
 		if (commandPosition != null) {
 			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
 			if (robot.isReadyToMove()) {
