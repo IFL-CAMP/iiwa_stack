@@ -1,5 +1,5 @@
- /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+/**  
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -35,6 +35,7 @@ import org.ros.time.TimeProvider;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
@@ -49,19 +50,22 @@ import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMo
  * For Cartesian messages, it's possible to pass a reference frames, if no reference frames is passed, the flange frame is used.
  */
 public class iiwaMessageGenerator {
-	
+
 	private static String baseFrameID;
 	private static final String baseFrameIDSuffix = "_link_0";
 	private static String[] joint_names;
+
+	private static double[] last_position;
+	private static long last_position_time_ns = 0;
 
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
 	private TimeProvider time = iiwaConfiguration.getTimeProvider();
-	
+
 	public iiwaMessageGenerator(String robotName) {
 		baseFrameID = robotName + baseFrameIDSuffix; // e.g. if robotName == iiwa, then baseFrameID = iiwa_link_0
-				
+
 		// e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
 		joint_names = new String[]{
 				robotName+"_joint_1", 
@@ -71,7 +75,7 @@ public class iiwaMessageGenerator {
 				robotName+"_joint_5",
 				robotName+"_joint_6",
 				robotName+"_joint_7"
-				};
+		};
 	}
 
 	/**
@@ -123,9 +127,9 @@ public class iiwaMessageGenerator {
 	 * @param frame : reference frame the wrench refers to.
 	 */
 	public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot, ObjectFrame frame) {
-		currentWrench.getHeader().setFrameId(frame.getName()); // TODO : should this be baseFrameID
+		currentWrench.getHeader().setFrameId(frame.getName());
 		currentWrench.getHeader().setStamp(time.getCurrentTime());
-		
+
 		currentWrench.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
 		currentWrench.getWrench().getForce().setY(robot.getExternalForceTorque(frame).getForce().getY());
 		currentWrench.getWrench().getForce().setZ(robot.getExternalForceTorque(frame).getForce().getZ());
@@ -133,8 +137,8 @@ public class iiwaMessageGenerator {
 		currentWrench.getWrench().getTorque().setX(robot.getExternalForceTorque(frame).getTorque().getX());
 		currentWrench.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
 		currentWrench.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
-		
-		// TODO : should we also add these 
+
+		// TODO : should we also add these: 
 		//robot.getExternalForceTorque(frame).getForceInaccuracy();
 		//robot.getExternalForceTorque(frame).getTorqueInaccuracy();
 		// to give an estimation of the accuracy of the force/torque?
@@ -151,22 +155,43 @@ public class iiwaMessageGenerator {
 		currentJointPosition.getHeader().setStamp(time.getCurrentTime());
 		vectorToJointQuantity(position, currentJointPosition.getPosition());
 	}
-	
+
 	/**
 	 * Builds a iiwa_msgs.JointPositionVelocity message given a LBR iiwa Robot.<p>
 	 * The message header is set to current time.<br>
 	 * @param currentJointPositionVelocity : the JointPositionVelocity message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
-	// TODO : should we keep this?
-	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity currentJointPositionVelocity, LBR robot) {
+	public void getCurrentJointPositionVelocity(iiwa_msgs.JointPositionVelocity currentJointPositionVelocity, LBR robot) {		
 		double[] position = robot.getCurrentJointPosition().getInternalArray();
-		double[] velocity = new double[robot.getJointCount()];  // TODO: read current joint velocity
-
 		currentJointPositionVelocity.getHeader().setStamp(time.getCurrentTime());
 
 		vectorToJointQuantity(position, currentJointPositionVelocity.getPosition());
-		vectorToJointQuantity(velocity, currentJointPositionVelocity.getVelocity());
+		vectorToJointQuantity(computeVelocity(robot), currentJointPositionVelocity.getVelocity());
+	}
+
+	/**
+	 * Builds a iiwa_msgs.JointVelocity message given a LBR iiwa Robot.<p>
+	 * @param currentJointVelocity : the JointVelocity message that will be created.
+	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+	 */
+	public void getCurrentJointVelocity(iiwa_msgs.JointVelocity currentJointVelocity, LBR robot) {
+		vectorToJointQuantity(computeVelocity(robot), currentJointVelocity.getVelocity());
+	}
+
+	private double[] computeVelocity(LBR robot) {
+		double[] position = robot.getCurrentJointPosition().getInternalArray();
+		long position_time_ns = System.nanoTime();
+		double[] velocity = new double[robot.getJointCount()];  
+
+		if (last_position_time_ns != 0) {
+			for (int i = 0; i < robot.getJointCount(); i++)
+				velocity[i] = (position[i] - last_position[i]) / ((double)(position_time_ns - last_position_time_ns) / 1000000000);
+		}
+		last_position = position;
+		last_position_time_ns = position_time_ns;
+
+		return velocity;
 	}
 
 	/**
@@ -228,7 +253,7 @@ public class iiwaMessageGenerator {
 		currentJointTorque.getHeader().setStamp(time.getCurrentTime());
 		vectorToJointQuantity(torque, currentJointTorque.getTorque());		
 	}
-	
+
 	/**
 	 * Builds a sensor_msgs.JointState message given a LBR iiwa Robot.<p>
 	 * <b>No velocity information currently available</b>
@@ -236,13 +261,11 @@ public class iiwaMessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
 	public void getCurrentJointState(sensor_msgs.JointState currentJointState, LBR robot) {
-		
+
 		currentJointState.getHeader().setStamp(time.getCurrentTime());
 		currentJointState.setName(Arrays.asList(joint_names));
 		currentJointState.setPosition(robot.getCurrentJointPosition().getInternalArray());
 		currentJointState.setEffort(robot.getMeasuredTorque().getTorqueValues());
-		
-		// TODO: velocity
 	}
 
 	// Conversions
@@ -417,8 +440,17 @@ public class iiwaMessageGenerator {
 	}
 
 	/**
-	 * Converts a Transformation object in KUKA APIs to a geometry_msgs.Pose message
-	 * @param kukaTransf : startign Trasnformation
+	 * Converts a geometry_msgs.Pose message to a Frame object in KUKA APIs
+	 * @param rosPose : starting Pose
+	 * @return resulting Frame
+	 */
+	public Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) {	
+		return new Frame(rosPoseToKukaTransformation(rosPose));
+	}
+
+	/**
+	 * Converts a Transformation object from KUKA APIs to a geometry_msgs.Pose message
+	 * @param kukaTransf : starting Trasnformation
 	 * @param pose : resulting Pose
 	 */
 	public void kukaTransformationToRosPose(Transformation kukaTransf, Pose pose) {
@@ -429,8 +461,6 @@ public class iiwaMessageGenerator {
 		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
 		matrixToQuat(rotationMatrix, pose.getOrientation());
 	}
-	
-	//TODO : I see some inconsistency, some conversions return a value, some not
 
 	/**
 	 * Converts an iiwa_msgs.JointQuantity to a JointPosition in KUKA APIs
@@ -438,15 +468,25 @@ public class iiwaMessageGenerator {
 	 * @param kukaJointPos : resulting JointPosition
 	 */
 	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos) {
+		rosJointQuantityToKuka(rosJointPos, kukaJointPos, 1.0);
+	}
+
+	/**
+	 * Converts an iiwa_msgs.JointQuantity to a JointPosition in KUKA APIs
+	 * @param rosJointPos : starting JointQuantity
+	 * @param kukaJointPos : resulting JointPosition
+	 * @param scaleFactor : each element of rosJointPos with be scaled using this value 
+	 */
+	public void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos, double scaleFactor) {
 		kukaJointPos.set(
-			rosJointPos.getA1(),
-			rosJointPos.getA2(),
-			rosJointPos.getA3(),
-			rosJointPos.getA4(),
-			rosJointPos.getA5(),
-			rosJointPos.getA6(),
-			rosJointPos.getA7()
-		);
+				rosJointPos.getA1()*scaleFactor,
+				rosJointPos.getA2()*scaleFactor,
+				rosJointPos.getA3()*scaleFactor,
+				rosJointPos.getA4()*scaleFactor,
+				rosJointPos.getA5()*scaleFactor,
+				rosJointPos.getA6()*scaleFactor,
+				rosJointPos.getA7()*scaleFactor
+				);
 	}
 
 	/**
@@ -476,13 +516,74 @@ public class iiwaMessageGenerator {
 	public <T extends org.ros.internal.message.Message> T buildMessage(String typeString) {
 		return messageFactory.newFromType(typeString);
 	}
-	
+
 	/**
 	 * Adds one to the current sequence number of the message Header
 	 * @param h : message Header
 	 */
 	public void incrementSeqNumber(std_msgs.Header h) {
 		h.setSeq(h.getSeq()+1);
+	}
+	
+	/**
+	 * Checks if all the component of a CartesianQuantity are greater than the given value.
+	 * @param quantity
+	 * @param value
+	 * @return
+	 */
+	public boolean isCartesianQuantityGreaterThan(iiwa_msgs.CartesianQuantity quantity, int value) {
+		return (quantity.getX() > value && 
+				quantity.getY() > value &&
+				quantity.getZ() > value &&
+				quantity.getA() > value &&
+				quantity.getB() > value &&
+				quantity.getC() > value);
+	}
+	
+	/**
+	 * Checks if all the component of a CartesianQuantity are greater or equal than the given value.
+	 * @param quantity
+	 * @param value
+	 * @return
+	 */
+	public boolean isCartesianQuantityGreaterEqualThan(iiwa_msgs.CartesianQuantity quantity, int value) {
+		return (quantity.getX() >= value && 
+				quantity.getY() >= value &&
+				quantity.getZ() >= value &&
+				quantity.getA() >= value &&
+				quantity.getB() >= value &&
+				quantity.getC() >= value);
+	}
+
+	/**
+	 * Checks if all the component of a JointQuantity are greater than the given value.
+	 * @param value
+	 * @return
+	 */
+	public boolean isJointQuantityGreaterThan(iiwa_msgs.JointQuantity quantity, int value) {
+		return (quantity.getA1() > value && 
+				quantity.getA2() > value &&
+				quantity.getA3() > value &&
+				quantity.getA4() > value &&
+				quantity.getA5() > value &&
+				quantity.getA6() > value &&
+				quantity.getA7() > value);
+	}
+	
+	/**
+	 * 
+	 * Checks if all the component of a JointQuantity are greater or equal than the given value.
+	 * @param value
+	 * @return
+	 */
+	public boolean isJointQuantityGreaterEqualThan(iiwa_msgs.JointQuantity quantity, int value) {
+		return (quantity.getA1() >= value && 
+				quantity.getA2() >= value &&
+				quantity.getA3() >= value &&
+				quantity.getA4() >= value &&
+				quantity.getA5() >= value &&
+				quantity.getA6() >= value &&
+				quantity.getA7() >= value);
 	}
 
 }
