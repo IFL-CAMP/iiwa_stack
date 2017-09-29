@@ -9,6 +9,13 @@
       <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
         <robotNamespace>/${robot_name}</robotNamespace>
       </plugin>
+      <plugin name="gazebo_ros_moveit_planning_scene" filename="libgazebo_ros_moveit_planning_scene.so">
+        <robotNamespace>~</robotNamespace>
+        <sceneName>${robot_name}_scene</sceneName>
+        <updatePeriod>0.033</updatePeriod>
+        <robotName>iiwa</robotName>
+        <topicName>/${robot_name}/planning_scene</topicName>
+      </plugin>
     </gazebo>
 
     <!-- Link0 -->
