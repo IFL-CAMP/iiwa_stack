@@ -234,7 +234,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			getLogger().info("ROS control loop has ended. Application terminated.");
 		}
 	}
-
+	
+	@Override
+	public void dispose() {
+		super.dispose();
+		cleanup();
+	}
+	
 	@Override 
 	public void onApplicationStateChanged(RoboticsAPIApplicationState state) {
 		if (state == RoboticsAPIApplicationState.STOPPING) {
