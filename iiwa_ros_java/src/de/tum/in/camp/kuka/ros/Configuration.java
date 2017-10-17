@@ -223,6 +223,7 @@ public class Configuration extends AbstractNodeMain {
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
 		node = connectedNode;
+		Logger.setRosLogger(node.getLog());
 		initSemaphore.release();
 	}
 

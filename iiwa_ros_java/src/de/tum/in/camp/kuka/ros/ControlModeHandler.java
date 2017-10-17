@@ -34,12 +34,11 @@ public class ControlModeHandler {
 	private MessageGenerator helper = new MessageGenerator(Configuration.getRobotName());
 	private GoalReachedEventListener handler = new GoalReachedEventListener(publisher);
 
-	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration, ITaskLogger logger) {
+	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration) {
 		this.robot = robot;
 		this.tool = tool;
 		this.toolFrame = toolFrame;
 		this.publisher = publisher;
-		this.logger = logger;
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
 		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		overrideJointAcceleration = 1.0;

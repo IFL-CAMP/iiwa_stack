@@ -42,6 +42,7 @@ import org.ros.node.service.ServiceResponseBuilder;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
+import de.tum.in.camp.kuka.ros.Logger;
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
 import de.tum.in.camp.kuka.ros.Configuration;
@@ -208,7 +209,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				}
 			}
 			catch (Exception e) {
-				getLogger().error(e.getClass().getName() + ": " + e.getMessage());
+				Logger.error(e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
 	}
