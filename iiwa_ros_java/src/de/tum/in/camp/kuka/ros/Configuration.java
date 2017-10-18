@@ -27,12 +27,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -114,6 +111,8 @@ public class Configuration extends AbstractNodeMain {
 		// Obtain name of the robot from config file
 		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
 		System.out.println("Robot name: " + robotName);
+		robotIp = config.get("robot_ip");
+		System.out.println("IP from configuration: " + robotIp); // automatic discovery not reliable with x66
 
 		// Obtain if NTP server is used from config file
 		ntpWithHost  = config.get("ntp_with_host").equals("true");
@@ -123,35 +122,6 @@ public class Configuration extends AbstractNodeMain {
 		masterPort = config.get("master_port");
 		masterUri = "http://" + masterIp + ":" + masterPort;
 		System.out.println("Master URI: " + masterUri);
-
-		String[] master_components = masterIp.split("\\.");
-		String localhostIp = null;
-		Enumeration<NetworkInterface> ifaces = null;
-		try {
-			ifaces = NetworkInterface.getNetworkInterfaces();
-		} catch (SocketException e1) {
-			e1.printStackTrace();
-			return;
-		}
-		boolean localhostIpFound = false;
-		while(!localhostIpFound && ifaces.hasMoreElements()) {
-			NetworkInterface n = (NetworkInterface) ifaces.nextElement();
-			Enumeration<InetAddress> ee = n.getInetAddresses();
-			while (ee.hasMoreElements()) {
-				localhostIp = ((InetAddress) ee.nextElement()).getHostAddress();
-				String[] components = localhostIp.split("\\.");
-
-				boolean matches = components[0].equals(master_components[0])
-						&& components[1].equals(master_components[1])
-						&& components[2].equals(master_components[2]);
-				if (matches) {
-					localhostIpFound = true;
-					break;
-				}
-			}
-		}
-		robotIp = localhostIp;
-		System.out.println("Robot IP: " + robotIp);
 
 		staticConfigurationSuccessful = true;
 	}

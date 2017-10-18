@@ -63,7 +63,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	@Override
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
-		nodeConfSubscriber = NodeConfiguration.newPublic("172.31.1.147");
+		nodeConfSubscriber = NodeConfiguration.newPublic(Configuration.getRobotIp());
 		nodeConfSubscriber.setTimeProvider(Configuration.getTimeProvider());
 		nodeConfSubscriber.setNodeName(Configuration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
