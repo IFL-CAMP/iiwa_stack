@@ -234,10 +234,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
-				synchronized (new_cp) {
-					cp = position;
-					currentCommandType = CommandType.CARTESIAN_POSE;
-					new_cp = true;
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((position.getHeader().getSeq() == 0 && cp.getHeader().getSeq() == 0) 
+						|| position.getHeader().getSeq() > cp.getHeader().getSeq()) {
+					synchronized (new_cp) {
+						cp = position;
+						currentCommandType = CommandType.CARTESIAN_POSE;
+						new_cp = true;
+					}
 				}
 			}
 		});
@@ -245,38 +249,54 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianVelocitySubscriber.addMessageListener(new MessageListener<geometry_msgs.TwistStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
-				cv = velocity;
-				currentCommandType = CommandType.CARTESIAN_VELOCITY;
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((velocity.getHeader().getSeq() == 0 && cv.getHeader().getSeq() == 0) 
+						|| velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
+					cv = velocity;
+					currentCommandType = CommandType.CARTESIAN_VELOCITY;
+				}
 			}
 		});
 
 		jointPositionSubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPosition>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointPosition position){
-				synchronized (new_jp) {
-					jp = position;
-					currentCommandType = CommandType.JOINT_POSITION;
-					new_jp = true;
+			public void onNewMessage(iiwa_msgs.JointPosition position) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((position.getHeader().getSeq() == 0 && jp.getHeader().getSeq() == 0) 
+						|| position.getHeader().getSeq() > jp.getHeader().getSeq()) {
+					synchronized (new_jp) {
+						jp = position;
+						currentCommandType = CommandType.JOINT_POSITION;
+						new_jp = true;
+					}
 				}
 			}
 		});
 
 		jointPositionVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPositionVelocity>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity){
-				synchronized (new_jpv) {
-					jpv = positionVelocity;
-					currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
-					new_jpv = true;
+			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((positionVelocity.getHeader().getSeq() == 0 && jpv.getHeader().getSeq() == 0) 
+						|| positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
+					synchronized (new_jpv) {
+						jpv = positionVelocity;
+						currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+						new_jpv = true;
+					}
 				}
 			}
 		});
 
 		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
-				jv = velocity;
-				currentCommandType = CommandType.JOINT_VELOCITY;
+			public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((velocity.getHeader().getSeq() == 0 && jv.getHeader().getSeq() == 0) 
+						|| velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
+					jv = velocity;
+					currentCommandType = CommandType.JOINT_VELOCITY;
+				}
 			}
 		});
 
