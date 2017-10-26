@@ -109,7 +109,7 @@ public class Configuration extends AbstractNodeMain {
 		parseConfigFile(); //TODO : use KUKA's process data?
 
 		// Obtain name of the robot from config file
-		robotName = config.get("robot_name"); // TODO: it would be better to move this to the Sunrise project, so that it's unique for each robot
+		robotName = config.get("robot_name");
 		System.out.println("Robot name: " + robotName);
 		robotIp = config.get("robot_ip");
 		System.out.println("IP from configuration: " + robotIp); // automatic discovery not reliable with x66
