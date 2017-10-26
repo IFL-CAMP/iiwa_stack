@@ -8,9 +8,12 @@
     <arg name="controllers" default="joint_state_controller pos_joint_trajectory_controller"/>
     <arg name="robot_name" default="iiwa" />
     <arg name="model" default="iiwa7" />
+    <arg name="joint_state_frequency" default="100" />
+    <arg name="robot_state_frequency" default="100" />
     
     <!-- Loads joint controller configurations from YAML file to parameter server -->
     <rosparam file="$(find iiwa_control)/config/iiwa_control.yaml" command="load" />
+    <param name="/$(arg robot_name)/joint_state_controller/publish_rate" value="$(arg joint_state_frequency)" />
     
     <!-- Loads the controllers -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
@@ -20,6 +23,7 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
           respawn="false" output="screen">
         <remap from="joint_states" to="/$(arg robot_name)/joint_states" />
+        <param name="publish_frequency" value="$(arg robot_state_frequency)" />
     </node>
     
 </launch>
