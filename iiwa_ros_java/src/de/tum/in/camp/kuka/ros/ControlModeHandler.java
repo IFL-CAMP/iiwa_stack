@@ -31,7 +31,7 @@ public class ControlModeHandler {
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 
-	private MessageGenerator helper = new MessageGenerator(Configuration.getRobotName());
+	private MessageGenerator helper;
 	private GoalReachedEventListener handler = new GoalReachedEventListener(publisher);
 
 	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration) {
@@ -39,6 +39,7 @@ public class ControlModeHandler {
 		this.tool = tool;
 		this.toolFrame = toolFrame;
 		this.publisher = publisher;
+		helper = new MessageGenerator(Configuration.getRobotName(), configuration);
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
 		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		overrideJointAcceleration = 1.0;

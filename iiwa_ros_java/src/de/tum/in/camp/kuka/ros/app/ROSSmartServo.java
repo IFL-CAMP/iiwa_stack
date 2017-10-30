@@ -64,7 +64,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
 		nodeConfSubscriber = NodeConfiguration.newPublic(Configuration.getRobotIp());
-		nodeConfSubscriber.setTimeProvider(Configuration.getTimeProvider());
+		nodeConfSubscriber.setTimeProvider(configuration.getTimeProvider());
 		nodeConfSubscriber.setNodeName(Configuration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
 		nodeConfSubscriber.setTcpRosBindAddress(BindAddress.newPublic(30004));
@@ -73,7 +73,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName());
+		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration);
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {

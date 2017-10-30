@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 
 import org.ros.exception.ParameterNotFoundException;
@@ -67,7 +68,9 @@ public class Configuration extends AbstractNodeMain {
 	private static String robotIp;
 	private static boolean staticConfigurationSuccessful;
 	private static boolean ntpWithHost;
-	private static TimeProvider timeProvider;
+	
+	private TimeProvider timeProvider;
+	private ScheduledExecutorService ntpExecutorService = null;
 
 	private ConnectedNode node;
 	private ParameterTree params;
@@ -264,7 +267,7 @@ public class Configuration extends AbstractNodeMain {
 	 * 
 	 * @return the time provider to use, NtpTimeProvider or WallTimeProvider
 	 */
-	public static TimeProvider getTimeProvider() {
+	public TimeProvider getTimeProvider() {
 		if (timeProvider == null)
 			setupTimeProvider();
 		return timeProvider;
@@ -275,11 +278,12 @@ public class Configuration extends AbstractNodeMain {
 	 * 
 	 * @return the configured time provider
 	 */
-	private static TimeProvider setupTimeProvider() {
+	private TimeProvider setupTimeProvider() {
 		checkConfiguration();
 		if (ntpWithHost) {
 			try {
-				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), Executors.newScheduledThreadPool(1));
+				ntpExecutorService = Executors.newScheduledThreadPool(1);
+				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), ntpExecutorService);
 				timeProvider = provider;
 			} catch (UnknownHostException e) {
 				System.err.println("Could not setup NTP time provider!");
@@ -471,6 +475,22 @@ public class Configuration extends AbstractNodeMain {
 			return null;
 		}
 		return args;
+	}
+	
+	public void cleanup() {
+		if (ntpWithHost) {
+			
+			try {
+				((NtpTimeProvider) timeProvider).stopPeriodicUpdates();
+			} catch (NullPointerException e) {
+				// can happen if there is an exception somewhere
+			}
+			if (ntpExecutorService != null) {
+				ntpExecutorService.shutdownNow();
+				ntpExecutorService = null;
+			}
+			Logger.info("stopped NTP periodic updates");
+		}
 	}
 
 }

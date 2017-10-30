@@ -107,21 +107,21 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		// Standard configuration.
 		configuration = new Configuration();
-		publisher = new iiwaPublisher(Configuration.getRobotName());
+		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
 
 		// ROS initialization.
 		try {
 			URI uri = new URI(Configuration.getMasterURI());
 
 			nodeConfConfiguration = NodeConfiguration.newPublic(Configuration.getRobotIp());
-			nodeConfConfiguration.setTimeProvider(Configuration.getTimeProvider());
+			nodeConfConfiguration.setTimeProvider(configuration.getTimeProvider());
 			nodeConfConfiguration.setNodeName(Configuration.getRobotName() + "/iiwa_configuration");
 			nodeConfConfiguration.setMasterUri(uri);			
 			nodeConfConfiguration.setTcpRosBindAddress(BindAddress.newPublic(30000));
 			nodeConfConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(30001));			
 			
 			nodeConfPublisher = NodeConfiguration.newPublic(Configuration.getRobotIp());
-			nodeConfPublisher.setTimeProvider(Configuration.getTimeProvider());
+			nodeConfPublisher.setTimeProvider(configuration.getTimeProvider());
 			nodeConfPublisher.setNodeName(Configuration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
 			nodeConfPublisher.setTcpRosBindAddress(BindAddress.newPublic(30002));
@@ -178,7 +178,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 
-		Logger.info("Using time provider: " + Configuration.getTimeProvider().getClass().getSimpleName());
+		Logger.info("Using time provider: " + configuration.getTimeProvider().getClass().getSimpleName());
 
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
@@ -208,8 +208,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Hook the GoalReachedEventHandler
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 
-		if (Configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-			((NtpTimeProvider) Configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
+		if (configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+			((NtpTimeProvider) configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
 		}
 
 		// Run what is needed before the control loop in the subclasses.
@@ -240,8 +240,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	
 	@Override
 	public void dispose() {
-		super.dispose();
+		configuration.cleanup();
 		cleanup();
+		super.dispose();
 	}
 	
 	@Override 

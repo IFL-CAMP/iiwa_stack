@@ -83,9 +83,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * 
 	 * @param robotName : name of the robot, topics will be created accordingly : <robot name>/state/<iiwa_msgs type> (e.g. MyIIWA/state/CartesianPosition)
 	 */
-	public iiwaPublisher(String robotName) {
+	public iiwaPublisher(String robotName, Configuration configuration) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);

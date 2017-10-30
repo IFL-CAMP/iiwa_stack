@@ -100,8 +100,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName) {
-		this(robot, robot.getFlange(), robotName);
+	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
+		this(robot, robot.getFlange(), robotName, configuration);
 	}
 
 	/**
@@ -112,9 +112,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cv = helper.buildMessage(geometry_msgs.TwistStamped._TYPE);
