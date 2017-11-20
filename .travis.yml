@@ -22,7 +22,7 @@ install:
   - mkdir -p ~/catkin_ws/src
   - cd ~/catkin_ws
   - ln -s $TRAVIS_BUILD_DIR src
-  - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
+  - rosdep install --from-paths src --ignore-src --rosdistro $CI_ROS_DISTRO -y
 
 # Build the workspace.
 script:
