@@ -1,14 +1,14 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: generic
 
 env:
-  - CI_ROS_DISTRO=indigo CC=gcc CXX=g++ PATH=/usr/sbin:/usr/bin:/sbin:/bin
+  - CI_ROS_DISTRO=kinetic CC=gcc CXX=g++ PATH=/usr/sbin:/usr/bin:/sbin:/bin
   
 before_install:
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
-  - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-  - sudo apt-get update
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+  - sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+  - sudo apt-get update -qq
   - sudo apt-get install python-rosdep -y
   - sudo rosdep init
   - rosdep update
