@@ -5,8 +5,8 @@ language: generic
 # Global variables.
 env:
   global:
-    - ROS_DISTRO = indigo
-    - CI_SOURCE_PATH = $(pwd)
+    - ROS_DISTRO=indigo
+    - CI_SOURCE_PATH=$(pwd)
 
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
@@ -22,7 +22,7 @@ install:
   - mkdir -p ~/catkin_ws/src
   - cd ~/catkin_ws
   - ln -s $TRAVIS_BUILD_DIR src
-  - rosdep install --from-paths src --ignore-src --rosdistro $CI_ROS_DISTRO -y
+  - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
 # Build the workspace.
 script:
