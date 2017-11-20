@@ -1,24 +1,18 @@
 sudo: required
-dist: xenial
+
 language: generic
 
-env:
-  - CI_ROS_DISTRO=kinetic CC=gcc CXX=g++ PATH=/usr/sbin:/usr/bin:/sbin:/bin
-  
-before_install:
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu xenial main" > /etc/apt/sources.list.d/ros-latest.list'
-  - sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
-  - sudo apt-get update -qq
-  - sudo apt-get install python-rosdep -y
-  - sudo rosdep init
-  - rosdep update
+services:
+  - docker
 
-install:
-  - mkdir -p ~/catkin_ws/src
-  - cd ~/catkin_ws
-  - ln -s $TRAVIS_BUILD_DIR src
-  - rosdep install --from-paths src --ignore-src --rosdistro=$CI_ROS_DISTRO -y
+env:
+  global:
+    - toolset_branch: master
+    - server_type: travis
+    - ros_release_name: kinetic
+    - ubuntu_version_name: xenial
+    - used_modules: check_cache,build,check_deb_make,codecov_tool
+    - remote_shell_script: 'https://raw.githubusercontent.com/shadow-robot/sr-build-tools/$toolset_branch/bin/sr-run-ci-build.sh'
 
 script:
-  - source /opt/ros/$CI_ROS_DISTRO/setup.bash
-  - catkin_make
+  - curl -s "$( echo "$remote_shell_script" | sed 's/#/%23/g' )" | bash -x /dev/stdin "$toolset_branch" $server_type $used_modules
