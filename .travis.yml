@@ -1,46 +1,3 @@
-# Generic .travis.yml file for running continuous integration on Travis-CI for
-# any ROS package.
-#
-# Available here:
-#   - http://felixduvallet.github.io/ros-travis-integration
-#   - https://github.com/felixduvallet/ros-travis-integration
-#
-# This installs ROS on a clean Travis-CI virtual machine, creates a ROS
-# workspace, resolves all listed dependencies, and sets environment variables
-# (setup.bash). Then, it compiles the entire ROS workspace (ensuring there are
-# no compilation errors), and runs all the tests. If any of the compilation/test
-# phases fail, the build is marked as a failure.
-#
-# We handle two types of package dependencies:
-#   - packages (ros and otherwise) available through apt-get. These are installed
-#     using rosdep, based on the information in the ROS package.xml.
-#   - dependencies that must be checked out from source. These are handled by
-#     'wstool', and should be listed in a file named dependencies.rosinstall.
-#
-# There are two variables you may want to change:
-#   - ROS_DISTRO (default is indigo). Note that packages must be available for
-#     ubuntu 14.04 trusty.
-#   - ROSINSTALL_FILE (default is dependencies.rosinstall inside the repo
-#     root). This should list all necessary repositories in wstool format (see
-#     the ros wiki). If the file does not exists then nothing happens.
-#
-# See the README.md for more information.
-#
-# Author: Felix Duvallet <felixd@gmail.com>
-
-# NOTE: The build lifecycle on Travis.ci is something like this:
-#    before_install
-#    install
-#    before_script
-#    script
-#    after_success or after_failure
-#    after_script
-#    OPTIONAL before_deploy
-#    OPTIONAL deploy
-#    OPTIONAL after_deploy
-
-################################################################################
-
 # Use ubuntu trusty (14.04) with sudo privileges.
 dist: trusty
 sudo: required
@@ -87,15 +44,8 @@ install:
   - cd ~/catkin_ws/src
   - ln -s $CI_SOURCE_PATH .
 
-# Install all dependencies, using wstool and rosdep.
-# wstool looks for a ROSINSTALL_FILE defined in the environment variables.
+# Install all dependencies, using rosdep.
 before_script:
-  # source dependencies: install using wstool.
-  - cd ~/catkin_ws/src
-  - wstool init
-  - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
-  - wstool up
-  # package depdencies: install using rosdep.
   - cd ~/catkin_ws
   - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
 
