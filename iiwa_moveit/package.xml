@@ -22,7 +22,7 @@
   <run_depend>effort_controllers</run_depend>
   <run_depend>gazebo_ros_control</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
-  <run_depend>moveit_ros-planning_interface</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>
   <run_depend>joint_state_publisher</run_depend>
   <run_depend>robot_state_publisher</run_depend>
