@@ -2,29 +2,24 @@ sudo: required
 dist: trusty
 language: generic
 
-# Global variables.
 env:
-  global:
-    - ROS_DISTRO=indigo
-    - CI_SOURCE_PATH=$(pwd)
+  - CI_ROS_DISTRO=indigo CC=gcc CXX=g++ PATH=/usr/sbin:/usr/bin:/sbin:/bin
+  - CI_ROS_DISTRO=indigo CC=clang CXX=clang++ PATH=/usr/local/clang-3.9.0/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Install system dependencies, namely a very barebones ROS setup.
-before_install:  
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+before_install:
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-  - sudo apt-get update -qq
-  - sudo apt-get install -y build-essential python-rosdep
+  - sudo apt-get update
+  - sudo apt-get install python-rosdep -y
   - sudo rosdep init
   - rosdep update
 
-# Create a catkin workspace with the package under integration and install dep.
 install:
   - mkdir -p ~/catkin_ws/src
   - cd ~/catkin_ws
   - ln -s $TRAVIS_BUILD_DIR src
-  - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
+  - rosdep install --from-paths src --ignore-src --rosdistro=$CI_ROS_DISTRO -y
 
-# Build the workspace.
 script:
-  - source /opt/ros/$ROS_DISTRO/setup.bash
-  - catkin_make  
+  - source /opt/ros/$CI_ROS_DISTRO/setup.bash
+  - catkin_make
