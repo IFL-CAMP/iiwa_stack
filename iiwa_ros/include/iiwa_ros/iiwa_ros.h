@@ -285,11 +285,35 @@ public:
    *
    * @param position the cartesian pose to set the robot.
    * @return void
-   */
+   */  
   void setCartesianPose(const geometry_msgs::PoseStamped& position);
-
-  // TODO: doc
+  
+    /**
+   * @brief Set the cartesian pose of the robot.
+   *
+   * @param position the cartesian pose to set the robot.
+   * @param callback function to be called when the movement is finished
+   * @return void
+   */
+  void setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback);
+  
+  /**
+   * @brief Set the cartesian pose of the robot with a linear movement.
+   *
+   * @param position the cartesian pose to set the robot.
+   * @param callback function to be called when the movement is finished
+   * @return void
+   */
   void setCartesianPoseLin(const geometry_msgs::PoseStamped& position);
+  
+   /**
+   * @brief Set the cartesian pose of the robot with a linear movement.
+   *
+   * @param position the cartesian pose to set the robot.
+   * @param callback function to be called when the movement is finished
+   * @return void
+   */
+  void setCartesianPoseLin(const geometry_msgs::PoseStamped& position , std::function<void()> callback);
 
   /**
    * @brief Set the joint position of the robot.
@@ -341,5 +365,7 @@ private:
   PathParametersService path_parameters_service_;
   PathParametersLinService path_parameters_lin_service_;
   TimeToDestinationService time_to_destination_service_;
+  std::function<void()> callback_;
+  void threadTimeToDest();
 };
 }

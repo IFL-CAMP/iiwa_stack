@@ -29,6 +29,8 @@
  */
 
 #include "iiwa_ros/iiwa_ros.h"
+#include <thread>
+
 
 using namespace std;
 
@@ -109,10 +111,26 @@ void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position)
   holder_command_pose_.publishIfNew();
 }
 
+void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback)
+{
+  setCartesianPose(position);
+  callback_ = callback;
+  std::thread t(&iiwaRos::threadTimeToDest, this);
+  t.detach();
+}
+
 void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position)
 {
   holder_command_pose_lin_.set(position);
   holder_command_pose_lin_.publishIfNew();
+}
+
+void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position , std::function<void()> callback)
+{
+  setCartesianPoseLin(position);
+  callback_ = callback;
+  std::thread t(&iiwaRos::threadTimeToDest, this);
+  t.detach();
 }
 
 void iiwaRos::setJointPosition(const iiwa_msgs::JointPosition& position)
@@ -129,5 +147,28 @@ void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& v
 {
   holder_command_joint_position_velocity_.set(value);
   holder_command_joint_position_velocity_.publishIfNew();
+}
+
+void iiwaRos::threadTimeToDest()
+{	 
+  int movementFlag = 0;
+  sleep(0.5);
+  for(;;)
+  {
+    if (time_to_destination_service_.getTimeToDestination() > 0) 
+	{
+	  if (movementFlag == 0)
+		movementFlag = 1;
+	}
+    else  
+	{
+	    if(movementFlag == 1)
+		{// 				
+		  ROS_INFO_STREAM("Movement completed.");
+		  callback_();
+		  return;
+		  }
+	  }
+    }
 }
 }
