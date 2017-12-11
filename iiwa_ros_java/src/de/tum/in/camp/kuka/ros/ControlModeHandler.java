@@ -6,6 +6,7 @@ import iiwa_msgs.JointQuantity;
 
 import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
@@ -28,6 +29,8 @@ public class ControlModeHandler {
 	public double jointVelocity;
 	public double jointAcceleration;
 	public double overrideJointAcceleration;
+	
+	public double[] maxTranslationlVelocity = {1000.0, 1000.0, 1000.0};
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 
@@ -59,8 +62,32 @@ public class ControlModeHandler {
 	 * @param motion
 	 * @param request
 	 */
+//	@SuppressWarnings("rawtypes")
+//	public ServoMotion switchSmartServoMotion(ServoMotion motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+//		ServoMotion oldMotion = motion;
+//
+//		validateForImpedanceMode();
+//
+//		if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
+//		else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+//
+//		if (request != null) {
+//			motion.setMode(buildMotionControlMode(request));
+//		} 
+//		else if (lastSmartServoRequest != null) {
+//			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
+//		}
+//		else {
+//			motion.setMode(new PositionControlMode());
+//		}
+//
+//		switchMotion(motion, oldMotion);
+//
+//		return motion;
+//	}
+	
 	public SmartServo switchSmartServoMotion(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
-		SmartServo oldmotion = motion;
+		SmartServo oldMotion = motion;
 
 		validateForImpedanceMode();
 
@@ -76,12 +103,31 @@ public class ControlModeHandler {
 			motion.setMode(new PositionControlMode());
 		}
 
-		toolFrame.moveAsync(motion);
-		oldmotion.getRuntime().stopMotion();
+		switchMotion(motion, oldMotion);
 
-		motion.getRuntime().setGoalReachedEventHandler(handler);
+		return motion;		
+	}
+	
+	public SmartServoLIN switchSmartServoMotion(SmartServoLIN motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+		SmartServoLIN oldMotion = motion;
 
-		return motion;
+		validateForImpedanceMode();
+
+		motion = createSmartServoLinMotion();
+
+		if (request != null) {
+			motion.setMode(buildMotionControlMode(request));
+		} 
+		else if (lastSmartServoRequest != null) {
+			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
+		}
+		else {
+			motion.setMode(new PositionControlMode());
+		}
+
+		switchMotion(motion, oldMotion);
+
+		return motion;		
 	}
 
 	/**
@@ -90,26 +136,79 @@ public class ControlModeHandler {
 	 * @param controlMode
 	 * @return
 	 */
-	public SmartServo switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) {
-		if (controlMode != motion.getMode()) {
+//	@SuppressWarnings("rawtypes")
+//	public ServoMotion switchSmartServoMotion(ServoMotion motion, IMotionControlMode controlMode) {
+//		if (controlMode != motion.getMode()) {
+//
+//			ServoMotion oldMotion = motion;
+//
+//			if (!(controlMode instanceof PositionControlMode)) {
+//				validateForImpedanceMode();
+//			}
+//
+//			if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
+//			else if (motion instanceof SmartServoLIN) { motion = createSmartServoLinMotion(); }
+//
+//			motion.setMode(controlMode);
+//
+//			switchMotion(motion, oldMotion);
+//		}
+//		else {
+//			motion.getRuntime().changeControlModeSettings(controlMode);
+//		}
+//		return motion;
+//	}
 
-			SmartServo oldmotion = motion;
+	public SmartServoLIN switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) { 
+		SmartServo oldMotion = motion;
 
-			if (!(controlMode instanceof PositionControlMode)) {
-				validateForImpedanceMode();
-			}
-
-			motion = createSmartServoMotion();
-			motion.setMode(controlMode);
-			toolFrame.moveAsync(motion);
-			oldmotion.getRuntime().stopMotion();
-
-			motion.getRuntime().setGoalReachedEventHandler(handler);
+		if (!(controlMode instanceof PositionControlMode)) {
+			validateForImpedanceMode();
 		}
-		else {
-			motion.getRuntime().changeControlModeSettings(controlMode);
+
+		SmartServoLIN newMotion = createSmartServoLinMotion();
+		newMotion.setMode(controlMode);
+		switchMotion(newMotion, oldMotion);
+		return newMotion; 
+	}
+
+
+	public SmartServo switchSmartServoMotion(SmartServoLIN motion, IMotionControlMode controlMode) { 
+		SmartServoLIN oldMotion = motion;
+
+		if (!(controlMode instanceof PositionControlMode)) {
+			validateForImpedanceMode();
 		}
+
+		SmartServo newMotion = createSmartServoMotion();
+		newMotion.setMode(controlMode);
+		switchMotion(newMotion, oldMotion);
+		return newMotion;  
+	}
+
+
+	// TODO: doc
+	@SuppressWarnings("rawtypes")
+	public void switchMotion(ServoMotion motion, ServoMotion oldMotion) {
+		toolFrame.moveAsync(motion);
+		if (oldMotion != null) {
+			oldMotion.getRuntime().stopMotion();
+		}
+		motion.getRuntime().setGoalReachedEventHandler(handler);
+	}
+
+	public SmartServo switchToSmartServo(SmartServo motion, SmartServoLIN linearMotion) {
+		IMotionControlMode currentMode = motion.getMode();
+		if (currentMode == null) { currentMode = new PositionControlMode(); }
+		motion = switchSmartServoMotion(linearMotion, currentMode);
 		return motion;
+	}
+
+	public SmartServoLIN switchToSmartServoLIN(SmartServo motion, SmartServoLIN linearMotion) {
+		IMotionControlMode currentMode = motion.getMode();
+		if (currentMode == null) { currentMode = new PositionControlMode(); }
+		linearMotion = switchSmartServoMotion(motion, currentMode);
+		return linearMotion;
 	}
 
 	/**
@@ -139,6 +238,20 @@ public class ControlModeHandler {
 		motion.setJointAccelerationRel(jointAcceleration);
 		motion.overrideJointAcceleration(overrideJointAcceleration);
 		return motion;
+	}
+
+	public SmartServoLIN createSmartServoLinMotion() {
+		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
+		linearMotion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
+		linearMotion.setMaxTranslationVelocity(maxTranslationlVelocity);
+		//linearMotion.setMaxOrientationVelocity(maxOrientationlVelocity);
+		//linearMotion.setMaxTranslationAcceleration(value);
+		//linearMotion.setMaxNullSpaceAcceleration(value);
+		//linearMotion.setMaxNullSpaceVelocity(value);
+		//linearMotion.setMaxOrientationAcceleration(value);
+
+		return linearMotion;
 	}
 
 	/**

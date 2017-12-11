@@ -35,6 +35,7 @@ import org.ros.node.NodeMainExecutor;
 import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -63,6 +64,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String toolFrameIDSuffix = "_link_ee";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
+	protected SmartServoLIN linearMotion;
 	protected ControlModeHandler controlModeHandler;
 	protected GoalReachedEventListener handler;
 
@@ -168,7 +170,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-
 		try {
 			Logger.info("Waiting for ROS Master to connect... ");
 			configuration.waitForInitialization();
@@ -199,7 +200,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		controlModeHandler = new ControlModeHandler(robot, tool, toolFrame, publisher, configuration);
 		motion = controlModeHandler.createSmartServoMotion();
-
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 

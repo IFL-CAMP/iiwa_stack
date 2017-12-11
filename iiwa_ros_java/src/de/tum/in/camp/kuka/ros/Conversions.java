@@ -67,12 +67,16 @@ public final class Conversions {
 	 * @param w
 	 * @return a MatrixRotation
 	 */
-	public static MatrixRotation quatToMatrix(float x, float y, float z, float w) {
+	public static MatrixRotation quatToMatrix(float x, float y, float z, float w) throws IllegalArgumentException {
 		double sqw = w*w;
 		double sqx = x*x;
 		double sqy = y*y;
 		double sqz = z*z;
 
+		if ( (sqx + sqy + sqz + sqw) < 10e-8) { // This is a faily safe assumption, we are expecting the norm to be around 1 anyway.
+			throw new IllegalArgumentException("Commanded geometry_msgs.Pose contains an invalid quaternion. The norm of the given quaternion has to be 1.");
+		}
+		
 		MatrixBuilder mb = new MatrixBuilder();
 
 		// invs (inverse square length) is only required if quaternion is not already normalised
@@ -162,10 +166,10 @@ public final class Conversions {
 	 * Converts a geometry_msgs.Pose message to a Transformation object in KUKA APIs
 	 * @param rosPose : starting Pose
 	 * @return resulting Transformation
+	 * @throws InvalidArgumentException 
 	 */
-	public static Transformation rosPoseToKukaTransformation(geometry_msgs.Pose rosPose) {
-		if (rosPose == null)
-			return null;
+	public static Transformation rosPoseToKukaTransformation(geometry_msgs.Pose rosPose) throws IllegalArgumentException  {
+		if (rosPose == null) { return null; }
 
 		float tx = (float) rosPose.getPosition().getX()*1000;
 		float ty = (float) rosPose.getPosition().getY()*1000;
@@ -175,7 +179,7 @@ public final class Conversions {
 		float y = (float) rosPose.getOrientation().getY();
 		float z = (float) rosPose.getOrientation().getZ();
 		float w = (float) rosPose.getOrientation().getW();
-
+	
 		MatrixRotation rot = quatToMatrix(x, y, z, w);
 		Vector transl = Vector.of(tx, ty, tz);
 
@@ -186,8 +190,9 @@ public final class Conversions {
 	 * Converts a geometry_msgs.Pose message to a Frame object in KUKA APIs
 	 * @param rosPose : starting Pose
 	 * @return resulting Frame
+	 * @throws InvalidArgumentException
 	 */
-	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) {	
+	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) throws IllegalArgumentException {	
 		return new Frame(rosPoseToKukaTransformation(rosPose));
 	}
 
@@ -246,6 +251,15 @@ public final class Conversions {
 				rosJointQuant.getA5(),
 				rosJointQuant.getA6(),
 				rosJointQuant.getA7()
+		};
+		return ret;
+	}
+	
+	public static double[] rosVectorToArray(geometry_msgs.Vector3 vector) {
+		double[] ret = {
+				vector.getX(),
+				vector.getY(),
+				vector.getZ()
 		};
 		return ret;
 	}
