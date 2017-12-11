@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische UniversitÃ¤t MÃ¼nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -35,14 +35,17 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.ros.address.BindAddress;
 import org.ros.exception.ServiceException;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
+import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.Conversions;
+import de.tum.in.camp.kuka.ros.Logger;
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
 import de.tum.in.camp.kuka.ros.Configuration;
@@ -66,14 +69,16 @@ public class ROSSmartServo extends ROSBaseApplication {
 	protected void configureNodes(URI uri) {
 		// Configuration for the Subscriber.
 		nodeConfSubscriber = NodeConfiguration.newPublic(Configuration.getRobotIp());
-		nodeConfSubscriber.setTimeProvider(Configuration.getTimeProvider());
+		nodeConfSubscriber.setTimeProvider(configuration.getTimeProvider());
 		nodeConfSubscriber.setNodeName(Configuration.getRobotName() + "/iiwa_subscriber");
 		nodeConfSubscriber.setMasterUri(uri);
+		nodeConfSubscriber.setTcpRosBindAddress(BindAddress.newPublic(30004));
+		nodeConfSubscriber.setXmlRpcBindAddress(BindAddress.newPublic(30005));
 	}
 
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName());
+		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration);
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
@@ -160,6 +165,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 						iiwa_msgs.ConfigureSmartServoRequest request = null;
 						motion = controlModeHandler.switchSmartServoMotion(motion, request);
 					}
+
 					res.setSuccess(true);
 				}
 				catch(Exception e) {
@@ -247,6 +253,11 @@ public class ROSSmartServo extends ROSBaseApplication {
 					}
 					PoseStamped commandPosition = subscriber.getCartesianPoseLin();
 					motions.cartesianPositionLinMotion(linearMotion, commandPosition);
+          break;
+        }
+				case CARTESIAN_VELOCITY: {
+					geometry_msgs.TwistStamped commandVelocity = subscriber.getCartesianVelocity();
+					motions.cartesianVelocityMotion(motion, commandVelocity, toolFrame);
 					break;
 				}
 				case JOINT_POSITION: {
@@ -269,6 +280,10 @@ public class ROSSmartServo extends ROSBaseApplication {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
 					}
+					/* This will acquire the last received JointVelocity command from the commanding ROS node, if there is any available.
+					 * If the robot can move, then it will move to this new position accordingly to the given joint velocity. */
+					motion.getRuntime().activateVelocityPlanning(true);
+					motion.setSpeedTimeoutAfterGoalReach(0.1);
 					iiwa_msgs.JointVelocity commandVelocity = subscriber.getJointVelocity();
 					motions.jointVelocityMotion(motion, commandVelocity);
 					break;
@@ -278,7 +293,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				}
 			}
 			catch (Exception e) {
-				getLogger().error(e.getClass().getName() + ": " + e.getMessage());
+				Logger.error(e.getClass().getName() + ": " + e.getMessage());
 			}
 		}
 		lastCommandType = subscriber.currentCommandType;
@@ -289,5 +304,5 @@ public class ROSSmartServo extends ROSBaseApplication {
 		configureSmartServoLock.lock();
 		moveRobot();
 		configureSmartServoLock.unlock();
-	}
+	}	
 }

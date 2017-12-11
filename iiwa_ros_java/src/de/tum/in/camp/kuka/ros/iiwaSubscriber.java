@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische UniversitÃ¤t MÃ¼nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -44,6 +44,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public enum CommandType {
 		CARTESIAN_POSE,
 		CARTESIAN_POSE_LIN,
+		CARTESIAN_VELOCITY,
 		JOINT_POSITION,
 		JOINT_POSITION_VELOCITY,
 		JOINT_VELOCITY
@@ -71,6 +72,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	// ROSJava Subscribers for iiwa_msgs
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseLinSubscriber;
+	private Subscriber<geometry_msgs.TwistStamped> cartesianVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
 	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
@@ -82,6 +84,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	// Local iiwa_msgs to store received messages 
 	private geometry_msgs.PoseStamped cp;
 	private geometry_msgs.PoseStamped cp_lin;
+	private geometry_msgs.TwistStamped cv;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
 	private iiwa_msgs.JointVelocity jv;
@@ -90,7 +93,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Boolean new_cp = new Boolean("false");
 	private Boolean new_cp_lin = new Boolean("false");
 	private Boolean new_jpv = new Boolean("false");
-	private Boolean new_jv = new Boolean("false");
 
 	// Current control strategy
 	public CommandType currentCommandType = null;
@@ -105,8 +107,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName) {
-		this(robot, robot.getFlange(), robotName);
+	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
+		this(robot, robot.getFlange(), robotName, configuration);
 	}
 
 	/**
@@ -117,12 +119,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cv = helper.buildMessage(geometry_msgs.TwistStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
@@ -166,6 +169,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				new_cp = false;
 				return cp;
 			} else {
+				
 				return null;
 			}
 		}	
@@ -184,6 +188,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 				return null;
 			}
 		}	
+	}
+
+	/**
+	 * TODO
+	 * @return the received PoseStamped message.
+	 */
+	public geometry_msgs.TwistStamped getCartesianVelocity() {
+		return cv;
 	}
 
 	/**
@@ -245,19 +257,35 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		// Creating the subscribers
 		cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
 		cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin", geometry_msgs.PoseStamped._TYPE);
+		cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", geometry_msgs.TwistStamped._TYPE);
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
-
 
 		// Subscribers' callbacks
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
-				synchronized (new_cp) {
-					cp = position;
-					currentCommandType = CommandType.CARTESIAN_POSE;
-					new_cp = true;
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((position.getHeader().getSeq() == 0 && cp.getHeader().getSeq() == 0) 
+						|| position.getHeader().getSeq() > cp.getHeader().getSeq()) {
+					synchronized (new_cp) {
+						cp = position;
+						currentCommandType = CommandType.CARTESIAN_POSE;
+						new_cp = true;
+					}
+				}
+			}
+		});
+
+		cartesianVelocitySubscriber.addMessageListener(new MessageListener<geometry_msgs.TwistStamped>() {
+			@Override
+			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((velocity.getHeader().getSeq() == 0 && cv.getHeader().getSeq() == 0) 
+						|| velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
+					cv = velocity;
+					currentCommandType = CommandType.CARTESIAN_VELOCITY;
 				}
 			}
 		});
@@ -275,33 +303,42 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 		jointPositionSubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPosition>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointPosition position){
-				synchronized (new_jp) {
-					jp = position;
-					currentCommandType = CommandType.JOINT_POSITION;
-					new_jp = true;
+			public void onNewMessage(iiwa_msgs.JointPosition position) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((position.getHeader().getSeq() == 0 && jp.getHeader().getSeq() == 0) 
+						|| position.getHeader().getSeq() > jp.getHeader().getSeq()) {
+					synchronized (new_jp) {
+						jp = position;
+						currentCommandType = CommandType.JOINT_POSITION;
+						new_jp = true;
+					}
 				}
 			}
 		});
 
 		jointPositionVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPositionVelocity>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity){
-				synchronized (new_jpv) {
-					jpv = positionVelocity;
-					currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
-					new_jpv = true;
+			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((positionVelocity.getHeader().getSeq() == 0 && jpv.getHeader().getSeq() == 0) 
+						|| positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
+					synchronized (new_jpv) {
+						jpv = positionVelocity;
+						currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+						new_jpv = true;
+					}
 				}
 			}
 		});
 
 		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
 			@Override
-			public void onNewMessage(iiwa_msgs.JointVelocity velocity){
-				synchronized(new_jv) {
+			public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
+				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
+				if ((velocity.getHeader().getSeq() == 0 && jv.getHeader().getSeq() == 0) 
+						|| velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
 					jv = velocity;
 					currentCommandType = CommandType.JOINT_VELOCITY;
-					new_jv = true;
 				}
 			}
 		});
