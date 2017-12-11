@@ -23,6 +23,7 @@ add_library(${PROJECT_NAME}
 	src/iiwa_ros.cpp
 	src/smart_servo_service.cpp
 	src/path_parameters_service.cpp
+    src/path_parameters_lin_service.cpp
 	src/time_to_destination_service.cpp
 )
 

@@ -28,50 +28,52 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iiwa_ros/time_to_destination_service.h>
+#include <iiwa_ros/path_parameters_lin_service.h>
 
 namespace iiwa_ros
 {
-TimeToDestinationService::TimeToDestinationService() : iiwaServices<iiwa_msgs::TimeToDestination>()
+PathParametersLinService::PathParametersLinService() : iiwaServices<iiwa_msgs::SetPathParametersLin>()
 {
 }
 
-TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose)
-  : iiwaServices<iiwa_msgs::TimeToDestination>(service_name, verbose)
+PathParametersLinService::PathParametersLinService(const std::string& service_name, const bool verbose)
+  : iiwaServices<iiwa_msgs::SetPathParametersLin>(service_name, verbose)
 {
 }
 
-double TimeToDestinationService::getTimeToDestination()
+bool PathParametersLinService::callService()
 {
   if (service_ready_)
   {
-    if (callService())
+    if (client_.call(config_))
     {
-      return time_to_destination_;
+      if (!config_.response.success && verbose_)
+      {
+        service_error_ = config_.response.error;
+        ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
+      }
+      else if (verbose_)
+      {
+        ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+      }
     }
-    else
+    else if (verbose_)
     {
-      return -999;  // It cannot return -1 since it might be a meaningfull result.
+      ROS_ERROR_STREAM(service_name_ << " could not be called");
     }
+    return config_.response.success;
   }
   ROS_ERROR_STREAM("The service client was not intialized yet.");
 }
 
-bool TimeToDestinationService::callService()
+bool PathParametersLinService::setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity)
 {
-  if (client_.call(config_))
-  {
-    if (verbose_)
-    {
-        ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
-    }
-    time_to_destination_ = config_.response.remaining_time;
-    return true;
-  }
-  else if (verbose_)
-  {
-    ROS_ERROR_STREAM(service_name_ << " could not be called");
-  }
-  return false;
+  setPathParametersLin(max_cartesian_velocity);
 }
+
+bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity)
+{
+  setPathParametersLin(max_cartesian_velocity);
+}
+
 }
