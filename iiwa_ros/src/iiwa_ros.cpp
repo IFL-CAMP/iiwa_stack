@@ -115,7 +115,7 @@ void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position, std::
 {
   setCartesianPose(position);
   callback_ = callback;
-  std::thread t(&iiwaRos::threadTimeToDest, this);
+  std::thread t(&iiwaRos::timeToDestinationWatcher, this);
   t.detach();
 }
 
@@ -129,7 +129,7 @@ void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position , s
 {
   setCartesianPoseLin(position);
   callback_ = callback;
-  std::thread t(&iiwaRos::threadTimeToDest, this);
+  std::thread t(&iiwaRos::timeToDestinationWatcher, this);
   t.detach();
 }
 
@@ -149,18 +149,27 @@ void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& v
   holder_command_joint_position_velocity_.publishIfNew();
 }
 
-void iiwaRos::threadTimeToDest()
+void iiwaRos::timeToDestinationWatcher()
 {	 
-  bool mFlag = false;
+  bool flag = false;
   sleep(0.5);
-  for(;;)  
-    if(time_to_destination_service_.getTimeToDestination() > 0) 	
-      if(mFlag == false)
-	mFlag = true;
-    else  	
-      if(mFlag == true){ 				
+  for(;;)
+  {
+    if(time_to_destination_service_.getTimeToDestination() > 0)
+    {
+      if(flag == false)
+      {
+	flag = true;
+      }
+    }
+    else  
+    {
+      if(flag == true)
+      { 				
 	callback_();
 	return;
-	}    
+      }   
+    }
+  }
 }
 }
