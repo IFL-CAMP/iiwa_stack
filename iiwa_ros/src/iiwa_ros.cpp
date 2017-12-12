@@ -151,24 +151,16 @@ void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& v
 
 void iiwaRos::threadTimeToDest()
 {	 
-  int movementFlag = 0;
+  bool mFlag = false;
   sleep(0.5);
-  for(;;)
-  {
-    if (time_to_destination_service_.getTimeToDestination() > 0) 
-	{
-	  if (movementFlag == 0)
-		movementFlag = 1;
-	}
-    else  
-	{
-	    if(movementFlag == 1)
-		{// 				
-		  ROS_INFO_STREAM("Movement completed.");
-		  callback_();
-		  return;
-		  }
-	  }
-    }
+  for(;;)  
+    if(time_to_destination_service_.getTimeToDestination() > 0) 	
+      if(mFlag == false)
+	mFlag = true;
+    else  	
+      if(mFlag == true){ 				
+	callback_();
+	return;
+	}    
 }
 }
