@@ -32,10 +32,6 @@
 
 namespace iiwa_ros
 {
-PathParametersLinService::PathParametersLinService() : iiwaServices<iiwa_msgs::SetPathParametersLin>()
-{
-}
-
 PathParametersLinService::PathParametersLinService(const std::string& service_name, const bool verbose)
   : iiwaServices<iiwa_msgs::SetPathParametersLin>(service_name, verbose)
 {
@@ -75,5 +71,4 @@ bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twis
 {
   setPathParametersLin(max_cartesian_velocity);
 }
-
 }

@@ -44,7 +44,7 @@ namespace iiwa_ros
 class SmartServoService : public iiwaServices<iiwa_msgs::ConfigureSmartServo>
 {
 public:
-  SmartServoService();
+  SmartServoService() = default;
 
   /**
    * @brief Creates a Service client given the name of the configureSmartServo service: e.g.

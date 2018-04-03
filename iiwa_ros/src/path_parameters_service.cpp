@@ -32,10 +32,6 @@
 
 namespace iiwa_ros
 {
-PathParametersService::PathParametersService() : iiwaServices<iiwa_msgs::SetPathParameters>()
-{
-}
-
 PathParametersService::PathParametersService(const std::string& service_name, const bool verbose)
   : iiwaServices<iiwa_msgs::SetPathParameters>(service_name, verbose)
 {

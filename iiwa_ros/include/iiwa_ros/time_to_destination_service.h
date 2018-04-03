@@ -47,7 +47,7 @@ namespace iiwa_ros
 class TimeToDestinationService : public iiwaServices<iiwa_msgs::TimeToDestination>
 {
 public:
-  TimeToDestinationService();
+  TimeToDestinationService() = default;
 
   /**
    * @brief Creates a Service client given the name of the timeToDestination service: e.g.
@@ -71,6 +71,6 @@ protected:
   virtual bool callService();
 
 private:
-  double time_to_destination_;
+  double time_to_destination_{0.0};
 };
 }

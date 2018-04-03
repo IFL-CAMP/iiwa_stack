@@ -45,10 +45,7 @@ public:
   /**
    * @brief Creates a ROS Service client for the Service server with the given name.
    */
-  iiwaServices() : service_name_(""), verbose_(true), service_ready_(false)
-  {
-  }
-
+  iiwaServices() {}
   /**
    * @brief Creates a ROS Service client for the Service server with the given name.
    *
@@ -56,7 +53,9 @@ public:
    * @param verbose If true some ROS_INFO messages will be printed out during service calls.
    */
   iiwaServices(const std::string& service_name, const bool verbose = true)
-    : service_name_(service_name), verbose_(verbose), service_ready_(false)
+    : service_name_(service_name)
+    , verbose_(verbose)
+    , service_ready_(false)
   {
     initService();
   }
@@ -72,7 +71,7 @@ public:
     ros::NodeHandle nh_;
     client_ = nh_.serviceClient<T>(service_name_);
     service_ready_ = true;
-  };
+  }
 
   /**
    * @brief Sets the name of the ROS Service serve to connect to. Use initService to create a Service client to a
@@ -82,28 +81,20 @@ public:
   {
     service_name_ = service_name;
     initService();
-  };
+  }
 
   /**
    * @brief Sets the verbosity level.
    * If true some ROS_INFO messages will be printed out during service calls.
    */
-  virtual void setVerbosity(const bool verbose)
-  {
-    verbose_ = verbose;
-  }
-
+  virtual void setVerbosity(const bool verbose) { verbose_ = verbose; }
   /**
    * @brief Returns the error string obtained from the last service call that produced an error.
    * Available only if the implementation of the service call produces a string error in case of failure.
    *
    * @return std::string
    */
-  virtual std::string getLastError()
-  {
-    return service_error_;
-  }
-
+  virtual std::string getLastError() const { return service_error_; }
 protected:
   /**
    * @brief Implements the actuall call to the service
@@ -112,11 +103,11 @@ protected:
    */
   virtual bool callService() = 0;
 
-  std::string service_name_ = "";
+  std::string service_name_{""};
   ros::ServiceClient client_;
   T config_;
-  bool verbose_ = true;
-  std::string service_error_;
-  bool service_ready_;
+  bool verbose_{true};
+  std::string service_error_{""};
+  bool service_ready_{false};
 };
 }

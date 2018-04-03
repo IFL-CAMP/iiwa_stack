@@ -38,7 +38,7 @@ namespace iiwa_ros
 class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters>
 {
 public:
-  PathParametersService();
+  PathParametersService() = default;
 
   /**
    * @brief ...
