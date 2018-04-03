@@ -41,27 +41,21 @@
  */
 
 #include "iiwa_hw.h"
+#include <iiwa_ros/conversions.h>
 
 using namespace std;
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh) : last_joint_position_command_(7, 0)
-{
-  nh_ = nh;
-
-  timer_ = ros::Time::now();
-  control_frequency_ = DEFAULT_CONTROL_FREQUENCY;
-  loop_rate_ = new ros::Rate(control_frequency_);
-
-  interface_type_.push_back("PositionJointInterface");
-  interface_type_.push_back("EffortJointInterface");
-  interface_type_.push_back("VelocityJointInterface");
-}
-
-IIWA_HW::~IIWA_HW()
+IIWA_HW::IIWA_HW(ros::NodeHandle nh)
+  : last_joint_position_command_(7, 0)
+  , nh_(nh)
+  , timer_(ros::Time::now())
+  , control_frequency_(DEFAULT_CONTROL_FREQUENCY)
+  , loop_rate_(control_frequency_)
+  , interface_type_{"PositionJointInterface", "EffortJointInterface", "VelocityJointInterface"}
 {
 }
 
-ros::Rate *IIWA_HW::getRate()
+ros::Rate IIWA_HW::getRate()
 {
   return loop_rate_;
 }
@@ -74,7 +68,7 @@ double IIWA_HW::getFrequency()
 void IIWA_HW::setFrequency(double frequency)
 {
   control_frequency_ = frequency;
-  loop_rate_ = new ros::Rate(control_frequency_);
+  loop_rate_ = ros::Rate(control_frequency_);
 }
 
 bool IIWA_HW::start()
@@ -113,10 +107,6 @@ bool IIWA_HW::start()
   }
 
   iiwa_ros_conn_.init();
-
-  // initialize and set to zero the state and command values
-  device_->init();
-  device_->reset();
 
   // general joint to store information
   boost::shared_ptr<const urdf::Joint> joint;
@@ -171,9 +161,9 @@ bool IIWA_HW::start()
   return true;
 }
 
-void IIWA_HW::registerJointLimits(const std::string &joint_name, const hardware_interface::JointHandle &joint_handle,
-                                  const urdf::Model *const urdf_model, double *const lower_limit,
-                                  double *const upper_limit, double *const effort_limit)
+void IIWA_HW::registerJointLimits(const std::string& joint_name, const hardware_interface::JointHandle& joint_handle,
+                                  const urdf::Model* const urdf_model, double* const lower_limit,
+                                  double* const upper_limit, double* const effort_limit)
 {
   *lower_limit = -std::numeric_limits<double>::max();
   *upper_limit = std::numeric_limits<double>::max();
@@ -191,16 +181,13 @@ void IIWA_HW::registerJointLimits(const std::string &joint_name, const hardware_
     if (urdf_joint != NULL)
     {
       // Get limits from the URDF file.
-      if (joint_limits_interface::getJointLimits(urdf_joint, limits))
-        has_limits = true;
+      if (joint_limits_interface::getJointLimits(urdf_joint, limits)) has_limits = true;
 
-      if (joint_limits_interface::getSoftJointLimits(urdf_joint, soft_limits))
-        has_soft_limits = true;
+      if (joint_limits_interface::getSoftJointLimits(urdf_joint, soft_limits)) has_soft_limits = true;
     }
   }
 
-  if (!has_limits)
-    return;
+  if (!has_limits) return;
 
   if (limits.has_position_limits)
   {
@@ -208,8 +195,7 @@ void IIWA_HW::registerJointLimits(const std::string &joint_name, const hardware_
     *upper_limit = limits.max_position;
   }
 
-  if (limits.has_effort_limits)
-    *effort_limit = limits.max_effort;
+  if (limits.has_effort_limits) *effort_limit = limits.max_effort;
 
   if (has_soft_limits)
   {
@@ -235,14 +221,14 @@ bool IIWA_HW::read(ros::Duration period)
     iiwa_ros_conn_.getJointTorque(joint_torque_);
 
     device_->joint_position_prev = device_->joint_position;
-    iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
-    iiwaMsgsJointToVector(joint_torque_.torque, device_->joint_effort);
+
+    device_->joint_position = iiwa_ros::conversions::jointQuantityToVector<double>(joint_position_.position);
+    device_->joint_effort = iiwa_ros::conversions::jointQuantityToVector<double>(joint_torque_.torque);
 
     // if there is no controller active the robot goes to zero position
     if (!was_connected)
     {
-      for (int j = 0; j < IIWA_JOINTS; j++)
-        device_->joint_position_command[j] = device_->joint_position[j];
+      for (int j = 0; j < IIWA_JOINTS; j++) device_->joint_position_command[j] = device_->joint_position[j];
 
       was_connected = true;
     }
@@ -284,7 +270,8 @@ bool IIWA_HW::write(ros::Duration period)
       last_joint_position_command_ = device_->joint_position_command;
 
       // Building the message
-      vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
+      command_joint_position_.position =
+          iiwa_ros::conversions::jointQuantityFromVector(device_->joint_position_command);
       command_joint_position_.header.stamp = ros::Time::now();
 
       iiwa_ros_conn_.setJointPosition(command_joint_position_);
