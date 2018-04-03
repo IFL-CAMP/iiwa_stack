@@ -35,6 +35,8 @@
 
 namespace iiwa_ros
 {
+namespace conversions
+{
 /**
  * @brief Creates a JointQuantity with the same value in all its components.
  *
