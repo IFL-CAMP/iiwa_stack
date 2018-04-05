@@ -37,69 +37,53 @@
  */
 
 #include <ros/ros.h>
-#include <signal.h>
 #include "iiwa_hw.h"
-
-bool g_quit = false;
-
-void quitRequested(int sig)
-{
-  g_quit = true;
-}
 
 int main(int argc, char** argv)
 {
-  // initialize ROS
+  // Initialize ROS.
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
-  // ros spinner
+  // ROS spinner.
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // custom signal handlers
-  signal(SIGTERM, quitRequested);
-  signal(SIGINT, quitRequested);
-  signal(SIGHUP, quitRequested);
-
-  // construct the lbr iiwa
+  // Construct the iiwa object.
   ros::NodeHandle iiwa_nh;
   IIWA_HW iiwa_robot(iiwa_nh);
 
-  // configuration routines
+  // Configuration routines.
   iiwa_robot.start();
 
   ros::Time last(ros::Time::now());
   ros::Time now;
   ros::Duration period(1.0);
 
-  // the controller manager
+  // The controller manager.
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
-  // run as fast as possible
-  while (!g_quit)
+  // Run as fast as possible.
+  while (ros::ok())
   {
-    // get the time / period
+    // Get the time / period.
     now = ros::Time::now();
     period = now - last;
     last = now;
 
-    // read current robot position
+    // Read current robot position.
     iiwa_robot.read(period);
 
-    // update the controllers
+    // Update the controllers
     manager.update(now, period);
 
-    // send command position to the robot
+    // Send command position to the robot.
     iiwa_robot.write(period);
 
-    // wait for some milliseconds defined in controlFrequency
-    iiwa_robot.getRate()->sleep();
+    // Wait for some milliseconds defined in controlFrequency.
+    iiwa_robot.getRate().sleep();
   }
 
-  std::cerr << "Stopping spinner..." << std::endl;
   spinner.stop();
-
-  std::cerr << "Bye!" << std::endl;
 
   return 0;
 }

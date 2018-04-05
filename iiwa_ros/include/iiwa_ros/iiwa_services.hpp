@@ -95,6 +95,7 @@ public:
    * @return std::string
    */
   virtual std::string getLastError() const { return service_error_; }
+
 protected:
   /**
    * @brief Implements the actuall call to the service

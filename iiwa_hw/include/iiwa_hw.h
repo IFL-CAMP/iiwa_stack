@@ -88,8 +88,7 @@ public:
    * Returns the joint's type, lower position limit, upper position limit, and effort limit.
    */
   void registerJointLimits(const std::string& joint_name, const hardware_interface::JointHandle& joint_handle,
-                           const urdf::Model* const urdf_model, double* const lower_limit, double* const upper_limit,
-                           double* const effort_limit);
+                           const urdf::Model& urdf_model, double lower_limit, double upper_limit, double effort_limit);
 
   /**
    * \brief Reads the current robot state via the IIWARos interfae and sends the values to the IIWA device struct.
@@ -104,12 +103,12 @@ public:
   /**
    * \brief Retuns the ros::Rate object to control the receiving/sending rate.
    */
-  ros::Rate getRate();
+  ros::Rate getRate() const;
 
   /**
    * \brief Retuns the current frequency used by a ros::Rate object to control the receiving/sending rate.
    */
-  double getFrequency();
+  double getFrequency() const;
 
   /**
    * \brief Set the frequency to be used by a ros::Rate object to control the receiving/sending rate.
@@ -180,7 +179,7 @@ private:
   joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
   joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
 
-  boost::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
+  std::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
 
   /** Objects to control send/receive rate. */
   ros::Time timer_;

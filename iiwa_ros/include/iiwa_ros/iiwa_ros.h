@@ -64,7 +64,11 @@ public:
     , is_new_(other.is_new_)
   {
   }
-  DataHolder(DataHolder&& other) noexcept : data_(other.data_), is_new_(other.is_new_) {}
+  DataHolder(DataHolder&& other) noexcept
+    : data_(other.data_)
+    , is_new_(other.is_new_)
+  {
+  }
   DataHolder& operator=(const DataHolder& rhs)
   {
     data_ = rhs.data_;
@@ -94,6 +98,7 @@ public:
 
   bool newValue() const { return is_new_; }
   ROSMSG getValueUnsynchronized() const { return data_; }
+
 private:
   ROSMSG data_;
   bool is_new_{false};
@@ -118,6 +123,7 @@ public:
   }
 
   bool get(ROSMSG& value) { return holder_.getValue(value); }
+
 private:
   DataHolder<ROSMSG> holder_;
   ros::Subscriber subscriber_;
@@ -265,12 +271,12 @@ public:
   void setCartesianPose(const geometry_msgs::PoseStamped& position);
 
   /**
- * @brief Set the cartesian pose of the robot.
- *
- * @param position the cartesian pose to set the robot.
- * @param callback function to be called when the movement is finished.
- * @return void
- */
+   * @brief Set the cartesian pose of the robot.
+   *
+   * @param position the cartesian pose to set the robot.
+   * @param callback function to be called when the movement is finished.
+   * @return void
+   */
   void setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback);
 
   /**
@@ -282,12 +288,12 @@ public:
   void setCartesianPoseLin(const geometry_msgs::PoseStamped& position);
 
   /**
-  * @brief Set the cartesian pose of the robot with a linear movement.
-  *
-  * @param position the cartesian pose to set the robot.
-  * @param callback function to be called when the movement is finished.
-  * @return void
-  */
+   * @brief Set the cartesian pose of the robot with a linear movement.
+   *
+   * @param position the cartesian pose to set the robot.
+   * @param callback function to be called when the movement is finished.
+   * @return void
+   */
   void setCartesianPoseLin(const geometry_msgs::PoseStamped& position, std::function<void()> callback);
 
   /**
