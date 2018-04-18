@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische UniversitÃ¤t MÃ¼nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -29,6 +29,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.generated.ioAccess.MediaFlangeIOGroup;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
@@ -57,6 +58,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private boolean publishJointState = false;
 	//DestinationReachedFlag publisher
 	private Publisher<std_msgs.Time> destinationReachedPublisher;
+	private Publisher<std_msgs.Bool> iiwaMFButtonPublisher;
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
 
@@ -76,6 +78,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private sensor_msgs.JointState js;
 	private iiwa_msgs.JointVelocity jv;
 	private std_msgs.Time t;
+	private std_msgs.Bool bs;
 
 	/**
 	 * Create a ROS node with publishers for a robot state. <br>
@@ -97,6 +100,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 		js = helper.buildMessage(sensor_msgs.JointState._TYPE);
 		t = helper.buildMessage(std_msgs.Time._TYPE);
+		bs = helper.buildMessage(std_msgs.Bool._TYPE);
 	}
 
 	/**
@@ -148,6 +152,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		jointStatesPublisher = connectedNode.newPublisher(iiwaName + "/joint_states", sensor_msgs.JointState._TYPE);
 
 		destinationReachedPublisher = connectedNode.newPublisher(iiwaName + "/state/DestinationReached", std_msgs.Time._TYPE);
+		iiwaMFButtonPublisher = connectedNode.newPublisher(iiwaName + "/state/MFButtonState", std_msgs.Bool._TYPE);
 	}
 
 	/**
@@ -160,7 +165,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @throws InterruptedException
 	 */
 	public void publishCurrentState(LBR robot, SmartServo motion) throws InterruptedException {
-		publishCurrentState(robot, motion, robot.getFlange());
+		publishCurrentState(robot, motion, robot.getFlange(), null);
 	}
 
 	/**
@@ -172,7 +177,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * @param frame : the Cartesian information published will be relative to this frame
 	 * @throws InterruptedException
 	 */
-	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
+	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame, MediaFlangeIOGroup mfIOGroup) throws InterruptedException {
 		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
 			helper.getCurrentCartesianPose(cp, robot, frame);
 			helper.incrementSeqNumber(cp.getHeader());
@@ -222,6 +227,11 @@ public class iiwaPublisher extends AbstractNodeMain {
 			helper.incrementSeqNumber(js.getHeader());
 			jointStatesPublisher.publish(js);
 		}		
+		
+		if (mfIOGroup != null && iiwaMFButtonPublisher.getNumberOfSubscribers() > 0) {
+			bs.setData(mfIOGroup.getUserButton());
+			iiwaMFButtonPublisher.publish(bs);
+		}
 	}
 
 	/**
