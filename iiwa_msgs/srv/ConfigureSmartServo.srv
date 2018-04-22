@@ -1,4 +1,12 @@
-iiwa_msgs/SmartServoMode mode
+# This service allows to set a control mode at runtime.
+# The user can select control modes defined in iiwa_msgs/ControlMode and set the respective parameters accordingly to the selected mode.
+
+int32 control_mode
+iiwa_msgs/JointImpedanceControlMode joint_impedance
+iiwa_msgs/CartesianImpedanceControlMode cartesian_impedance
+iiwa_msgs/DesiredForceControlMode desired_force
+iiwa_msgs/SinePatternControlMode sine_pattern
+iiwa_msgs/CartesianControlModeLimits limits
 ---
 bool success
 string error

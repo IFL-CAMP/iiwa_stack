@@ -25,23 +25,8 @@
         <joint name="iiwa_joint_6" value="0" />
         <joint name="iiwa_joint_7" value="0" />
     </group_state>
-    
-    <group_state name="calibration_pose" group="manipulator">
-        <joint name="iiwa_joint_1" value="-0.050" />
-        <joint name="iiwa_joint_2" value="0.906" />
-        <joint name="iiwa_joint_3" value="0.035" />
-        <joint name="iiwa_joint_4" value="-1.26" />
-        <joint name="iiwa_joint_5" value="-0.252" />
-        <joint name="iiwa_joint_6" value="-1.280" />
-        <joint name="iiwa_joint_7" value="-0.024" />
-    </group_state>
-            
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="moveit_ee" parent_link="iiwa_link_ee" group="endeffector"/>
-    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="fixed_base" type="fixed" parent_frame="world" child_link="iiwa_link_0" />
-    <virtual_joint name="fixed_ee_kuka" type="fixed" parent_frame="iiwa_link_7" child_link="iiwa_link_ee_kuka" />
-    <virtual_joint name="fixed_ee" type="fixed" parent_frame="iiwa_link_7" child_link="iiwa_link_ee" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="iiwa_link_0" link2="iiwa_link_1" reason="Adjacent" />
     <disable_collisions link1="iiwa_link_0" link2="iiwa_link_2" reason="Never" />

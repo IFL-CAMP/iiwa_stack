@@ -1,0 +1,46 @@
+# IIWA_STACK Changelog
+
+## Version 1.2.5
+
+#### New
+* `NTP updates are now automatic`
+* `Desired force accepts also negative force values (force toward the negative axis)`
+
+
+#### Bug Fixes
+* `Fixed joint velocity command mode`
+* `Removed useless "iiwa_link_ee_kuka" frame from URDF`
+* `Small fixes in the URDF: link misalignments, robot_name specific variables`
+* `Small fixes and improvements`
+
+## Version 1.2.0 (release date: 01.02.2016)
+
+#### New
+* `An approximation of the inertia parameters was added to the URDF of the iiwa7.`
+* `Commanding in joint velocity available.`
+* `Added a service to get the time left to reach the commanded destination and topic that publishes when the destination is reached.`
+* `Moved the feature to change the joing velocity and acceleration to its own service.`
+* `Refactored the code in iiwa_ros, now it provides wrappers for all the state/command messages and the service calls.`
+* `Tested and workin on ROS Kinetic`
+
+#### Bug Fixes
+* `The online change of the joint velocity now works properly`
+* `Got rid of minor compiler warning`
+* `Got rid of the errors and most of the warning from Rviz and MoveIn in Kinect, some are left but they clash with Indigo atm.`
+
+## Version 1.1.0 (release date: 26.08.2016)
+
+Completely refactoring of the Java applications led to various improvements in terms of performance.
+
+#### New
+* `ConstantForce via SmartServo service`
+* `Added JointPositionVelocity commands`
+
+#### Bug Fixes
+* `Tool selection from ROS param`
+* `CartesianPose published from the robot now depends on the tool selected`
+* `Fixed URDF xacro files`
+* `ROSMonitor shouts down cleanly`
+
+## Version 1.0.0
+Initial release

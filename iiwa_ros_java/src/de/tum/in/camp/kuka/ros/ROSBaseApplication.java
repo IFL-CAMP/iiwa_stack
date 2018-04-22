@@ -1,5 +1,5 @@
- /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+/**  
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -23,10 +23,10 @@
 
 package de.tum.in.camp.kuka.ros;
 
-//ROS imports
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
@@ -53,9 +53,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected LBR robot;
 	protected Tool tool;
 	protected String toolFrameID;
-	protected static final String toolFrameIDSuffix = "_link_ee_kuka";
+	protected static final String toolFrameIDSuffix = "_link_ee";
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
+	protected double jointVelocity;
+	protected double jointAcceleration;
+	protected double overrideJointAcceleration;
+	protected ROSGoalReachedEventListener handler;
 
 	protected boolean initSuccessful;
 	protected boolean debug;
@@ -81,16 +85,15 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected abstract void controlLoop();
 
 	/*
-	 * Performing NTP synchronization and SmartServo control makes the control loop very slow
+	 * SmartServo control makes the control loop very slow
 	 * These variables are used to run them every *decimation* times, 
 	 * In order to balance the load, they alternate at *decimationCounter* % *decimation* == 0 and
 	 * *decimationCounter* % *decimation* == *decimation* / 2
 	 */
-	
+
 	// TODO : in config.txt or processData
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
-	protected int ntpDecimation = 1024;
 
 
 	public void initialize() {
@@ -99,6 +102,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Standard configuration.
 		configuration = new iiwaConfiguration();
 		publisher = new iiwaPublisher(iiwaConfiguration.getRobotName());
+		handler = new ROSGoalReachedEventListener(publisher);
 
 		// ROS initialization.
 		try {
@@ -113,7 +117,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			nodeConfPublisher.setTimeProvider(iiwaConfiguration.getTimeProvider());
 			nodeConfPublisher.setNodeName(iiwaConfiguration.getRobotName() + "/iiwa_publisher");
 			nodeConfPublisher.setMasterUri(uri);
-			
+
 			// Additional configuration needed in subclasses.
 			configureNodes(uri);
 		}
@@ -130,7 +134,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			nodeMainExecutor.execute(publisher, nodeConfPublisher);
 			nodeMainExecutor.execute(configuration, nodeConfConfiguration);
 
-			 // Additional Nodes from subclasses.
+			// Additional Nodes from subclasses.
 			addNodesToExecutor(nodeMainExecutor); 
 
 			if (debug) 
@@ -143,7 +147,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			return;
 		}
 
-		 // Additional initialization from subclasses.
+		// Additional initialization from subclasses.
 		initializeApp();
 
 		initSuccessful = true;  // We cannot throw here.
@@ -165,10 +169,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		getLogger().info("Using time provider: " + iiwaConfiguration.getTimeProvider().getClass().getSimpleName());
 
+		jointVelocity = configuration.getDefaultRelativeJointVelocity();
+		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
+		overrideJointAcceleration = 1.0;
+
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
-		motion.setJointAccelerationRel(configuration.getDefaultRelativeJointAcceleration());
+		motion.setJointVelocityRel(jointVelocity);
+		motion.setJointAccelerationRel(jointAcceleration);
 		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
 
 		// Configurable toolbars to publish events on topics.
@@ -182,14 +190,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			tool.attachTo(robot.getFlange());
 			toolFrameID = toolFromConfig + toolFrameIDSuffix;
 			toolFrame = tool.getFrame("/" + toolFrameID);
-			if (!SmartServo.validateForImpedanceMode(tool))
-				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		} else {
 			getLogger().info("No tool attached. Using flange.");
 			toolFrameID = iiwaConfiguration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = robot.getFlange();
-			if (!SmartServo.validateForImpedanceMode(robot))
-				getLogger().error("Too much external torque on the robot! Is it a singular position?");
 		}
 
 		// Publish joint state?
@@ -198,9 +202,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Initialize motion.
 		toolFrame.moveAsync(motion);
 
+		if (iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+			((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
+		}
+
 		// Run what is needed before the control loop in the subclasses.
 		beforeControlLoop();
-		
+
 		running = true;
 
 		// The run loop
@@ -209,14 +217,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			while(running) { 
 				decimationCounter++;
 
-				if ((decimationCounter % ntpDecimation) == (int)(ntpDecimation/2) && iiwaConfiguration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-					((NtpTimeProvider) iiwaConfiguration.getTimeProvider()).updateTime(); //TODO check if throws and print it (could avoid thread hanging if no NTP server is on the other side)
-				}
-
 				// This will publish the current robot state on the various ROS topics.
 				publisher.publishCurrentState(robot, motion, toolFrame);
 
-				if ((decimationCounter % controlDecimation) == 0) // TODO is this neeed with the new implemantation?
+				if ((decimationCounter % controlDecimation) == 0)
 					controlLoop();  // Perform control loop specified by subclass
 			} 
 		}
@@ -235,6 +239,12 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		super.onApplicationStateChanged(state);
 	};
+
+	@Override 
+	public void dispose() { 
+		super.dispose(); 
+		cleanup(); 
+	} 
 
 	void cleanup() {
 		running = false;

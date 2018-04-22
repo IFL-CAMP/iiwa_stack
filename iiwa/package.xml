@@ -14,9 +14,8 @@
   <run_depend>iiwa_description</run_depend>
   <run_depend>iiwa_gazebo</run_depend>
   <run_depend>iiwa_hw</run_depend>
-  <run_depend>iiwa_launch</run_depend>
   <run_depend>iiwa_moveit</run_depend>
-  <run_depend>iiwa_msg</run_depend>
+  <run_depend>iiwa_msgs</run_depend>
   <run_depend>iiwa_ros</run_depend>
   
   <export>

@@ -62,6 +62,4 @@
         </include>
     </group>
     
-    <include file="$(find iiwa_moveit)/launch/default_warehouse_db.launch" />
-    
 </launch>

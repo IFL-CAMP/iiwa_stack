@@ -5,47 +5,30 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
   iiwa_msgs
-  tf
   cmake_modules
+  roscpp
 )
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS  
+	CATKIN_DEPENDS iiwa_msgs roscpp
 )
 
 ## Specify additional locations of header files
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-)
-
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-	include/iiwaRos.h
-	src/iiwaRos.cpp
+	src/iiwa_ros.cpp
+	src/smart_servo_service.cpp
+	src/path_parameters_service.cpp
+	src/time_to_destination_service.cpp
 )
 
-## Declare a cpp executable
-add_executable(${PROJECT_NAME}-example
-    src/main.cpp
-)
-
-## Add dependence to the iiwa_msg module for the executable
-add_dependencies(${PROJECT_NAME}-example
-				iiwa_msgs_generate_messages_cpp)
-				
-## Add dependence to the iiwa_msg module for the library
-add_dependencies(${PROJECT_NAME}
-				iiwa_msgs_generate_messages_cpp)
-				
-				
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}-example
-    ${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
 )
 
-install(DIRECTORY include/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+## Add dependence to the iiwa_msg module for the library
+add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)

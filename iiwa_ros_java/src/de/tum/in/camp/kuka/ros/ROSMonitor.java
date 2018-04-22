@@ -1,5 +1,5 @@
  /**  
- * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -85,7 +85,7 @@ public class ROSMonitor extends ROSBaseApplication {
 		SmartServo oldmotion = motion;
 		motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(20e-3);
-		motion.setJointVelocityRel(configuration.getDefaultRelativeJointSpeed());
+		motion.setJointVelocityRel(configuration.getDefaultRelativeJointVelocity());
 		motion.setTimeoutAfterGoalReach(300);
 		controlMode = new JointImpedanceControlMode(robot.getJointCount());
 		toolFrame.moveAsync(motion.setMode(controlMode)); 
@@ -114,7 +114,7 @@ public class ROSMonitor extends ROSBaseApplication {
 			if (gravCompSwitched) {
 				gravCompSwitched = false;
 				getLogger().warn("Disabling gravity compensation");
-				controlMode.setStiffnessForAllJoints(1500); // TODO : which is the max?
+				controlMode.setStiffnessForAllJoints(1500); // TODO : max is 5000
 				motion.getRuntime().changeControlModeSettings(controlMode);
 				motion.getRuntime().setDestination(robot.getCurrentJointPosition());
 			}

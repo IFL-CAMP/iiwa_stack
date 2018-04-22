@@ -37,6 +37,10 @@ add_library(${PROJECT_NAME}
   src/iiwa_hw.cpp
 )
 
+target_link_libraries(${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
 ## Declare a cpp executable
 add_executable(${PROJECT_NAME}-bin
     src/main.cpp
@@ -50,8 +54,6 @@ add_dependencies(${PROJECT_NAME}-bin
 add_dependencies(${PROJECT_NAME}
 				iiwa_msgs_generate_messages_cpp)
 
-				
-				
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}-bin
     ${PROJECT_NAME}
