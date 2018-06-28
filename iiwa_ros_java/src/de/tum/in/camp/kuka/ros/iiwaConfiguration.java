@@ -265,6 +265,30 @@ public class iiwaConfiguration extends AbstractNodeMain {
 	}
 
 	/**
+	 * Get the min trajectory execute time for SmartServo from param <b>minTrajExecTime</b> in ROS param server.
+	 *
+	 * @return the min trajectory exectute time
+	 */
+	public Double getMinTrajExecTime() {
+		Double minTrajExecTime = getDoubleParameter("minTrajExecTime");
+		if (minTrajExecTime == null)
+			minTrajExecTime = 20e-3;
+		return minTrajExecTime;
+	}
+
+	/**
+	 * Get the timeout after goal reached for SmartServo from param <b>timeoutAfterGoalReach</b> in ROS param server.
+	 *
+	 * @return the timeout after goal reached
+	 */
+	public Double getTimoutAfterGoalReach() {
+		Double timeoutAfterGoalReach = getDoubleParameter("timeoutAfterGoalReach");
+		if (timeoutAfterGoalReach == null)
+			timeoutAfterGoalReach = 300.0;
+		return timeoutAfterGoalReach;
+	}
+
+	/**
 	 * Get the name of the tool to use from param <b>toolName</b> in ROS param server.
 	 * 
 	 * @return name of the tool

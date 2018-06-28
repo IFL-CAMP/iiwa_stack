@@ -337,8 +337,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 	 */
 	private SmartServo createSmartServoMotion() {
 		SmartServo mot = new SmartServo(robot.getCurrentJointPosition());
-		mot.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
-		mot.setTimeoutAfterGoalReach(300); //TODO : parametrize
+		mot.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
+		mot.setTimeoutAfterGoalReach(configuration.getTimoutAfterGoalReach());
 		mot.setJointVelocityRel(jointVelocity);
 		mot.setJointAccelerationRel(jointAcceleration);
 		mot.overrideJointAcceleration(overrideJointAcceleration);
