@@ -174,10 +174,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		overrideJointAcceleration = 1.0;
 
 		motion = new SmartServo(robot.getCurrentJointPosition());
-		motion.setMinimumTrajectoryExecutionTime(20e-3); // TODO : Parametrize
+		motion.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
+		motion.setTimeoutAfterGoalReach(configuration.getTimoutAfterGoalReach());
 		motion.setJointVelocityRel(jointVelocity);
 		motion.setJointAccelerationRel(jointAcceleration);
-		motion.setTimeoutAfterGoalReach(300); // TODO : Parametrize
 
 		// Configurable toolbars to publish events on topics.
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
