@@ -7,6 +7,8 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 
+import geometry_msgs.PoseStamped;
+
 public class Motions {
 
 	private LBR robot;

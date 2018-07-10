@@ -23,21 +23,18 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.ros.exception.ParameterNotFoundException;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -54,21 +51,13 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
 import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
+import de.tum.in.camp.kuka.ros.configuration.FileBasedConfigurationProviderFactory;
+import de.tum.in.camp.kuka.ros.configuration.IConfigurationProvider;
+
 /**
  * Utility class to get configuration at startup from the config.txt file or from ROS params in the ROS param server.
  */
 public class Configuration extends AbstractNodeMain {
-
-	// Name to use to build the name of the ROS topics
-	private static Map<String, String> config;
-	private static String robotName;
-	private static String masterIp;
-	private static String masterPort;
-	private static String masterUri; //< IP address of ROS core to talk to.
-	private static String robotIp;
-	private static boolean staticConfigurationSuccessful;
-	private static boolean ntpWithHost;
-	
 	private TimeProvider timeProvider;
 	private ScheduledExecutorService ntpExecutorService = null;
 
@@ -77,97 +66,92 @@ public class Configuration extends AbstractNodeMain {
 
 	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
+	
+	private static IConfigurationProvider configurationProvider;
+	
+	/**
+	 * Sets the used configuration provider.
+	 * 
+	 * @param configProvider
+	 */
+	public static void setConfigurationProvider(IConfigurationProvider configProvider) {
+		if (configProvider == null) {
+			throw new NullArgumentException("configProvider");
+		}
 
-	public Configuration() {
-		checkConfiguration();
+		configurationProvider = configProvider;
+		
+		System.out.println("New configuration provider set.");
+		System.out.println("Robot name: " + configurationProvider.getRobotName());
+		System.out.println("Robot IP: " + configurationProvider.getRobotIP());
+		System.out.println("ROS Master URI: " + configurationProvider.getRosMasterUri());
 	}
-
+	
+	/**
+	 * Returns the current set configuration provider.
+	 * 
+	 * @return configuration provider
+	 */
+	public static IConfigurationProvider getConfigurationProvider() {
+		return configurationProvider;
+	}
+	
+	/**
+	 * Checks if a configuration provider is set.
+	 * If not, a new configuration provider based on the config.txt file is created.
+	 */
 	public static void checkConfiguration() {
-		if (!staticConfigurationSuccessful) {
-			configure();
-			if (!staticConfigurationSuccessful) {
-				throw new RuntimeException("Static configuration was not successful");
+		if (configurationProvider == null) {
+			IConfigurationProvider cp;
+			try {
+				cp = FileBasedConfigurationProviderFactory.createFromDefaultConfigFile();
+			} catch (IOException e) {
+				throw new RuntimeException("Static configuration was not successful", e);
 			}
+			
+			setConfigurationProvider(cp);
 		}
-	}
-
-	private static void parseConfigFile() {
-		config = new HashMap<String, String>();
-		BufferedReader br = new BufferedReader(new InputStreamReader(Configuration.class.getResourceAsStream("config.txt")));
-		try {
-			String line = null;
-			while((line = br.readLine()) != null) {
-				String[] lineComponents = line.split(":");
-				if (lineComponents.length != 2)
-					continue;
-
-				config.put(lineComponents[0].trim(), lineComponents[1].trim());
-			}
-		} catch (IOException e2) {
-			e2.printStackTrace();
-		}
-	}
-
-	private static void configure() {
-		parseConfigFile(); //TODO : use KUKA's process data?
-
-		// Obtain name of the robot from config file
-		robotName = config.get("robot_name");
-		System.out.println("Robot name: " + robotName);
-		robotIp = config.get("robot_ip");
-		System.out.println("IP from configuration: " + robotIp); // automatic discovery not reliable with x66
-
-		// Obtain if NTP server is used from config file
-		ntpWithHost  = config.get("ntp_with_host").equals("true");
-
-		// Obtain IP:port of the ROS Master 
-		masterIp = config.get("master_ip");
-		masterPort = config.get("master_port");
-		masterUri = "http://" + masterIp + ":" + masterPort;
-		System.out.println("Master URI: " + masterUri);
-
-		staticConfigurationSuccessful = true;
 	}
 
 	/**
-	 * Get the ROS Master URI, obtained from the configuration file.
+	 * Get the ROS Master URI, obtained from the configuration provider.
 	 * Format : http://IP:port
 	 * 
 	 * @return ROS Master URI
 	 */
 	public static String getMasterURI() {
 		checkConfiguration();
-		return masterUri;
+		return configurationProvider.getRosMasterUri();
 	}
 
 	/**
-	 * Get the ROS Master IP address, obtained from the configuration file.
+	 * Get the ROS Master IP address, obtained from the configuration provider.
 	 * 
 	 * @return ROS Master IP address
 	 */
 	public static String getMasterIp() {
 		checkConfiguration();
-		return masterIp;
+		return configurationProvider.getRosMasterIP();
 	}
 
 	/**
-	 * Get the robot IP address, obtained from the configuration file.
+	 * Get the robot IP address, obtained from the configuration provider.
 	 * 
 	 * @return Robot IP address
 	 */
 	public static String getRobotIp() {
 		checkConfiguration();
-		return robotIp;
+		return configurationProvider.getRobotIP();
 	}
 
 	/**
-	 * Get the robot name, obtained from the configuration file.
+	 * Get the robot name, obtained from the configuration provider.
 	 * 
 	 * @return name of the robot
 	 */
 	public static String getRobotName() {
 		checkConfiguration();
-		return robotName;
+		return configurationProvider.getRobotName();
 	}
 
 	/**
@@ -177,7 +161,7 @@ public class Configuration extends AbstractNodeMain {
 	 */
 	public static boolean getShouldUseNtp() {
 		checkConfiguration();
-		return ntpWithHost;
+		return configurationProvider.getNtpWithHost();
 	}
 
 	/**
@@ -185,7 +169,7 @@ public class Configuration extends AbstractNodeMain {
 	 */
 	@Override
 	public GraphName getDefaultNodeName() {
-		return GraphName.of(robotName + "/configuration");
+		return GraphName.of(getRobotName() + "/configuration");
 	}
 
 	/**
@@ -270,6 +254,7 @@ public class Configuration extends AbstractNodeMain {
 	public TimeProvider getTimeProvider() {
 		if (timeProvider == null)
 			setupTimeProvider();
+		
 		return timeProvider;
 	}
 
@@ -278,21 +263,17 @@ public class Configuration extends AbstractNodeMain {
 	 * 
 	 * @return the configured time provider
 	 */
-	private TimeProvider setupTimeProvider() {
-		checkConfiguration();
-		if (ntpWithHost) {
+	private void setupTimeProvider() {
+		if (getShouldUseNtp()) {
 			try {
 				ntpExecutorService = Executors.newScheduledThreadPool(1);
-				NtpTimeProvider provider = new NtpTimeProvider(InetAddress.getByName(masterIp), ntpExecutorService);
-				timeProvider = provider;
+				timeProvider = new NtpTimeProvider(InetAddress.getByName(getMasterIp()), ntpExecutorService);
 			} catch (UnknownHostException e) {
 				System.err.println("Could not setup NTP time provider!");
 			}
 		} else {
 			timeProvider = new  WallTimeProvider();
 		}
-
-		return timeProvider;
 	}
 
 	/**
@@ -419,7 +400,7 @@ public class Configuration extends AbstractNodeMain {
 		params = getParameterTree();
 		Double ret = null;
 		try {
-			ret = params.getDouble(robotName + "/" + argname);			
+			ret = params.getDouble(getRobotName() + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 		}
 
@@ -435,7 +416,7 @@ public class Configuration extends AbstractNodeMain {
 		params = getParameterTree();
 		Boolean ret = null;
 		try {
-			ret = params.getBoolean(robotName + "/" + argname);			
+			ret = params.getBoolean(getRobotName() + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 		}
 
@@ -451,7 +432,7 @@ public class Configuration extends AbstractNodeMain {
 		params = getParameterTree();
 		String ret = null;
 		try {
-			ret = params.getString(robotName + "/" + argname);			
+			ret = params.getString(getRobotName() + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
 		}
 
@@ -467,7 +448,7 @@ public class Configuration extends AbstractNodeMain {
 		List<?> args = new LinkedList<String>();  // supports remove
 		params = getParameterTree();
 		try {
-			args = params.getList(robotName + "/" + argname);
+			args = params.getList(getRobotName() + "/" + argname);
 			if (args == null) {
 				return null;
 			}
@@ -478,8 +459,7 @@ public class Configuration extends AbstractNodeMain {
 	}
 	
 	public void cleanup() {
-		if (ntpWithHost) {
-			
+		if (getShouldUseNtp()) {
 			try {
 				((NtpTimeProvider) timeProvider).stopPeriodicUpdates();
 			} catch (NullPointerException e) {

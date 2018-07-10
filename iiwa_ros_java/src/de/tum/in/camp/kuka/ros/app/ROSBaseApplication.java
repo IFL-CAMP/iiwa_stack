@@ -23,6 +23,7 @@
 
 package de.tum.in.camp.kuka.ros.app;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,8 @@ import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
+import de.tum.in.camp.kuka.ros.configuration.FileBasedConfigurationProviderFactory;
+import de.tum.in.camp.kuka.ros.configuration.IConfigurationProvider;
 import de.tum.in.camp.kuka.ros.Logger;
 
 /*
@@ -102,12 +105,28 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected int decimationCounter = 0; 
 	protected int controlDecimation = 8;
 
+	/**
+	 * Returns the configuration provider which should be used for the application.
+	 * 
+	 * The base implementation returns a configuration provider using the default config.txt  
+	 * 
+	 * @return Configuration provider
+	 */
+	protected IConfigurationProvider getConfigurationProvider() {
+		try {
+			return FileBasedConfigurationProviderFactory.createFromDefaultConfigFile();
+		} catch (IOException e) {
+			throw new RuntimeException("Could not create default configuration provider.", e);
+		}
+	}
+	
 	public void initialize() {
 		Logger.setSunriseLogger(getLogger());
 		
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
+		Configuration.setConfigurationProvider(getConfigurationProvider());
 		configuration = new Configuration();
 		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
 
@@ -165,7 +184,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		initSuccessful = true;  // We cannot throw here.
 	}
-
+	
 	public void run() {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
