@@ -58,8 +58,7 @@ public class ProcessDataConfigurationProvider implements IConfigurationProvider 
 
 	@Override
 	public int getRosMasterPort() {
-		String rosMasterPort = applicationData.getProcessData("rosMasterPort").getValue();
-		return Integer.parseInt(rosMasterPort);
+		return applicationData.getProcessData("rosMasterPort").getValue();
 	}
 
 	@Override
