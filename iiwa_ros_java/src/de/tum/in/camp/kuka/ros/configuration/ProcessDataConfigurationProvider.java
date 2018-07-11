@@ -23,69 +23,53 @@
 
 package de.tum.in.camp.kuka.ros.configuration;
 
+import com.kuka.roboticsAPI.applicationModel.IApplicationData;
+
+import de.tum.in.camp.kuka.ros.configuration.IConfigurationProvider;
+
 /**
- * Configuration provider using values provided in the constructor.
+ * Configuration Provider using the KUKA application process data.
  * 
- * @author Guido Breitenhuber
+ * @author Thomas Haspl
  */
-public class StaticConfigurationProvider implements IConfigurationProvider {
-
-	private String robotName;
-	private String robotIp;
-	private boolean ntpWithHost;
-	private String masterIp;
-	private int masterPort;
-	private String masterUri;
-
-	public StaticConfigurationProvider(String robotName, String robotIp, String masterIp, int masterPort, boolean ntpWithHost)
+public class ProcessDataConfigurationProvider implements IConfigurationProvider {
+	
+	private IApplicationData applicationData;
+	
+	public ProcessDataConfigurationProvider (IApplicationData applicationData)
 	{
-		throwIfStringNullOrEmpty(robotName, "Robot name");
-		throwIfStringNullOrEmpty(robotIp, "Robot IP");
-		throwIfStringNullOrEmpty(masterIp, "ROS master IP");
-				
-		this.robotName = robotName;
-		this.robotIp = robotIp;
-		this.ntpWithHost = ntpWithHost;
-		
-		this.masterIp = masterIp;
-		this.masterPort = masterPort;
-		this.masterUri = "http://" + masterIp + ":" + masterPort;
+		this.applicationData = applicationData;
 	}
-	
-	public static void throwIfStringNullOrEmpty(final String s, final String paramName) {
-		if (s == null || s.trim().isEmpty()) {
-			throw new IllegalArgumentException(paramName + " must not be null or empty");
-		}
-	}
-	
+
 	@Override
 	public String getRobotName() {
-		return robotName;
+		return applicationData.getProcessData("robotName").getValue();
 	}
 
 	@Override
 	public String getRobotIP() {
-		return robotIp;
+		return applicationData.getProcessData("robotIp").getValue();
 	}
 
 	@Override
 	public String getRosMasterIP() {
-		return masterIp;
+		return applicationData.getProcessData("rosMasterIp").getValue();
 	}
 
 	@Override
 	public int getRosMasterPort() {
-		return masterPort;
-	}
-
-	@Override
-	public boolean getNtpWithHost() {
-		return ntpWithHost;
+		String rosMasterPort = applicationData.getProcessData("rosMasterPort").getValue();
+		return Integer.parseInt(rosMasterPort);
 	}
 
 	@Override
 	public String getRosMasterUri() {
-		return masterUri;
+		return "http://" + this.getRosMasterIP() + ":" + this.getRosMasterPort();
+	}
+
+	@Override
+	public boolean getNtpWithHost() {
+		return applicationData.getProcessData("ntpWithHost").getValue();
 	}
 
 }
