@@ -11,6 +11,7 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.geometricModel.World;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -241,8 +242,11 @@ public class ControlModeHandler {
 	}
 
 	public SmartServoLIN createSmartServoLinMotion() {
+		System.out.println("toolFrame: "+toolFrame);
+		
 		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
-		linearMotion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		linearMotion.setReferenceFrame(World.Current.getRootFrame());
+		linearMotion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
 		linearMotion.setMaxTranslationVelocity(maxTranslationlVelocity);
 		//linearMotion.setMaxOrientationVelocity(maxOrientationlVelocity);
