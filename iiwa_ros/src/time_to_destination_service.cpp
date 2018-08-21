@@ -32,6 +32,10 @@
 
 namespace iiwa_ros
 {
+TimeToDestinationService::TimeToDestinationService() : iiwaServices<iiwa_msgs::TimeToDestination>()
+{
+}
+
 TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose)
   : iiwaServices<iiwa_msgs::TimeToDestination>(service_name, verbose)
 {
@@ -59,7 +63,7 @@ bool TimeToDestinationService::callService()
   {
     if (verbose_)
     {
-      ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
+        ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
     }
     time_to_destination_ = config_.response.remaining_time;
     return true;

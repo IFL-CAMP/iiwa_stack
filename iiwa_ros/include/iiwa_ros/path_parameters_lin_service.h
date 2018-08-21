@@ -38,7 +38,7 @@ namespace iiwa_ros
 class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin>
 {
 public:
-  PathParametersLinService() = default;
+  PathParametersLinService();
 
   /**
    * @brief ...

@@ -31,44 +31,39 @@
 #include "iiwa_ros/iiwa_ros.h"
 #include <thread>
 
+
 using namespace std;
 
 namespace iiwa_ros
 {
 ros::Time last_update_time;
 
-iiwaRos::iiwaRos(std::string robot_name)
-  : robot_name_(robot_name)
+iiwaRos::iiwaRos()
 {
 }
 
 void iiwaRos::init()
 {
-  std::string robot_namespace{""};
-  if (!robot_name_.empty())
-  {
-    robot_namespace = "/" + robot_name_;
-  }
-  holder_state_pose_.init(robot_namespace + "state/CartesianPose");
-  holder_state_joint_position_.init(robot_namespace + "state/JointPosition");
-  holder_state_joint_torque_.init(robot_namespace + "state/JointTorque");
-  holder_state_wrench_.init(robot_namespace + "state/CartesianWrench");
-  holder_state_joint_stiffness_.init(robot_namespace + "state/JointStiffness");
-  holder_state_joint_position_velocity_.init(robot_namespace + "state/JointPositionVelocity");
-  holder_state_joint_damping_.init(robot_namespace + "state/JointDamping");
-  holder_state_joint_velocity_.init(robot_namespace + "state/JointVelocity");
-  holder_state_destination_reached_.init(robot_namespace + "state/DestinationReached");
+  holder_state_pose_.init("state/CartesianPose");
+  holder_state_joint_position_.init("state/JointPosition");
+  holder_state_joint_torque_.init("state/JointTorque");
+  holder_state_wrench_.init("state/CartesianWrench");
+  holder_state_joint_stiffness_.init("state/JointStiffness");
+  holder_state_joint_position_velocity_.init("state/JointPositionVelocity");
+  holder_state_joint_damping_.init("state/JointDamping");
+  holder_state_joint_velocity_.init("state/JointVelocity");
+  holder_state_destination_reached_.init("state/DestinationReached");
 
-  holder_command_pose_.init(robot_namespace + "command/CartesianPose");
-  holder_command_pose_lin_.init(robot_namespace + "command/CartesianPoseLin");
-  holder_command_joint_position_.init(robot_namespace + "command/JointPosition");
-  holder_command_joint_position_velocity_.init(robot_namespace + "command/JointPositionVelocity");
-  holder_command_joint_velocity_.init(robot_namespace + "command/JointVelocity");
+  holder_command_pose_.init("command/CartesianPose");
+  holder_command_pose_lin_.init("command/CartesianPoseLin");
+  holder_command_joint_position_.init("command/JointPosition");
+  holder_command_joint_position_velocity_.init("command/JointPositionVelocity");
+  holder_command_joint_velocity_.init("command/JointVelocity");
 
-  smart_servo_service_.setServiceName(robot_namespace + "configuration/configureSmartServo");
-  path_parameters_service_.setServiceName(robot_namespace + "configuration/pathParameters");
-  path_parameters_lin_service_.setServiceName(robot_namespace + "configuration/pathParametersLin");
-  time_to_destination_service_.setServiceName(robot_namespace + "state/timeToDestination");
+  smart_servo_service_.setServiceName("configuration/configureSmartServo");
+  path_parameters_service_.setServiceName("configuration/pathParameters");
+  path_parameters_lin_service_.setServiceName("configuration/pathParametersLin");
+  time_to_destination_service_.setServiceName("state/timeToDestination");
 }
 
 bool iiwaRos::getRobotIsConnected()
@@ -130,7 +125,7 @@ void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position)
   holder_command_pose_lin_.publishIfNew();
 }
 
-void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position, std::function<void()> callback)
+void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position , std::function<void()> callback)
 {
   setCartesianPoseLin(position);
   callback_ = callback;
@@ -155,26 +150,25 @@ void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& v
 }
 
 void iiwaRos::timeToDestinationWatcher()
-{
-  bool flag{false}, alive{true};
-  ros::Duration(0.5).sleep();
-
-  while (alive)
+{	 
+  bool flag = false;
+  sleep(0.5);
+  for(;;)
   {
-    if (time_to_destination_service_.getTimeToDestination() > 0)
+    if(time_to_destination_service_.getTimeToDestination() > 0)
     {
-      if (!flag)
+      if(flag == false)
       {
-        flag = true;
+	flag = true;
       }
     }
-    else
+    else  
     {
-      if (flag)
-      {
-        callback_();
-        alive = false;
-      }
+      if(flag == true)
+      { 				
+	callback_();
+	return;
+      }   
     }
   }
 }
