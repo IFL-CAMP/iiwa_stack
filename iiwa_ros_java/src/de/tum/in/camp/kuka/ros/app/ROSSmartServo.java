@@ -60,7 +60,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 	private Lock configureSmartServoLock = new ReentrantLock();
 
 	private iiwaSubscriber subscriber; // IIWARos Subscriber.
-	private NodeConfiguration nodeConfSubscriber; // Configuration of the subscriber ROS node.
+	private NodeConfiguration nodeConfSubscriber; 	// Configuration of the subscriber ROS node.
 
 	private CommandType lastCommandType = CommandType.JOINT_POSITION;
 	private Motions motions;
@@ -87,7 +87,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				configureSmartServoLock.lock();
 				try {
 					// TODO: reduce code duplication
-					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						if (controlModeHandler.isSameControlMode(linearMotion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
 							if (!(linearMotion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
 								linearMotion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
@@ -97,6 +97,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 						}
 					}
 					else {
+
 						if (controlModeHandler.isSameControlMode(motion.getMode(), req.getControlMode())) { // We can just change the parameters if the control strategy is the same.
 							if (!(motion.getMode() instanceof PositionControlMode)) { // We are in PositioControlMode and the request was for the same mode, there are no parameters to change.
 								motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
@@ -230,8 +231,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 	}
 
 	/**
-	 * TODO: doc, take something from
-	 * This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.
+	 * TODO: doc, take something from 					
+	 * This will acquire the last received CartesianPose command from the commanding ROS node, if there is any available.			
 	 * If the robot can move, then it will move to this new position.
 	 */
 	private void moveRobot() {
@@ -243,23 +244,17 @@ public class ROSSmartServo extends ROSBaseApplication {
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
 					}
 					PoseStamped commandPosition = subscriber.getCartesianPose();
-					commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
-					if (commandPosition != null) {
-						motions.cartesianPositionMotion(motion, commandPosition);
-					}
+					motions.cartesianPositionMotion(motion, commandPosition);
 					break;
 				}
 				case CARTESIAN_POSE_LIN: {
-					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
+					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) { 
 						linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
 					}
 					PoseStamped commandPosition = subscriber.getCartesianPoseLin();
-					commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
-					if (commandPosition != null) {
-						motions.cartesianPositionLinMotion(linearMotion, commandPosition);
-					}
-					break;
-				}
+					motions.cartesianPositionLinMotion(linearMotion, commandPosition);
+          break;
+        }
 				case CARTESIAN_VELOCITY: {
 					geometry_msgs.TwistStamped commandVelocity = subscriber.getCartesianVelocity();
 					motions.cartesianVelocityMotion(motion, commandVelocity, toolFrame);
@@ -268,7 +263,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_POSITION: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-					}
+					}					
 					iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
 					motions.jointPositionMotion(motion, commandPosition);
 					break;
@@ -276,7 +271,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_POSITION_VELOCITY: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-					}
+					}					
 					iiwa_msgs.JointPositionVelocity commandPositionVelocity = subscriber.getJointPositionVelocity();
 					motions.jointPositionVelocityMotion(motion, commandPositionVelocity);
 					break;
@@ -298,9 +293,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				}
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				Logger.error(e.getClass().getName() + ": " + e.getMessage());
-				subscriber.currentCommandType = null;
 			}
 		}
 		lastCommandType = subscriber.currentCommandType;

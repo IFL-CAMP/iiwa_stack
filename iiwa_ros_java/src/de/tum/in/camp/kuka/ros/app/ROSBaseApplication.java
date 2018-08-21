@@ -41,7 +41,6 @@ import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
-import com.kuka.roboticsAPI.geometricModel.World;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
@@ -61,11 +60,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 	protected LBR robot;
 	protected Tool tool;
-	protected String robotBaseFrameID;
-	protected static final String robotBaseFrameIDSuffix = "_link_0";
 	protected String toolFrameID;
 	protected static final String toolFrameIDSuffix = "_link_ee";
-	protected ObjectFrame worldFrame;
 	protected ObjectFrame toolFrame;
 	protected SmartServo motion;
 	protected SmartServoLIN linearMotion;
@@ -114,7 +110,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Standard configuration.
 		configuration = new Configuration();
 		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
-		robotBaseFrameID = Configuration.getRobotName()+robotBaseFrameIDSuffix;
 
 		// ROS initialization.
 		try {
@@ -171,11 +166,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		initSuccessful = true;  // We cannot throw here.
 	}
 
-	public void run() {	
+	public void run() {
 		if (!initSuccessful) {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
-		
 		try {
 			Logger.info("Waiting for ROS Master to connect... ");
 			configuration.waitForInitialization();
@@ -191,7 +185,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		configuration.setupToolbars(getApplicationUI(), publisher, generalKeys, generalKeyLists, generalKeyBars);
 
 		// Tool to attach, robot's flange will be used if no tool has been defined.
-		worldFrame = World.Current.getRootFrame();
 		String toolFromConfig = configuration.getToolName();
 		if (toolFromConfig != "") {
 			Logger.info("Attaching tool " + toolFromConfig);

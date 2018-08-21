@@ -23,14 +23,7 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import geometry_msgs.Pose;
-import geometry_msgs.PoseStamped;
-
 import java.util.Arrays;
-
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Quat4d;
 
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
@@ -348,24 +341,4 @@ public class MessageGenerator {
 				quantity.getA7() >= value);
 	}
 
-	public geometry_msgs.Pose getPose(Matrix4d mat) {
-		Matrix3d base = new Matrix3d(
-				mat.getM00(), mat.getM01(), mat.getM02(),
-				mat.getM10(), mat.getM11(), mat.getM12(),
-				mat.getM20(), mat.getM21(), mat.getM22()
-		);
-		Quat4d q = new Quat4d();
-		q.set(base);
-
-		Pose result = buildMessage(Pose._TYPE);
-		result.getOrientation().setX(q.getX());
-		result.getOrientation().setY(q.getY());
-		result.getOrientation().setZ(q.getZ());
-		result.getOrientation().setW(q.getW());
-		result.getPosition().setX(mat.getM03());
-		result.getPosition().setY(mat.getM13());
-		result.getPosition().setZ(mat.getM23());
-
-		return result;
-	}
 }

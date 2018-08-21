@@ -183,9 +183,7 @@ public final class Conversions {
 		MatrixRotation rot = quatToMatrix(x, y, z, w);
 		Vector transl = Vector.of(tx, ty, tz);
 
-		Transformation t = Transformation.of(transl, rot);
-		System.out.println("KUKA Transformation: T=("+t.getX()+", "+t.getY()+", "+t.getZ()+"), R=("+t.getAlphaRad()+", "+t.getBetaRad()+", "+t.getGammaRad()+")");
-		return t;
+		return Transformation.of(transl, rot);
 	}
 
 	/**
@@ -194,7 +192,7 @@ public final class Conversions {
 	 * @return resulting Frame
 	 * @throws InvalidArgumentException
 	 */
-	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) throws IllegalArgumentException {
+	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) throws IllegalArgumentException {	
 		return new Frame(rosPoseToKukaTransformation(rosPose));
 	}
 

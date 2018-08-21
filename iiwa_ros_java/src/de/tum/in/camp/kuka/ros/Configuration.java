@@ -68,7 +68,6 @@ public class Configuration extends AbstractNodeMain {
 	private static String robotIp;
 	private static boolean staticConfigurationSuccessful;
 	private static boolean ntpWithHost;
-	private static String worldFrameName;
 	
 	private TimeProvider timeProvider;
 	private ScheduledExecutorService ntpExecutorService = null;
@@ -110,8 +109,6 @@ public class Configuration extends AbstractNodeMain {
 	}
 
 	private static void configure() {
-		System.out.println("Environment: JVM version "+System.getProperty("java.version"));
-		
 		parseConfigFile(); //TODO : use KUKA's process data?
 
 		// Obtain name of the robot from config file
@@ -128,8 +125,6 @@ public class Configuration extends AbstractNodeMain {
 		masterPort = config.get("master_port");
 		masterUri = "http://" + masterIp + ":" + masterPort;
 		System.out.println("Master URI: " + masterUri);
-	
-		worldFrameName = config.get("world_frame_name");
 
 		staticConfigurationSuccessful = true;
 	}
@@ -253,15 +248,6 @@ public class Configuration extends AbstractNodeMain {
 		if (toolName == null)
 			toolName = "";
 		return toolName;
-	}
-	
-	/*
-	 * Get name of the root frame in Sunrise
-	 */
-	public static String getWorldFrameName() {
-		if (worldFrameName == null)
-			return "World";
-		return worldFrameName;
 	}
 
 	/**

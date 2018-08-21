@@ -1,6 +1,5 @@
 package de.tum.in.camp.kuka.ros;
 
-import geometry_msgs.PoseStamped;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
