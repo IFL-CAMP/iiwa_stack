@@ -77,7 +77,7 @@ namespace iiwa_ros {
    * @param value the value to use for all the CartesianQuantity components.
    * @return iiwa_msgs::CartesianQuantity
    */
-  iiwa_msgs::CartesianQuantity cartesianQuantityFromDouble(const double value) {
+  iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double value) {
     iiwa_msgs::CartesianQuantity quantity;
     quantity.x = value;
     quantity.y = value;
@@ -99,7 +99,7 @@ namespace iiwa_ros {
    * @param c 
    * @return iiwa_msgs::CartesianQuantity
    */
-  iiwa_msgs::CartesianQuantity cartesianQuantityFromDouble(const double x, const double y, const double z, const double a, const double b, const double c) {
+  iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double x, const double y, const double z, const double a, const double b, const double c) {
     iiwa_msgs::CartesianQuantity quantity;
     quantity.x = x;
     quantity.y = y;
@@ -117,7 +117,7 @@ namespace iiwa_ros {
    * @param rotation_value value to use for all the rotational components (a,b,c) of the CartesianQuantity
    * @return iiwa_msgs::CartesianQuantity
    */
-  iiwa_msgs::CartesianQuantity cartesianQuantityFromDouble(const double translation_value, const double rotation_value) {
+  iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double translation_value, const double rotation_value) {
     iiwa_msgs::CartesianQuantity quantity;
     quantity.x = translation_value;
     quantity.y = translation_value;
