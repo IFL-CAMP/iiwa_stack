@@ -21,9 +21,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <smart_servo_service.h>
+#include <iiwa_ros/smart_servo_service.h>
 #include <iiwa_msgs/ControlMode.h>
-#include <conversions.h>
+#include <iiwa_ros/conversions.h>
 
 namespace iiwa_ros {	
   

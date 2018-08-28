@@ -21,7 +21,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "iiwa_ros.h"
+#include "iiwa_ros/iiwa_ros.h"
 
 using namespace std;
 

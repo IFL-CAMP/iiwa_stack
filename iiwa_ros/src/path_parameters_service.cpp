@@ -21,7 +21,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <path_parameters_service.h>
+#include <iiwa_ros/path_parameters_service.h>
 
 namespace iiwa_ros {
   

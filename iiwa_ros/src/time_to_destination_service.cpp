@@ -21,7 +21,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <time_to_destination_service.h>
+#include <iiwa_ros/time_to_destination_service.h>
 
 namespace iiwa_ros {
   
