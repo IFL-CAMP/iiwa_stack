@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(iiwa_hw)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
   control_toolbox
   controller_interface
   controller_manager
@@ -20,9 +21,18 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS  controller_interface
-			hardware_interface
-			control_toolbox
+	CATKIN_DEPENDS    roscpp
+    control_toolbox
+    controller_interface
+    controller_manager
+    hardware_interface
+    realtime_tools
+    joint_limits_interface
+    tf
+    urdf
+    cmake_modules
+    iiwa_msgs
+    iiwa_ros
 )
 
 ## Specify additional locations of header files
@@ -49,7 +59,7 @@ add_executable(${PROJECT_NAME}-bin
 ## Add dependence to the iiwa_msg module for the executable
 add_dependencies(${PROJECT_NAME}-bin
 				iiwa_msgs_generate_messages_cpp)
-				
+
 ## Add dependence to the iiwa_msg module for the library
 add_dependencies(${PROJECT_NAME}
 				iiwa_msgs_generate_messages_cpp)
@@ -58,4 +68,20 @@ add_dependencies(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}-bin
     ${PROJECT_NAME}
     ${catkin_LIBRARIES}
+)
+
+install(TARGETS ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+
+install(DIRECTORY include
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        PATTERN ".svn" EXCLUDE)
+
+install(TARGETS ${PROJECT_NAME}-bin
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+install(DIRECTORY config launch
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

@@ -5,25 +5,35 @@
   <description>The hardware interface to an KUKA LBR IIWA Robot</description>
   <author email="salvo.virga@tum.de">Salvo Virga</author>
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
- 
+
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <build_depend>controller_interface</build_depend>
   <build_depend>joint_limits_interface</build_depend>
   <build_depend>hardware_interface</build_depend>
   <build_depend>control_toolbox</build_depend>
   <build_depend>realtime_tools</build_depend>
-  <build_depend> roscpp </build_depend>
+  <build_depend>roscpp</build_depend>
   <build_depend>iiwa_msgs</build_depend>
   <build_depend>iiwa_ros</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>controller_manager</build_depend>
 
   <run_depend>controller_interface</run_depend>
+  <run_depend>joint_limits_interface</run_depend>
   <run_depend>hardware_interface</run_depend>
   <run_depend>control_toolbox</run_depend>
-  <run_depend>realtime_tools</run_depend>  
+  <run_depend>realtime_tools</run_depend>
+  <run_depend>roscpp</run_depend>
   <run_depend>iiwa_msgs</run_depend>
   <run_depend>iiwa_ros</run_depend>
-  
+  <run_depend>tf</run_depend>
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>controller_manager</run_depend>
+
 </package>
