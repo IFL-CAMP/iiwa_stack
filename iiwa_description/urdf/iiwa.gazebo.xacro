@@ -12,8 +12,8 @@
     <!-- The ft_sensor plugin -->
     <gazebo>
       <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-        <updateRate>100.0</updateRate>
-        <topicName>ft_sensor_topic</topicName>
+        <updateRate>50.0</updateRate>
+        <topicName>/${robot_name}/state/CartesianWrench</topicName>
         <jointName>${robot_name}_joint_7</jointName>
       </plugin>
     </gazebo>   
