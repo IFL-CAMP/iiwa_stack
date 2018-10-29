@@ -57,11 +57,13 @@ class IiwaKinematics(object):
   def __init__(self):
     init_node('iiwa_kinematics', log_level = DEBUG)
 
+    hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
+
     joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
     command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
 
     self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
-    self.joint_trajectory_pub = Publisher('EffortJointInterface_trajectory_controller/command', JointTrajectory, queue_size = 1)
+    self.joint_trajectory_pub = Publisher(hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
 
     self.joint_names = ['iiwa_joint_1', 'iiwa_joint_2', 'iiwa_joint_3', 'iiwa_joint_4',
                         'iiwa_joint_5', 'iiwa_joint_6', 'iiwa_joint_7']
