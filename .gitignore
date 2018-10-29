@@ -62,6 +62,9 @@ CVS/*
 */*/*/CVS/*
 *.cvsignore
 
+# Vim files
+*.swp
+
 # Other files
 working/
 Status API Training Shop Blog About
