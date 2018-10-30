@@ -2,6 +2,9 @@
 
 import rospy
 
+from iiwa_msgs.msg import JointPosition
+from iiwa_msgs.srv import ConfigureSmartServo, ConfigureSmartServoRequest, ConfigureSmartServoResponse
+from iiwa_msgs.srv import SetPathParameters, SetPathParametersRequest, SetPathParametersResponse
 from numpy import pi, sqrt, cos, sin, arctan2, array, matrix
 from numpy.linalg import norm
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, WrenchStamped
@@ -13,6 +16,9 @@ from rospy import ROSException
 from rospy import init_node, get_param, spin
 from tf.transformations import quaternion_from_matrix, quaternion_matrix
 from std_msgs.msg import Float64
+
+def linearlyMap(x, x1, x2, y1, y2):
+  return (y2 - y1)/(x2 - x1) * (x - x1) + y1
 
 def R(q):
   return matrix(quaternion_matrix(q)[:3,:3])
@@ -58,25 +64,47 @@ class IiwaKinematics(object):
   def __init__(self):
     init_node('iiwa_kinematics', log_level = DEBUG)
 
-    hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
-
-    joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
-    command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
-    redundancy_sub = Subscriber('command/redundancy', Float64, self.redundancyCb, queue_size = 1)
-
-    self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
-    self.joint_trajectory_pub = Publisher(hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
-
-    self.joint_names = ['iiwa_joint_1', 'iiwa_joint_2', 'iiwa_joint_3', 'iiwa_joint_4',
-                        'iiwa_joint_5', 'iiwa_joint_6', 'iiwa_joint_7']
     self.l02 = 0.34
     self.l24 = 0.4
     self.l46 = 0.4
     self.l6E = 0.126
 
     self.tr = 0.0
+    self.v = 1.0
+
+    self.joint_names = ['iiwa_joint_1', 'iiwa_joint_2', 'iiwa_joint_3', 'iiwa_joint_4',
+                        'iiwa_joint_5', 'iiwa_joint_6', 'iiwa_joint_7']
+
+    hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
+
+    joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
+    command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
+    redundancy_sub = Subscriber('command/redundancy', Float64, self.redundancyCb, queue_size = 1)
+    joint_position_sub = Subscriber('command/JointPosition', JointPosition, self.jointPositionCb, queue_size = 1)
+
+    self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
+    self.joint_trajectory_pub = Publisher(hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
+
+    path_parameters_configuration_srv = Service('configuration/pathParameters', SetPathParameters, self.handlePathParametersConfiguration)
+    smart_servo_configuration_srv = Service('configuration/configureSmartServo', ConfigureSmartServo, self.handleSmartServoConfiguration)
 
     spin()
+
+  def jointPositionCb(self, msg):
+    self.publishJointPositionCommand(
+        [msg.position.a1, msg.position.a2, msg.position.a3, msg.position.a4, msg.position.a5, msg.position.a6, msg.position.a7])
+
+  def handleSmartServoConfiguration(self, request):
+    return ConfigureSmartServoResponse(True, '')
+
+  def handlePathParametersConfiguration(self, request):
+    loginfo('setting path parameters')
+    if request.joint_relative_velocity >= 0.0 and \
+       request.joint_relative_velocity <= 1.0:
+      self.v = linearlyMap(request.joint_relative_velocity, 0.0, 1.0, 2.0, 0.5)
+      return SetPathParametersResponse(True, '')
+    else:
+      return SetPathParametersResponse(False, '')
 
   def redundancyCb(self, msg):
     self.tr = msg.data
@@ -142,9 +170,12 @@ class IiwaKinematics(object):
     RE6 = R60 * RE0
     t[6] = arctan2(RE6[1,0], RE6[0,0])
 
+    self.publishJointPositionCommand(t)
+
+  def publishJointPositionCommand(self, t):
     jtp = JointTrajectoryPoint()
     jtp.positions = t
-    jtp.time_from_start = rospy.Duration.from_sec(1.0)
+    jtp.time_from_start = rospy.Duration.from_sec(self.v)
     jt = JointTrajectory()
     jt.joint_names = self.joint_names
     jt.points.append(jtp)
