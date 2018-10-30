@@ -12,6 +12,7 @@ from rospy import Subscriber, Publisher, Service, ServiceProxy
 from rospy import ROSException
 from rospy import init_node, get_param, spin
 from tf.transformations import quaternion_from_matrix, quaternion_matrix
+from std_msgs.msg import Float64
 
 def R(q):
   return matrix(quaternion_matrix(q)[:3,:3])
@@ -61,6 +62,7 @@ class IiwaKinematics(object):
 
     joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
     command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
+    redundancy_sub = Subscriber('command/redundancy', Float64, self.redundancyCb, queue_size = 1)
 
     self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
     self.joint_trajectory_pub = Publisher(hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
@@ -72,7 +74,12 @@ class IiwaKinematics(object):
     self.l46 = 0.4
     self.l6E = 0.126
 
+    self.tr = 0.0
+
     spin()
+
+  def redundancyCb(self, msg):
+    self.tr = msg.data
 
   def jointStatesCb(self, msg):
     t = msg.position
@@ -115,7 +122,7 @@ class IiwaKinematics(object):
     s = norm(p260)
     tp24z0 = 1/(2.0 * s) * (self.l24**2 - self.l46**2 + s**2)
     tp240 = matrix([[-sqrt(self.l24**2 - tp24z0**2)], [0.0], [tp24z0]])
-    p240 = Ryz(tys, tzs) * Rz(0.0) * tp240
+    p240 = Ryz(tys, tzs) * Rz(self.tr) * tp240
     (t[1], t[0]) = rr(p240)
 
     R20 = Ryz(t[1], t[0])

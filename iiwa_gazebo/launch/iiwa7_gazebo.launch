@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <include file="$(find iiwa_gazebo)/launch/iiwa_gazebo.launch">
-      <arg name="hardware_interface" value="EffortJointInterface"/>
+      <arg name="hardware_interface" value="PositionJointInterface"/>
       <arg name="robot_name" value="iiwa"/>
       <arg name="model" value="iiwa7"/>
   </include>
