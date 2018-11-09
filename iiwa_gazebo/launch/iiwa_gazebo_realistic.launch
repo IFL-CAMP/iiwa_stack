@@ -5,4 +5,5 @@
       <arg name="robot_name" value="iiwa"/>
       <arg name="model" value="iiwa7"/>
   </include>
+  <include file="$(find iiwa_control)/launch/iiwa_kinematics.launch"/>
 </launch>
