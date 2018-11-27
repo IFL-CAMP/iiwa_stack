@@ -5,6 +5,7 @@
 
   <group ns="$(arg robot_name)">
     <node name="iiwa_kinematics" pkg="iiwa_control" type="iiwa_kinematics.py" output="screen">
+      <param name="robot_name" value="$(arg robot_name)"/>
       <param name="hardware_interface" value="$(arg hardware_interface)"/>
     </node>
   </group>
