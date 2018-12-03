@@ -262,7 +262,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 				case JOINT_POSITION: {
 					if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) { 
 						motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
-					}					
+					}			
 					iiwa_msgs.JointPosition commandPosition = subscriber.getJointPosition();
 					motions.jointPositionMotion(motion, commandPosition);
 					break;

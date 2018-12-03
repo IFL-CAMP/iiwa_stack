@@ -70,8 +70,6 @@ public class Configuration extends AbstractNodeMain {
 	private ConnectedNode node;
 	private ParameterTree params;
 	
-	private static IApplicationData applicationData;
-
 	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
 

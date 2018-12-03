@@ -122,7 +122,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, configuration.getTimeProvider());
+		helper = new MessageGenerator(iiwaName, timeProvider);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
