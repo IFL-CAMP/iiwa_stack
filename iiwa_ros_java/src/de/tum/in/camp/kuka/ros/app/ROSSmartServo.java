@@ -41,7 +41,6 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.ros.node.service.ServiceResponseBuilder;
 
-import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.Conversions;
@@ -251,7 +250,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 					if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) { 
 						linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
 					}
-					PoseStamped commandPosition = subscriber.getCartesianPoseLin();
+					geometry_msgs.PoseStamped commandPosition = subscriber.getCartesianPoseLin();
 					motions.cartesianPositionLinMotion(linearMotion, commandPosition);
           break;
         }

@@ -108,8 +108,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
-		configuration = new Configuration();
-		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
+		configuration = new Configuration(getApplicationData());
+		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration.getTimeProvider());
 
 		// ROS initialization.
 		try {
