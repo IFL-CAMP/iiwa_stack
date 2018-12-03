@@ -42,7 +42,7 @@ public class Motions {
 		}
 	}
 	
-	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition) {
+	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, geometry_msgs.PoseStamped commandPosition) {
 		if (commandPosition != null) {
 			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
 			if (robot.isReadyToMove()) {

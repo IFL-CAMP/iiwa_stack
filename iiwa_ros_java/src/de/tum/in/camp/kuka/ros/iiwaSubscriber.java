@@ -30,6 +30,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
+import org.ros.time.TimeProvider;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
@@ -107,8 +108,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
-		this(robot, robot.getFlange(), robotName, configuration);
+	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider) {
+		this(robot, robot.getFlange(), robotName, timeProvider);
 	}
 
 	/**
@@ -119,9 +120,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, configuration);
+		helper = new MessageGenerator(iiwaName, timeProvider);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
