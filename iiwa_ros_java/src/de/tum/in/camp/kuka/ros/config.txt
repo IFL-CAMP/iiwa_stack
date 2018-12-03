@@ -1,5 +1,0 @@
-robot_name: iiwa
-robot_ip: 172.31.1.147
-master_ip: 172.31.1.150
-master_port: 11311
-ntp_with_host: false
