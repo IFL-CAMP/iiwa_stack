@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische Universitï¿½t Mï¿½nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -74,6 +74,8 @@ public class Configuration extends AbstractNodeMain {
 
 	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
+
+	private static IApplicationData applicationData;
 
 	public Configuration(IApplicationData data) {
 		applicationData = data;
