@@ -42,6 +42,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
+import org.ros.time.TimeProvider;
 import org.ros.rosjava.tf.Transform;
 import org.ros.rosjava.tf.pubsub.TransformListener;
 
@@ -131,8 +132,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
-		this(robot, robot.getFlange(), robotName, configuration);
+	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider) {
+		this(robot, robot.getFlange(), robotName, timeProvider);
 	}
 
 	/**
@@ -143,9 +144,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, configuration);
+		helper = new MessageGenerator(iiwaName, timeProvider);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
@@ -348,7 +349,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(iiwaName + "/subscriber");
 	}
-	
+
 	/**
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
 	 * Do <b>NOT</b> manually call this. <p> 

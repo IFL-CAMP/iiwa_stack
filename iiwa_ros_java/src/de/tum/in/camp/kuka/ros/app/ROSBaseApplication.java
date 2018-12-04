@@ -128,8 +128,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
-		configuration = new Configuration();
-		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
+		configuration = new Configuration(getApplicationData());
+		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration.getTimeProvider());
 		actionServer = new iiwaActionServer(robot, Configuration.getRobotName(), configuration);
 		robotBaseFrameID = Configuration.getRobotName()+robotBaseFrameIDSuffix;
 
@@ -164,8 +164,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		catch (Exception e) {
 			if (debug) 
 				Logger.info("Node Configuration failed. " + "Please check the ROS master IP in the Sunrise configuration.");
-			Logger.error(e.toString());
-			e.printStackTrace();
+			Logger.info(e.toString());
 			return;
 		}
 
@@ -193,8 +192,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		catch(Exception e) {
 			if (debug) 
 				Logger.info("ROS Node Executor initialization failed.");
-			Logger.error(e.toString());
-			e.printStackTrace();
+			Logger.info(e.toString());
 			return;
 		}
 		
@@ -280,7 +278,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		catch (Exception e) {
 			Logger.info("ROS control loop aborted. " + e.toString());
-			e.printStackTrace();
 		} finally {
 			cleanup();
 			Logger.info("ROS control loop has ended. Application terminated.");

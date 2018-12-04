@@ -44,7 +44,7 @@ public class ControlModeHandler {
 		this.tool = tool;
 		this.toolFrame = toolFrame;
 		this.publisher = publisher;
-		helper = new MessageGenerator(Configuration.getRobotName(), configuration);
+		helper = new MessageGenerator(Configuration.getRobotName(), configuration.getTimeProvider());
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
 		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		overrideJointAcceleration = 1.0;

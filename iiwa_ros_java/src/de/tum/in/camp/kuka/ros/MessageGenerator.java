@@ -59,10 +59,9 @@ public class MessageGenerator {
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
-	private Configuration configuration;
 	private TimeProvider time;
 
-	public MessageGenerator(String robotName, Configuration configuration) {
+	public MessageGenerator(String robotName, TimeProvider timeProvider) {
 		baseFrameID = robotName + baseFrameIDSuffix; // e.g. if robotName == iiwa, then baseFrameID = iiwa_link_0
 
 		// e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
@@ -75,8 +74,7 @@ public class MessageGenerator {
 				robotName+"_joint_6",
 				robotName+"_joint_7"
 		};
-		this.configuration = configuration;
-		time = configuration.getTimeProvider();
+		time = timeProvider;
 	}
 
 	/**
