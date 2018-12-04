@@ -4,7 +4,9 @@ import geometry_msgs.Pose;
 import geometry_msgs.Quaternion;
 
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
 import com.kuka.roboticsAPI.geometricModel.Frame;
+import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Matrix;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixBuilder;
 import com.kuka.roboticsAPI.geometricModel.math.MatrixRotation;
@@ -171,9 +173,9 @@ public final class Conversions {
 	public static Transformation rosPoseToKukaTransformation(geometry_msgs.Pose rosPose) throws IllegalArgumentException  {
 		if (rosPose == null) { return null; }
 
-		float tx = (float) rosPose.getPosition().getX()*1000;
-		float ty = (float) rosPose.getPosition().getY()*1000;
-		float tz = (float) rosPose.getPosition().getZ()*1000;
+		float tx = (float) rosTranslationToKuka(rosPose.getPosition().getX());
+		float ty = (float) rosTranslationToKuka(rosPose.getPosition().getY());
+		float tz = (float) rosTranslationToKuka(rosPose.getPosition().getZ());
 
 		float x = (float) rosPose.getOrientation().getX();
 		float y = (float) rosPose.getOrientation().getY();
@@ -183,7 +185,10 @@ public final class Conversions {
 		MatrixRotation rot = quatToMatrix(x, y, z, w);
 		Vector transl = Vector.of(tx, ty, tz);
 
-		return Transformation.of(transl, rot);
+		Transformation t = Transformation.of(transl, rot);
+		System.out.println("KUKA Transformation: T=("+t.getX()+", "+t.getY()+", "+t.getZ()+"), R=("+t.getAlphaRad()+", "+t.getBetaRad()+", "+t.getGammaRad()+")");
+		
+		return t;
 	}
 
 	/**
@@ -192,8 +197,19 @@ public final class Conversions {
 	 * @return resulting Frame
 	 * @throws InvalidArgumentException
 	 */
-	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) throws IllegalArgumentException {	
+	public static Frame rosPoseToKukaFrame(geometry_msgs.Pose rosPose) throws IllegalArgumentException {
 		return new Frame(rosPoseToKukaTransformation(rosPose));
+	}
+
+	/**
+	 * Converts a geometry_msgs.Pose message to a Frame object in KUKA APIs
+	 * @param parent : parent Frame
+	 * @param rosPose : starting Pose
+	 * @return resulting Frame
+	 * @throws InvalidArgumentException
+	 */
+	public static Frame rosPoseToKukaFrame(AbstractFrame parent, geometry_msgs.Pose rosPose) throws IllegalArgumentException {
+		return new Frame(parent, rosPoseToKukaTransformation(rosPose));
 	}
 
 	/**
@@ -202,9 +218,9 @@ public final class Conversions {
 	 * @param pose : resulting Pose
 	 */
 	public static void kukaTransformationToRosPose(Transformation kukaTransf, Pose pose) {
-		pose.getPosition().setX(kukaTransf.getX()/1000); 
-		pose.getPosition().setY(kukaTransf.getY()/1000);
-		pose.getPosition().setZ(kukaTransf.getZ()/1000);
+		pose.getPosition().setX(kukaTranslationToRos(kukaTransf.getX())); 
+		pose.getPosition().setY(kukaTranslationToRos(kukaTransf.getY()));
+		pose.getPosition().setZ(kukaTranslationToRos(kukaTransf.getZ()));
 
 		Matrix rotationMatrix = kukaTransf.getRotationMatrix();
 		matrixToQuat(rotationMatrix, pose.getOrientation());
@@ -263,5 +279,12 @@ public final class Conversions {
 		};
 		return ret;
 	}
+	
+	public static double rosTranslationToKuka(double value) {
+		return value*1000.0;
+	}
 
+	public static double kukaTranslationToRos(double value) {
+		return value/1000.0;
+	}
 }

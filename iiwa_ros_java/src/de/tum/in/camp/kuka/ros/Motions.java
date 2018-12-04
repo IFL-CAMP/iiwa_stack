@@ -1,11 +1,18 @@
 package de.tum.in.camp.kuka.ros;
 
+import iiwa_msgs.RedundancyInformation;
+import geometry_msgs.PoseStamped;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.deviceModel.JointPosition;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.deviceModel.StatusTurnRedundancy;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
+import com.kuka.roboticsAPI.sensorModel.DataRecorder.AngleUnit;
 
 public class Motions {
 
@@ -33,20 +40,34 @@ public class Motions {
 		minJointLimits = robot.getJointLimits().getMinJointPosition();
 	}
 
-	public void cartesianPositionMotion(SmartServo motion, geometry_msgs.PoseStamped commandPosition) {
+	/**
+	 * Start SmartServo motion to cartesian target pose.
+	 * @param motion
+	 * @param commandPosition
+	 * @param status : Redundancy information. Set to -1 if not needed
+	 */
+	public void cartesianPositionMotion(SmartServo motion, geometry_msgs.PoseStamped commandPosition, RedundancyInformation redundancy) {
 		if (commandPosition != null) {
-			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
+			Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
+			if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+				IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn()); //You can get this info from the robot Cartesian Position (SmartPad)
+                destinationFrame.setRedundancyInformation(robot, redundantData);
+			}
 			if (robot.isReadyToMove()) {
 				motion.getRuntime().setDestination(destinationFrame);
 			}
 		}
 	}
 	
-	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition) {
+	public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition, RedundancyInformation redundancy) {
 		if (commandPosition != null) {
-			Frame destinationFrame = Conversions.rosPoseToKukaFrame(commandPosition.getPose());
+			Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
+			if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+				IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn()); //You can get this info from the robot Cartesian Position (SmartPad)
+                destinationFrame.setRedundancyInformation(robot, redundantData);
+			}
 			if (robot.isReadyToMove()) {
-					linearMotion.getRuntime().setDestination(destinationFrame);
+				linearMotion.getRuntime().setDestination(destinationFrame);
 			}
 		}
 	}

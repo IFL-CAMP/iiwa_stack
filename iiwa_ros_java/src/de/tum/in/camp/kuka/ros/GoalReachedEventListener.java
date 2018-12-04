@@ -28,15 +28,22 @@ import com.kuka.connectivity.motionModel.smartServo.IServoOnGoalReachedEvent;
 public class GoalReachedEventListener implements IServoOnGoalReachedEvent {
 
 	protected iiwaPublisher publisher;
+	protected iiwaActionServer actionServer;
 
-	public GoalReachedEventListener(iiwaPublisher publisher) {
+	public GoalReachedEventListener(iiwaPublisher publisher, iiwaActionServer actionServer) {
 		this.publisher = publisher;
+		this.actionServer = actionServer;
 	}
 
 	@Override
 	public void onGoalReachedEvent(String state, double[] currentAxisPos, int[] osTimestamp, int targetId) {
+		System.out.println("Goal reached");
+		
 		if (publisher != null) {
-		publisher.publishDestinationReached();
+			publisher.publishDestinationReached();
+		}
+		if (actionServer != null && actionServer.hasCurrentGoal()) {
+			actionServer.markCurrentGoalReached();
 		}
 	}
 }

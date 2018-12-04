@@ -109,6 +109,8 @@ public class Configuration extends AbstractNodeMain {
 	}
 
 	private static void configure() {
+		System.out.println("Environment: JVM version "+System.getProperty("java.version"));
+		
 		parseConfigFile(); //TODO : use KUKA's process data?
 
 		// Obtain name of the robot from config file

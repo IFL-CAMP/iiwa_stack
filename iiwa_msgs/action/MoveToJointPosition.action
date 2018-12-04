@@ -1,0 +1,10 @@
+# Goal
+iiwa_msgs/JointPosition joint_position
+
+---
+# Result
+bool success
+string error
+
+---
+# Feedback

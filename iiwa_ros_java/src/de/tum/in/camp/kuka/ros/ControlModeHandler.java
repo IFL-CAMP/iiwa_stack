@@ -11,6 +11,7 @@ import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.geometricModel.World;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -31,13 +32,14 @@ public class ControlModeHandler {
 	public double overrideJointAcceleration;
 	
 	public double[] maxTranslationlVelocity = {1000.0, 1000.0, 1000.0};
+	public double[] maxOrientationVelocity = {0.5, 0.5, 0.5};
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 
 	private MessageGenerator helper;
-	private GoalReachedEventListener handler = new GoalReachedEventListener(publisher);
+	private GoalReachedEventListener handler;
 
-	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration) {
+	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, iiwaActionServer actionServer, Configuration configuration) {
 		this.robot = robot;
 		this.tool = tool;
 		this.toolFrame = toolFrame;
@@ -46,6 +48,8 @@ public class ControlModeHandler {
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
 		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		overrideJointAcceleration = 1.0;
+		
+		handler = new GoalReachedEventListener(publisher, actionServer);
 	}
 
 	public void setLastSmartServoRequest(ConfigureSmartServoRequest request) { this.lastSmartServoRequest = request; }
@@ -172,16 +176,20 @@ public class ControlModeHandler {
 		return newMotion; 
 	}
 
+	/**
+	 * Switches a the SmartServo Motion
+	 * @param oldMotion       Current motion
+	 * @param newControlMode  new motion mode
+	 * @return new SmartServo motion
+	 */
+	public SmartServo switchSmartServoMotion(SmartServoLIN oldMotion, IMotionControlMode newControlMode) {
 
-	public SmartServo switchSmartServoMotion(SmartServoLIN motion, IMotionControlMode controlMode) { 
-		SmartServoLIN oldMotion = motion;
-
-		if (!(controlMode instanceof PositionControlMode)) {
+		if (!(newControlMode instanceof PositionControlMode)) {
 			validateForImpedanceMode();
 		}
 
 		SmartServo newMotion = createSmartServoMotion();
-		newMotion.setMode(controlMode);
+		newMotion.setMode(newControlMode);
 		switchMotion(newMotion, oldMotion);
 		return newMotion;  
 	}
@@ -198,6 +206,7 @@ public class ControlModeHandler {
 	}
 
 	public SmartServo switchToSmartServo(SmartServo motion, SmartServoLIN linearMotion) {
+		System.out.println("Switching to SmartServo motion");
 		IMotionControlMode currentMode = motion.getMode();
 		if (currentMode == null) { currentMode = new PositionControlMode(); }
 		motion = switchSmartServoMotion(linearMotion, currentMode);
@@ -205,6 +214,7 @@ public class ControlModeHandler {
 	}
 
 	public SmartServoLIN switchToSmartServoLIN(SmartServo motion, SmartServoLIN linearMotion) {
+		System.out.println("Switching to SmartServoLIN motion");
 		IMotionControlMode currentMode = motion.getMode();
 		if (currentMode == null) { currentMode = new PositionControlMode(); }
 		linearMotion = switchSmartServoMotion(motion, currentMode);
@@ -241,11 +251,14 @@ public class ControlModeHandler {
 	}
 
 	public SmartServoLIN createSmartServoLinMotion() {
+		System.out.println("toolFrame: "+toolFrame);
+		
 		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
-		linearMotion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		linearMotion.setReferenceFrame(World.Current.getRootFrame());
+		linearMotion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
 		linearMotion.setMaxTranslationVelocity(maxTranslationlVelocity);
-		//linearMotion.setMaxOrientationVelocity(maxOrientationlVelocity);
+		linearMotion.setMaxOrientationVelocity(maxOrientationVelocity);
 		//linearMotion.setMaxTranslationAcceleration(value);
 		//linearMotion.setMaxNullSpaceAcceleration(value);
 		//linearMotion.setMaxNullSpaceVelocity(value);
