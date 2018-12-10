@@ -57,7 +57,6 @@ import de.tum.in.camp.kuka.ros.ROSTool;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-import de.tum.in.robotics.SchunkEGN100;
 
 /*
  * Base application for all ROS-Sunrise applications. 
@@ -72,13 +71,20 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected static final String robotBaseFrameIDSuffix = "_link_0";
 	protected String toolFrameID;
 	protected static final String toolFrameIDSuffix = "_link_ee";
-	protected ObjectFrame worldFrame;
-	protected ObjectFrame flangeFrame;
-	protected ObjectFrame toolFrame;
+
 	protected SmartServo motion;
 	protected SmartServoLIN linearMotion;
 	protected ControlModeHandler controlModeHandler;
 	protected GoalReachedEventListener handler;
+	
+	// Robot base
+	protected ObjectFrame worldFrame;
+	// Flange
+	protected ObjectFrame flangeFrame;
+	// Tool
+	protected ObjectFrame toolFrame;
+	// Active frame for sending and receiving Cartesian positions
+	protected ObjectFrame endpointFrame;
 
 	protected boolean initSuccessful;
 	protected boolean debug;
@@ -128,8 +134,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		robot = getContext().getDeviceFromType(LBR.class);
 
 		// Standard configuration.
-		configuration = new Configuration(getApplicationData());
-		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration.getTimeProvider());
+		configuration = new Configuration();
+		publisher = new iiwaPublisher(Configuration.getRobotName(), configuration);
 		actionServer = new iiwaActionServer(robot, Configuration.getRobotName(), configuration);
 		robotBaseFrameID = Configuration.getRobotName()+robotBaseFrameIDSuffix;
 
@@ -164,7 +170,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		catch (Exception e) {
 			if (debug) 
 				Logger.info("Node Configuration failed. " + "Please check the ROS master IP in the Sunrise configuration.");
-			Logger.info(e.toString());
+			Logger.error(e.toString());
+			e.printStackTrace();
 			return;
 		}
 
@@ -192,7 +199,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		catch(Exception e) {
 			if (debug) 
 				Logger.info("ROS Node Executor initialization failed.");
-			Logger.info(e.toString());
+			Logger.error(e.toString());
+			e.printStackTrace();
 			return;
 		}
 		
@@ -226,8 +234,11 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
 		// Tool to attach, robot's flange will be used if no tool has been defined.
 		worldFrame = World.Current.getRootFrame();
+		World.Current.getFrame("");
 		flangeFrame = robot.getFlange();
 		String toolFromConfig = configuration.getToolName();
+		String endpointFrameFromConfig = configuration.getToolName();
+		
 		if (!toolFromConfig.isEmpty()) {
 			Logger.info("Attaching tool " + toolFromConfig);
 			tool = (Tool)getApplicationData().createFromTemplate(toolFromConfig);
@@ -239,14 +250,24 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			toolFrameID = Configuration.getRobotName() + toolFrameIDSuffix;
 			toolFrame = flangeFrame;
 		}
+		
+		if (endpointFrameFromConfig.isEmpty()) {
+			endpointFrame = toolFrame;
+		}
+		else if (endpointFrameFromConfig.equals(configuration.getRobotName()+toolFrameIDSuffix)) {
+			endpointFrame = flangeFrame;
+		}
+		else {
+			endpointFrame = tool.getFrame(endpointFrameFromConfig);
+		}
 
-		controlModeHandler = new ControlModeHandler(robot, tool, flangeFrame, publisher, actionServer, configuration);
+		controlModeHandler = new ControlModeHandler(robot, tool, endpointFrame, publisher, actionServer, configuration);
 		motion = controlModeHandler.createSmartServoMotion();
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		// Initialize motion.
-		flangeFrame.moveAsync(motion);
+		endpointFrame.moveAsync(motion);
 		// Hook the GoalReachedEventHandler
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 
@@ -266,7 +287,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 				decimationCounter++;
 
 				// This will publish the current robot state on the various ROS topics.
-				publisher.publishCurrentState(robot, motion, toolFrame);
+				publisher.publishCurrentState(robot, motion, endpointFrame);
 				if (rosTool != null) {
 					rosTool.publishCurrentState();
 				}
@@ -278,6 +299,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		}
 		catch (Exception e) {
 			Logger.info("ROS control loop aborted. " + e.toString());
+			e.printStackTrace();
 		} finally {
 			cleanup();
 			Logger.info("ROS control loop has ended. Application terminated.");

@@ -34,6 +34,8 @@ import iiwa_msgs.SetPathParametersLinRequest;
 import iiwa_msgs.SetPathParametersLinResponse;
 import iiwa_msgs.SetWorkpieceRequest;
 import iiwa_msgs.SetWorkpieceResponse;
+import iiwa_msgs.SetEndpointFrameRequest;
+import iiwa_msgs.SetEndpointFrameResponse;
 import iiwa_msgs.TimeToDestinationRequest;
 import iiwa_msgs.TimeToDestinationResponse;
 
@@ -91,7 +93,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration.getTimeProvider());
+		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration);
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
@@ -222,7 +224,6 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 		// TODO: doc
 		subscriber.setWorkpieceCallback(new ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse>() {
-			
 			@Override
 			public void build(SetWorkpieceRequest req, SetWorkpieceResponse res) throws ServiceException {
 				try {
@@ -246,6 +247,30 @@ public class ROSSmartServo extends ROSBaseApplication {
 					
 					res.setError(e.getClass().getName() + ": " + e.getMessage());
 					res.setSuccess(false);
+				}
+			}
+		});
+
+		// TODO: doc
+		subscriber.setEndpointFrameCallback(new ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse>() {
+			@Override
+			public void build(SetEndpointFrameRequest req, SetEndpointFrameResponse res) throws ServiceException {
+				if (req.getFrameId().isEmpty()) {
+					endpointFrame = toolFrame;
+				}
+				else if (req.getFrameId().equals(configuration.getRobotName()+toolFrameIDSuffix)) {
+					endpointFrame = flangeFrame;
+				}
+				else {
+					endpointFrame = tool.getFrame(req.getFrameId());
+				}
+				
+				controlModeHandler.setEndpointFrame(endpointFrame);
+				if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+					linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
+				}
+				else {
+					motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
 				}
 			}
 		});
@@ -423,9 +448,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 
 	protected void moveByCartesianVelocity(geometry_msgs.TwistStamped commandVelocity) {
-		/*if (lastCommandType == CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) { 
+		/*if (lastCommandType == CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) {
 			motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
 		}*/
-		motions.cartesianVelocityMotion(motion, commandVelocity, toolFrame);
+		motions.cartesianVelocityMotion(motion, commandVelocity, endpointFrame);
 	}
 }

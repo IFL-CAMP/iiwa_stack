@@ -42,7 +42,6 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
-import org.ros.time.TimeProvider;
 import org.ros.rosjava.tf.Transform;
 import org.ros.rosjava.tf.pubsub.TransformListener;
 
@@ -89,6 +88,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	@SuppressWarnings("unused")
 	private ServiceServer<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceCallback = null;
+
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameCallback = null;
 	
 	// ROSJava Subscribers for iiwa_msgs
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
@@ -132,8 +135,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider) {
-		this(robot, robot.getFlange(), robotName, timeProvider);
+	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
+		this(robot, robot.getFlange(), robotName, configuration);
 	}
 
 	/**
@@ -144,9 +147,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, timeProvider);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
@@ -189,6 +192,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public void setWorkpieceCallback(ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> callback) {
 		setWorkpieceCallback = callback;
+	}
+
+	/**
+	 * Add a callback to the SetEndpointFrame service
+	 */
+	public void setEndpointFrameCallback(ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> callback) {
+		setEndpointFrameCallback = callback;
 	}
 
 	/**
@@ -349,7 +359,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(iiwaName + "/subscriber");
 	}
-
+	
 	/**
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
 	 * Do <b>NOT</b> manually call this. <p> 
@@ -488,6 +498,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					iiwaName + "/configuration/setWorkpiece", 
 					"iiwa_msgs/SetWorkpiece",
 					setWorkpieceCallback);
+		}
+
+		// Creating TimeToDestination service if a callback has been defined.
+		if (setEndpointFrameCallback != null) {
+			setEndpointFrameServer = node.newServiceServer(
+					iiwaName + "/configuration/setEndpointFrame", 
+					"iiwa_msgs/SetEndpointFrame",
+					setEndpointFrameCallback);
 		}
 	}
 }

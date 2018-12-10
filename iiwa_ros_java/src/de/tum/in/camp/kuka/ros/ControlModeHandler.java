@@ -23,7 +23,7 @@ public class ControlModeHandler {
 
 	private LBR robot;
 	private Tool tool;
-	private ObjectFrame toolFrame;
+	private ObjectFrame endpointFrame;
 	private ITaskLogger logger;
 	private iiwaPublisher publisher;
 
@@ -39,17 +39,21 @@ public class ControlModeHandler {
 	private MessageGenerator helper;
 	private GoalReachedEventListener handler;
 
-	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, iiwaActionServer actionServer, Configuration configuration) {
+	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame endpointFrame, iiwaPublisher publisher, iiwaActionServer actionServer, Configuration configuration) {
 		this.robot = robot;
 		this.tool = tool;
-		this.toolFrame = toolFrame;
+		this.endpointFrame = endpointFrame;
 		this.publisher = publisher;
-		helper = new MessageGenerator(Configuration.getRobotName(), configuration.getTimeProvider());
+		helper = new MessageGenerator(Configuration.getRobotName(), configuration);
 		jointVelocity = configuration.getDefaultRelativeJointVelocity();
 		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
 		overrideJointAcceleration = 1.0;
 		
 		handler = new GoalReachedEventListener(publisher, actionServer);
+	}
+	
+	public void setEndpointFrame(ObjectFrame endpointFrame) {
+		this.endpointFrame = endpointFrame;
 	}
 
 	public void setLastSmartServoRequest(ConfigureSmartServoRequest request) { this.lastSmartServoRequest = request; }
@@ -198,7 +202,7 @@ public class ControlModeHandler {
 	// TODO: doc
 	@SuppressWarnings("rawtypes")
 	public void switchMotion(ServoMotion motion, ServoMotion oldMotion) {
-		toolFrame.moveAsync(motion);
+		endpointFrame.moveAsync(motion);
 		if (oldMotion != null) {
 			oldMotion.getRuntime().stopMotion();
 		}
@@ -251,9 +255,9 @@ public class ControlModeHandler {
 	}
 
 	public SmartServoLIN createSmartServoLinMotion() {
-		System.out.println("toolFrame: "+toolFrame);
+		System.out.println("endpointFrame: "+endpointFrame);
 		
-		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
+		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(endpointFrame));
 		linearMotion.setReferenceFrame(World.Current.getRootFrame());
 		linearMotion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize

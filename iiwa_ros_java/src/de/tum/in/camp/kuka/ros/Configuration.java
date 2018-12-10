@@ -23,12 +23,17 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
@@ -42,7 +47,6 @@ import org.ros.time.NtpTimeProvider;
 import org.ros.time.TimeProvider;
 import org.ros.time.WallTimeProvider;
 
-import com.kuka.roboticsAPI.applicationModel.IApplicationData;
 import com.kuka.roboticsAPI.uiModel.IApplicationUI;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
@@ -56,6 +60,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 public class Configuration extends AbstractNodeMain {
 
 	// Name to use to build the name of the ROS topics
+	private static Map<String, String> config;
 	private static String robotName;
 	private static String masterIp;
 	private static String masterPort;
@@ -69,14 +74,11 @@ public class Configuration extends AbstractNodeMain {
 
 	private ConnectedNode node;
 	private ParameterTree params;
-	
+
 	// It is used to wait until we are connected to the ROS master and params are available
 	private Semaphore initSemaphore = new Semaphore(0);
 
-	private static IApplicationData applicationData;
-
-	public Configuration(IApplicationData data) {
-		applicationData = data;
+	public Configuration() {
 		checkConfiguration();
 	}
 
@@ -89,21 +91,40 @@ public class Configuration extends AbstractNodeMain {
 		}
 	}
 
+	private static void parseConfigFile() {
+		config = new HashMap<String, String>();
+		BufferedReader br = new BufferedReader(new InputStreamReader(Configuration.class.getResourceAsStream("config.txt")));
+		try {
+			String line = null;
+			while((line = br.readLine()) != null) {
+				String[] lineComponents = line.split(":");
+				if (lineComponents.length != 2)
+					continue;
+
+				config.put(lineComponents[0].trim(), lineComponents[1].trim());
+			}
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+	}
+
 	private static void configure() {
 		System.out.println("Environment: JVM version "+System.getProperty("java.version"));
 		
-		robotName = applicationData.getProcessData("robot_name").getValue();
+		parseConfigFile(); //TODO : use KUKA's process data?
+
+		// Obtain name of the robot from config file
+		robotName = config.get("robot_name");
 		System.out.println("Robot name: " + robotName);
-	
-		robotIp = applicationData.getProcessData("robot_ip").getValue();
+		robotIp = config.get("robot_ip");
 		System.out.println("IP from configuration: " + robotIp); // automatic discovery not reliable with x66
 
 		// Obtain if NTP server is used from config file
-		ntpWithHost  = applicationData.getProcessData("ntp").getValue();
+		ntpWithHost  = config.get("ntp_with_host").equals("true");
 
 		// Obtain IP:port of the ROS Master 
-		masterIp = applicationData.getProcessData("master_ip").getValue();
-		masterPort = applicationData.getProcessData("master_port").getValue();
+		masterIp = config.get("master_ip");
+		masterPort = config.get("master_port");
 		masterUri = "http://" + masterIp + ":" + masterPort;
 		System.out.println("Master URI: " + masterUri);
 
@@ -229,6 +250,18 @@ public class Configuration extends AbstractNodeMain {
 		if (toolName == null)
 			toolName = "";
 		return toolName;
+	}
+
+	/**
+	 * Get the id of the endpoint frame to use from param <b>endpointFrame</b> in ROS param server.
+	 * 
+	 * @return id of the frame 
+	 */
+	public String getEndpointFrame() {
+		String endpointFrame = getStringParameter("endpointFrame");
+		if (endpointFrame == null)
+			endpointFrame = "";
+		return endpointFrame;
 	}
 
 	/**
