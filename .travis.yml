@@ -8,24 +8,10 @@ services:
 env:
   matrix:
     - ROS_DISTRO=kinetic
-    - ROS_DISTRO=melodic
+    # - ROS_DISTRO=melodic
 
 script:
   - export SOURCE_PATH=$(pwd)
   - echo "Testing iiwa_stack on ROS '$ROS_DISTRO'"
-  - docker pull $ros/$ROS_DISTRO-robot > /dev/null
-
-  - docker run \
-        -e SOURCE_PATH \
-        -v $(pwd):/root/iiwa_stack \
-        -t \
-        $DOCKER_IMAGE \
-        /bin/bash
-  - travis_run apt-get -qq update
-  - travis_run apt-get -qq dist-upgrade
-  - travis_run rosdep update
-  - travis_run mkdir -p /root/iiwa_stack/src
-  - travis_run ln -s $SOURCE_PATH /root/iiwa_stack/src
-  - travis_run cd /root/iiwa_stack
-  - rosdep install --from-paths src --ignore-src -r -y
-  - travis_run catkin build --no-status --summarize
+  - docker pull ros:$ROS_DISTRO-robot > /dev/null
+  - docker run -e SOURCE_PATH -v $(pwd):/root/iiwa_stack_ws/src -it ros:$ROS_DISTRO-robot /bin/bash -c "cd /root/iiwa_stack_ws/src; source .travis/ci.sh"
