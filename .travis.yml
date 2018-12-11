@@ -1,18 +1,31 @@
 sudo: required
-
+dist: trusty
 language: generic
 
 services:
   - docker
 
 env:
-  global:
-    - toolset_branch: master
-    - server_type: travis
-    - ros_release_name: kinetic
-    - ubuntu_version_name: xenial
-    - used_modules: check_cache,build
-    - remote_shell_script: 'https://raw.githubusercontent.com/shadow-robot/sr-build-tools/$toolset_branch/bin/sr-run-ci-build.sh'
+  matrix:
+    - ROS_DISTRO=kinetic
+    - ROS_DISTRO=melodic
 
 script:
-  - curl -s "$( echo "$remote_shell_script" | sed 's/#/%23/g' )" | bash -x /dev/stdin "$toolset_branch" $server_type $used_modules
+  - export SOURCE_PATH=$(pwd)
+  - echo "Testing iiwa_stack on ROS '$ROS_DISTRO'"
+  - docker pull $ros/$ROS_DISTRO-robot > /dev/null
+
+  - docker run \
+        -e SOURCE_PATH \
+        -v $(pwd):/root/iiwa_stack \
+        -t \
+        $DOCKER_IMAGE \
+        /bin/bash
+  - travis_run apt-get -qq update
+  - travis_run apt-get -qq dist-upgrade
+  - travis_run rosdep update
+  - travis_run mkdir -p /root/iiwa_stack/src
+  - travis_run ln -s $SOURCE_PATH /root/iiwa_stack/src
+  - travis_run cd /root/iiwa_stack
+  - rosdep install --from-paths src --ignore-src -r -y
+  - travis_run catkin build --no-status --summarize
