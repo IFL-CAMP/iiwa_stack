@@ -296,11 +296,13 @@ public class ROSSmartServo extends ROSBaseApplication {
 	}
 
 	@Override
-	protected void initializeApp() {}
+	protected void initializeApp() {
+	}
 
 	@Override
-	protected void beforeControlLoop() { 
+	protected void beforeControlLoop() {
 		motions = new Motions(robot, motion);
+		subscriber.resetSequenceIds();
 	}
 
 	/**

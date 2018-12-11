@@ -158,6 +158,18 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
 	}
+	
+	/**
+	 * Resets all sequence IDs back to 0, so that new commands will be accepted
+	 */
+	public void resetSequenceIds() {
+		cp.getHeader().setSeq(0);
+		cp_lin.getHeader().setSeq(0);
+		cv.getHeader().setSeq(0);
+		jp.getHeader().setSeq(0);
+		jpv.getHeader().setSeq(0);
+		jv.getHeader().setSeq(0);
+	}
 
 	/**
 	 * Add a callback to the SmartServo service
@@ -384,8 +396,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && cp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > cp.getHeader().getSeq()) {
+				if (position.getHeader().getSeq() == 0 || position.getHeader().getSeq() > cp.getHeader().getSeq()) {
 					synchronized (new_cp) {
 						cp = position;
 						currentCommandType = CommandType.CARTESIAN_POSE;
@@ -399,8 +410,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && cv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
+				if (velocity.getHeader().getSeq() == 0 || velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
 					cv = velocity;
 					currentCommandType = CommandType.CARTESIAN_VELOCITY;
 				}
@@ -422,8 +432,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPosition position) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && jp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > jp.getHeader().getSeq()) {
+				if (position.getHeader().getSeq() == 0 || position.getHeader().getSeq() > jp.getHeader().getSeq()) {
 					synchronized (new_jp) {
 						jp = position;
 						currentCommandType = CommandType.JOINT_POSITION;
@@ -437,8 +446,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((positionVelocity.getHeader().getSeq() == 0 && jpv.getHeader().getSeq() == 0) 
-						|| positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
+				if (positionVelocity.getHeader().getSeq() == 0 || positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
 					synchronized (new_jpv) {
 						jpv = positionVelocity;
 						currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
@@ -452,8 +460,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && jv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
+				if (velocity.getHeader().getSeq() == 0 || velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
 					jv = velocity;
 					currentCommandType = CommandType.JOINT_VELOCITY;
 				}

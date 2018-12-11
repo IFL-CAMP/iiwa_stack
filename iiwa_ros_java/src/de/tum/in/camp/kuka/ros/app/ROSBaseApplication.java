@@ -95,9 +95,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected Configuration configuration;
 	
 	// Tool
-	protected ROSTool rosTool = null;
+	//protected ROSTool rosTool = null;
 	// TODO: Replace this with the tool you are using, e.g.:
-	// @Inject protected SchunkEGN100 rosTool;
+	// @Inject protected ROSZimmerR840 rosTool;
 
 	// ROS Configuration and Node execution objects.
 	protected NodeConfiguration nodeConfPublisher;
