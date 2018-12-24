@@ -177,7 +177,7 @@ void IIWA_HW::registerJointLimits(const std::string &joint_name, const hardware_
   bool has_soft_limits = false;
   
   if (urdf_model != nullptr) {
-    const std::shared_ptr<const urdf::Joint> urdf_joint = urdf_model->getJoint(joint_name);
+    const auto urdf_joint = urdf_model->getJoint(joint_name);
     
     if (urdf_joint != nullptr) {
       // Get limits from the URDF file.
