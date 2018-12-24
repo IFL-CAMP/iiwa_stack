@@ -113,15 +113,13 @@ bool IIWA_HW::start()
   device_->init();
   device_->reset();
 
-  // general joint to store information
-  std::shared_ptr<const urdf::Joint> joint;
-  
   // create joint handles given the list
   for(size_t i = 0; i < IIWA_JOINTS; ++i) {
     ROS_INFO_STREAM("Handling joint: " << device_->joint_names[i]);
 
     // get current joint configuration
-    joint = urdf_model_.getJoint(device_->joint_names[i]);
+    auto joint = urdf_model_.getJoint(device_->joint_names[i]);
+
     if (!joint.get())
     {
       ROS_ERROR_STREAM("The specified joint " << device_->joint_names[i]

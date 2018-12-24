@@ -159,7 +159,7 @@ public:
      */
     void reset()
     {
-      for (int j = 0; j < IIWA_JOINTS; ++j)
+      for (size_t j = 0; j < IIWA_JOINTS; ++j)
       {
         joint_position[j] = 0.0;
         joint_position_prev[j] = 0.0;
