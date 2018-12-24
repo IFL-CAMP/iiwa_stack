@@ -76,9 +76,9 @@ public:
   /**
    * Destructor
    */
-  virtual ~IIWA_HW();
-
-  /**
+  virtual ~IIWA_HW() = default;
+  
+  /** 
    * \brief Initializes the IIWA device struct and all the hardware and joint limits interfaces needed.
    *
    * A joint state handle is created and linked to the current joint state of the IIWA robot.
@@ -192,9 +192,9 @@ private:
   joint_limits_interface::EffortJointSoftLimitsInterface ej_limits_interface_;
   joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
   joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
-
-  boost::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
-
+  
+  std::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
+  
   /** Objects to control send/receive rate. */
   ros::Time timer_;
   ros::Rate* loop_rate_;
