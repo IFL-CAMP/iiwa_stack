@@ -73,10 +73,11 @@ class IiwaKinematics(object):
     self.tr = 0.0
     self.v = 1.0
 
-    self.joint_names = ['iiwa_joint_1', 'iiwa_joint_2', 'iiwa_joint_3', 'iiwa_joint_4',
-                        'iiwa_joint_5', 'iiwa_joint_6', 'iiwa_joint_7']
-
     hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
+    robot_name = get_param('~robot_name', 'iiwa')
+
+    self.joint_names = ['{}_joint_1'.format(robot_name), '{}_joint_2'.format(robot_name), '{}_joint_3'.format(robot_name), '{}_joint_4'.format(robot_name),
+                        '{}_joint_5'.format(robot_name), '{}_joint_6'.format(robot_name), '{}_joint_7'.format(robot_name)]
 
     joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
     command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
