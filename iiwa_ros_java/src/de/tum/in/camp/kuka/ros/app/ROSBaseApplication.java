@@ -54,9 +54,11 @@ import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
 import de.tum.in.camp.kuka.ros.ROSTool;
+import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
+import de.tum.in.robotics.SchunkEGN100;
 
 /*
  * Base application for all ROS-Sunrise applications. 
@@ -97,7 +99,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	// Tool
 	//protected ROSTool rosTool = null;
 	// TODO: Replace this with the tool you are using, e.g.:
-	// @Inject protected ROSZimmerR840 rosTool;
+	@Inject protected SchunkEGN100 rosTool;
 
 	// ROS Configuration and Node execution objects.
 	protected NodeConfiguration nodeConfPublisher;
@@ -237,7 +239,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		World.Current.getFrame("");
 		flangeFrame = robot.getFlange();
 		String toolFromConfig = configuration.getToolName();
-		String endpointFrameFromConfig = configuration.getToolName();
+		String endpointFrameFromConfig = configuration.getEndpointFrame();
 		
 		if (!toolFromConfig.isEmpty()) {
 			Logger.info("Attaching tool " + toolFromConfig);
@@ -254,23 +256,30 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		if (endpointFrameFromConfig.isEmpty()) {
 			endpointFrame = toolFrame;
 		}
-		else if (endpointFrameFromConfig.equals(configuration.getRobotName()+toolFrameIDSuffix)) {
+		else if (endpointFrameFromConfig.equals(Configuration.getRobotName()+toolFrameIDSuffix)) {
 			endpointFrame = flangeFrame;
 		}
 		else {
+			Logger.info("Setting endpoint frame " + endpointFrameFromConfig);
 			endpointFrame = tool.getFrame(endpointFrameFromConfig);
 		}
 
+		// Load speed limits from configuration
+		SpeedLimits.init(configuration);
+		
 		controlModeHandler = new ControlModeHandler(robot, tool, endpointFrame, publisher, actionServer, configuration);
+
 		motion = controlModeHandler.createSmartServoMotion();
-		// Publish joint state?
-		publisher.setPublishJointStates(configuration.getPublishJointStates());
 
 		// Initialize motion.
 		endpointFrame.moveAsync(motion);
+	
 		// Hook the GoalReachedEventHandler
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 
+		// Publish joint state?
+		publisher.setPublishJointStates(configuration.getPublishJointStates());
+		
 		if (configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
 			((NtpTimeProvider) configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
 		}
@@ -329,5 +338,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			nodeMainExecutor.getScheduledExecutorService().shutdownNow();
 		}
 		Logger.info("Stopped ROS nodes");
+	}
+	
+	public boolean isRunning() {
+		return running;
 	}
 }

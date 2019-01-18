@@ -39,6 +39,8 @@ import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.github.rosjava_actionlib.ActionServer;
 import com.github.rosjava_actionlib.ActionServerListener;
 
+import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
+
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToCartesianPoseActionResult;
 import iiwa_msgs.MoveToCartesianPoseActionFeedback;
@@ -48,29 +50,23 @@ import iiwa_msgs.MoveToJointPositionActionFeedback;
 import org.ros.internal.message.Message;
 
 public class iiwaActionServer extends AbstractNodeMain {
-	public enum GoalType {
-		CARTESIAN_POSE,
-		CARTESIAN_POSE_LIN,
-		JOINT_POSITION
-	}
-	
 	public class Goal<T_ACTION_GOAL extends Message> {
-		public Goal(GoalType goalType, T_ACTION_GOAL goal, String goalId) {
+		public Goal(CommandType goalType, T_ACTION_GOAL goal, String goalId) {
 			this.goalType = goalType;
 			this.goal = goal;
 			this.goalId = goalId;
 		}
 		
-		public GoalType goalType;
+		public CommandType goalType;
 		public T_ACTION_GOAL goal;
 		public String goalId;
 	}
 	
 	public abstract class iiwaActionServerListener<T_ACTION_GOAL extends Message> implements ActionServerListener<T_ACTION_GOAL> {
-		private GoalType goalType;
+		private CommandType goalType;
 		private iiwaActionServer server;
 		
-		public iiwaActionServerListener(iiwaActionServer server, GoalType goalType) {
+		public iiwaActionServerListener(iiwaActionServer server, CommandType goalType) {
 			this.server = server;
 			this.goalType = goalType;
 		}
@@ -97,7 +93,9 @@ public class iiwaActionServer extends AbstractNodeMain {
 		 */
 		@Override
 		public void goalReceived(T_ACTION_GOAL goal) {
-			server.goalQueue.add(new Goal<T_ACTION_GOAL>(goalType, goal, this.getGoalId(goal)));
+			synchronized (server) {
+				server.goalQueue.add(new Goal<T_ACTION_GOAL>(goalType, goal, this.getGoalId(goal)));
+			}
 		}
 		
 		public abstract String getGoalId(T_ACTION_GOAL goal);
@@ -123,12 +121,12 @@ public class iiwaActionServer extends AbstractNodeMain {
 	}
 
 	@Override
-	public void onStart(ConnectedNode connectedNode) {
+	public synchronized void onStart(ConnectedNode connectedNode) {
 		node = connectedNode;
 		goalQueue.clear();
 
 		cartesianPoseServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName+"/action/move_to_cartesian_pose", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-		cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, GoalType.CARTESIAN_POSE) {
+		cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT) {
 			@Override
 			public String getGoalId(MoveToCartesianPoseActionGoal goal) {
 				return goal.getGoalId().getId();
@@ -136,7 +134,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 		});
 		
 		cartesianPoseLinServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName+"/action/move_to_cartesian_pose_lin", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-		cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, GoalType.CARTESIAN_POSE_LIN) {
+		cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT_LIN) {
 			@Override
 			public String getGoalId(MoveToCartesianPoseActionGoal goal) {
 				return goal.getGoalId().getId();
@@ -144,7 +142,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 		});
 
 		jointPositionServer = new ActionServer<MoveToJointPositionActionGoal, MoveToJointPositionActionFeedback, MoveToJointPositionActionResult>(node, iiwaName+"/action/move_to_joint_position", MoveToJointPositionActionGoal._TYPE, MoveToJointPositionActionFeedback._TYPE, MoveToJointPositionActionResult._TYPE);
-		jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this, GoalType.JOINT_POSITION) {
+		jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this, CommandType.JOINT_POSITION) {
 			@Override
 			public String getGoalId(MoveToJointPositionActionGoal goal) {
 				return goal.getGoalId().getId();
@@ -164,6 +162,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 	 * Sets current goal to succeeded and publishes result message
 	 */
 	public void markCurrentGoalReached() {
+		Logger.info("Publishing current goal reached: "+currentGoal.goalId);
 		markCurrentGoal(true, "");
 	}
 
@@ -177,10 +176,11 @@ public class iiwaActionServer extends AbstractNodeMain {
 	private synchronized void markCurrentGoal(boolean succeeded, String error_msg) {
 		if (hasCurrentGoal()) {
 			switch (currentGoal.goalType) {
-				case CARTESIAN_POSE: {
+				case POINT_TO_POINT: {
 					MoveToCartesianPoseActionResult result = cartesianPoseServer.newResultMessage();
 					result.getResult().setSuccess(succeeded);
 					result.getResult().setError(error_msg);
+					result.getStatus().getGoalId().setId(currentGoal.goalId);
 					if (succeeded) {
 						result.getStatus().setStatus(GoalStatus.SUCCEEDED);
 						cartesianPoseServer.setSucceed(currentGoal.goalId);
@@ -193,10 +193,11 @@ public class iiwaActionServer extends AbstractNodeMain {
 					cartesianPoseServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
 					break;
 				}
-				case CARTESIAN_POSE_LIN: {
+				case POINT_TO_POINT_LIN: {
 					MoveToCartesianPoseActionResult result = cartesianPoseLinServer.newResultMessage();
 					result.getResult().setSuccess(succeeded);
 					result.getResult().setError(error_msg);
+					result.getStatus().getGoalId().setId(currentGoal.goalId);
 					if (succeeded) {
 						result.getStatus().setStatus(GoalStatus.SUCCEEDED);
 						cartesianPoseLinServer.setSucceed(currentGoal.goalId);
@@ -213,6 +214,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 					MoveToJointPositionActionResult result = jointPositionServer.newResultMessage();
 					result.getResult().setSuccess(succeeded);
 					result.getResult().setError(error_msg);
+					result.getStatus().getGoalId().setId(currentGoal.goalId);
 					if (succeeded) {
 						result.getStatus().setStatus(GoalStatus.SUCCEEDED);
 						jointPositionServer.setSucceed(currentGoal.goalId);
@@ -254,7 +256,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 		return currentGoal;
 	}
 	
-	public Goal<?> getNextGoal() {
+	public synchronized Goal<?> getNextGoal() {
 		return goalQueue.peek();
 	}
 	
@@ -269,10 +271,10 @@ public class iiwaActionServer extends AbstractNodeMain {
 	public synchronized void publishCurrentState() {
 		if (hasCurrentGoal()) {
 			switch (currentGoal.goalType) {
-			case CARTESIAN_POSE:
+			case POINT_TO_POINT:
 				cartesianPoseServer.sendStatusTick();
 				break;
-			case CARTESIAN_POSE_LIN:
+			case POINT_TO_POINT_LIN:
 				cartesianPoseLinServer.sendStatusTick();
 				break;
 			case JOINT_POSITION:

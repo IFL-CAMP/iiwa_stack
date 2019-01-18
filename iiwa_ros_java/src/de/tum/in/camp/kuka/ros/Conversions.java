@@ -186,7 +186,7 @@ public final class Conversions {
 		Vector transl = Vector.of(tx, ty, tz);
 
 		Transformation t = Transformation.of(transl, rot);
-		System.out.println("KUKA Transformation: T=("+t.getX()+", "+t.getY()+", "+t.getZ()+"), R=("+t.getAlphaRad()+", "+t.getBetaRad()+", "+t.getGammaRad()+")");
+		Logger.info("KUKA Transformation: T=("+t.getX()+", "+t.getY()+", "+t.getZ()+"), R=("+t.getAlphaRad()+", "+t.getBetaRad()+", "+t.getGammaRad()+")");
 		
 		return t;
 	}

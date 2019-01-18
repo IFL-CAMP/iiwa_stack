@@ -227,7 +227,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	/**
 	 * Publishes the current timestamp on the destinationReached topic.
 	 */
-	public void publishDestinationReached() {
+	public synchronized void publishDestinationReached() {
 		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
 			t.setData(node.getCurrentTime());
 			destinationReachedPublisher.publish(t);

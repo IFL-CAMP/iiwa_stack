@@ -23,6 +23,8 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import iiwa_msgs.CartesianPose;
+import iiwa_msgs.RedundancyInformation;
 import geometry_msgs.Point;
 import geometry_msgs.Pose;
 import geometry_msgs.PoseStamped;
@@ -48,7 +50,13 @@ import org.ros.rosjava.tf.pubsub.TransformListener;
 import std_msgs.Header;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
+
+import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
 
 /**
  * This class provides ROS subscribers for ROS messages defined in the iiwa_msgs ROS package.
@@ -56,16 +64,6 @@ import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
  * <robot name>/command/<iiwa message type> (e.g. MyIIWA/command/JointPosition)
  */
 public class iiwaSubscriber extends AbstractNodeMain {
-
-	public enum CommandType {
-		CARTESIAN_POSE,
-		CARTESIAN_POSE_LIN,
-		CARTESIAN_VELOCITY,
-		JOINT_POSITION,
-		JOINT_POSITION_VELOCITY,
-		JOINT_VELOCITY
-	}
-
 	private ConnectedNode node = null;
 
 	// Service for reconfiguring control mode
@@ -127,6 +125,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
+	private LBR robot;
 
 	/**
 	 * Constructs a series of ROS subscribers for messages defined by the iiwa_msgs ROS package. <p>
@@ -148,6 +147,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
 	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
+		this.robot = robot;
 		iiwaName = robotName;
 		helper = new MessageGenerator(iiwaName, configuration);
 
@@ -287,7 +287,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param pose
 	 * @param tartget_frame
 	 * @return pose transformed to target_frame
-	 */
+	 **/
 	public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String tartget_frame) {
 		if (pose == null || pose.getHeader().getFrameId() == null || tartget_frame == null) {
 			return null;
@@ -355,6 +355,30 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			
 		return result;
 	}
+	
+	/**
+	 * Creates a KUKA Sunrise frame from a CartesianPose message.
+	 * Includes resolving TF transformation and applying redundancy data.
+	 * @param cartesianPose: Pose to transform
+	 * @param robotBaseFrame: String id of robot base frame (usually iiwa_link_0)
+	 * @return
+	 **/
+	public Frame cartesianPoseToRosFrame(CartesianPose cartesianPose, String robotBaseFrame) {
+		PoseStamped poseStamped = transformPose(cartesianPose.getPose(), robotBaseFrame);
+		if (poseStamped == null) {
+			return null;
+		}
+		
+		Frame frame = Conversions.rosPoseToKukaFrame(poseStamped.getPose());
+		RedundancyInformation redundancy = cartesianPose.getRedundancy();
+		
+		if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+			IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn()); //You can get this info from the robot Cartesian Position (SmartPad)
+            frame.setRedundancyInformation(robot, redundantData);
+		}
+		
+		return frame;
+	}
 
 	/**
 	 * Returns the last received Joint Velocity message. Returns null if no new message is available.<p>
@@ -376,7 +400,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
 	 * Do <b>NOT</b> manually call this. <p> 
 	 * @see org.ros.node.AbstractNodeMain#onStart(org.ros.node.ConnectedNode)
-	 */
+	 **/
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 
