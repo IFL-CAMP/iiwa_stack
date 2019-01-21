@@ -23,28 +23,55 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import com.kuka.connectivity.motionModel.smartServo.IServoOnGoalReachedEvent;
+import com.kuka.common.ThreadUtil;
+import com.kuka.roboticsAPI.controllerModel.sunrise.SunriseExecutionService;
+import com.kuka.roboticsAPI.controllerModel.sunrise.SunriseSafetyState.EmergencyStop;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.motionModel.IMotionContainer;
+import com.kuka.roboticsAPI.motionModel.IMotionContainerListener;
 
-public class GoalReachedEventListener implements IServoOnGoalReachedEvent {
+public class PTPCheckForGoalReachedThread implements Runnable {
 
 	protected iiwaPublisher publisher;
 	protected iiwaActionServer actionServer;
+	protected LBR robot;
+	protected int rate = 1000/30; // 30hz
+	protected IMotionContainer motionContainer;
 
-	public GoalReachedEventListener(iiwaPublisher publisher, iiwaActionServer actionServer) {
+	public PTPCheckForGoalReachedThread(IMotionContainer motion, LBR robot, iiwaPublisher publisher, iiwaActionServer actionServer) {
+		this.motionContainer = motion;
+		this.robot = robot;
 		this.publisher = publisher;
 		this.actionServer = actionServer;
 	}
 
 	@Override
-	public void onGoalReachedEvent(String state, double[] currentAxisPos, int[] osTimestamp, int targetId) {
-		System.out.println("Goal reached");
+	public void run() {
+		while (!((SunriseExecutionService)robot.getController().getExecutionService()).isPausedAndStopped() || !robot.isReadyToMove()) {
+		//while (robot.hasActiveMotionCommand() || ((SunriseExecutionService)robot.getController().getExecutionService()).isPaused()) {
+			if (motionContainer.isFinished()) {
+				Logger.info("Motion finished");
+				
+				if (publisher != null) {
+					publisher.publishDestinationReached();
+				}
+				if (actionServer != null && actionServer.hasCurrentGoal()) {
+					actionServer.markCurrentGoalReached();
+				}
+				return;
+			}
+			else if (motionContainer.hasError()) {
+				Logger.error("Motion failed: "+motionContainer.getErrorMessage());
+
+				if (actionServer != null && actionServer.hasCurrentGoal()) {
+					actionServer.markCurrentGoalFailed(motionContainer.getErrorMessage());
+				}
+				return;
+			}
+			
+			ThreadUtil.milliSleep(rate);
+		}
 		
-		if (publisher != null) {
-			publisher.publishDestinationReached();
-		}
-		if (actionServer != null && actionServer.hasCurrentGoal()) {
-			actionServer.markCurrentGoalReached();
-		}
+		Logger.info("Execution paused and stopped. Ending PTPcheckForGoalReachedThread.");
 	}
 }

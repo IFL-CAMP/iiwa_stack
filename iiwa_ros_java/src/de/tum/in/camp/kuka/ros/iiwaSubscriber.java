@@ -23,6 +23,20 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import iiwa_msgs.CartesianPose;
+import iiwa_msgs.RedundancyInformation;
+import geometry_msgs.Point;
+import geometry_msgs.Pose;
+import geometry_msgs.PoseStamped;
+import geometry_msgs.Quaternion;
+import geometry_msgs.Vector3;
+
+import javax.vecmath.Matrix3d;
+import javax.vecmath.Matrix4d;
+import javax.vecmath.Quat4d;
+import javax.vecmath.Vector3d;
+
+import org.ros.internal.message.RawMessage;
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
@@ -30,10 +44,19 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
-import org.ros.time.TimeProvider;
+import org.ros.rosjava.tf.Transform;
+import org.ros.rosjava.tf.pubsub.TransformListener;
+
+import std_msgs.Header;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
+
+import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
 
 /**
  * This class provides ROS subscribers for ROS messages defined in the iiwa_msgs ROS package.
@@ -41,16 +64,6 @@ import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
  * <robot name>/command/<iiwa message type> (e.g. MyIIWA/command/JointPosition)
  */
 public class iiwaSubscriber extends AbstractNodeMain {
-
-	public enum CommandType {
-		CARTESIAN_POSE,
-		CARTESIAN_POSE_LIN,
-		CARTESIAN_VELOCITY,
-		JOINT_POSITION,
-		JOINT_POSITION_VELOCITY,
-		JOINT_VELOCITY
-	}
-
 	private ConnectedNode node = null;
 
 	// Service for reconfiguring control mode
@@ -70,6 +83,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private ServiceServer<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinServer = null;
 	private ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinCallback = null;
 
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceCallback = null;
+
+	@SuppressWarnings("unused")
+	private ServiceServer<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameServer = null;
+	private ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameCallback = null;
+	
 	// ROSJava Subscribers for iiwa_msgs
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
 	private Subscriber<geometry_msgs.PoseStamped> cartesianPoseLinSubscriber;
@@ -78,6 +99,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
 	private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
 
+	private TransformListener tfListener;
 
 	// Object to easily build iiwa_msgs from the current robot state
 	private MessageGenerator helper;
@@ -97,9 +119,13 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Current control strategy
 	public CommandType currentCommandType = null;
+	
+	// Current action type
+	public CommandType currentActionType = null;
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
+	private LBR robot;
 
 	/**
 	 * Constructs a series of ROS subscribers for messages defined by the iiwa_msgs ROS package. <p>
@@ -108,8 +134,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider) {
-		this(robot, robot.getFlange(), robotName, timeProvider);
+	public iiwaSubscriber(LBR robot, String robotName, Configuration configuration) {
+		this(robot, robot.getFlange(), robotName, configuration);
 	}
 
 	/**
@@ -120,9 +146,10 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, Configuration configuration) {
+		this.robot = robot;
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, timeProvider);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cp_lin = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
@@ -130,6 +157,18 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
 		jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
+	}
+	
+	/**
+	 * Resets all sequence IDs back to 0, so that new commands will be accepted
+	 */
+	public void resetSequenceIds() {
+		cp.getHeader().setSeq(0);
+		cp_lin.getHeader().setSeq(0);
+		cv.getHeader().setSeq(0);
+		jp.getHeader().setSeq(0);
+		jpv.getHeader().setSeq(0);
+		jv.getHeader().setSeq(0);
 	}
 
 	/**
@@ -158,6 +197,20 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 */
 	public void setPathParametersLinCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> callback) {
 		setPathParametersLinCallback = callback;
+	}
+
+	/**
+	 * Add a callback to the SetWorkpiece service
+	 */
+	public void setWorkpieceCallback(ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> callback) {
+		setWorkpieceCallback = callback;
+	}
+
+	/**
+	 * Add a callback to the SetEndpointFrame service
+	 */
+	public void setEndpointFrameCallback(ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> callback) {
+		setEndpointFrameCallback = callback;
 	}
 
 	/**
@@ -226,7 +279,105 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			} else {
 				return null;
 			}
-		}	
+		}
+	}
+
+	/**
+	 * Transforms a pose from on TF frame to another
+	 * @param pose
+	 * @param tartget_frame
+	 * @return pose transformed to target_frame
+	 **/
+	public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String tartget_frame) {
+		if (pose == null || pose.getHeader().getFrameId() == null || tartget_frame == null) {
+			return null;
+		}
+
+		long time = pose.getHeader().getStamp().totalNsecs();
+		
+		System.out.println("Transforming pose from "+pose.getHeader().getFrameId()+" to "+tartget_frame+" for time "+time);
+		
+		/*System.out.println("In: "+
+				pose.getPose().getPosition().getX()+", "+
+				pose.getPose().getPosition().getY()+", "+
+				pose.getPose().getPosition().getZ()
+		);*/
+
+		PoseStamped result = helper.buildMessage(PoseStamped._TYPE);
+		result.getHeader().setFrameId(tartget_frame);
+		result.getHeader().setSeq(pose.getHeader().getSeq());
+		result.getHeader().setStamp(pose.getHeader().getStamp());
+	
+		
+		if (tfListener.getTree().canTransform(pose.getHeader().getFrameId(), tartget_frame)) {
+			Quaternion q_raw = pose.getPose().getOrientation();
+			Point t_raw = pose.getPose().getPosition();
+	
+			Quat4d q = new Quat4d(q_raw.getX(), q_raw.getY(), q_raw.getZ(), q_raw.getW());
+			Vector3d t = new Vector3d(t_raw.getX(), t_raw.getY(), t_raw.getZ());
+	
+			Matrix4d mat = new Matrix4d(q, t, 1) ;
+			
+			//System.out.println("Mat: "+mat);
+			
+			Transform transform = tfListener.getTree().lookupTransformBetween(pose.getHeader().getFrameId(), tartget_frame, time);
+			//System.out.println("Transformation: "+transform);
+			
+			if (transform == null) {
+				return null;
+			}
+			transform.invert();
+			
+			//System.out.println("TransMat: "+transform.asMatrix());
+			Matrix4d transformed = transform.asMatrix();
+			transformed.mul(mat);
+			
+			//System.out.println("Mat.Transformed: "+transformed);
+	
+			Matrix3d base = new Matrix3d(
+					transformed.getM00(), transformed.getM01(), transformed.getM02(),
+					transformed.getM10(), transformed.getM11(), transformed.getM12(),
+					transformed.getM20(), transformed.getM21(), transformed.getM22()
+			);
+			q.set(base);
+	
+			result.setPose(helper.getPose(transformed));
+		}
+		else {
+			result.getPose().getOrientation().setW(1);
+		}
+		
+		/*System.out.println("Out: "+
+				result.getPose().getPosition().getX()+", "+
+				result.getPose().getPosition().getY()+", "+
+				result.getPose().getPosition().getZ()+", "
+		);*/
+			
+		return result;
+	}
+	
+	/**
+	 * Creates a KUKA Sunrise frame from a CartesianPose message.
+	 * Includes resolving TF transformation and applying redundancy data.
+	 * @param cartesianPose: Pose to transform
+	 * @param robotBaseFrame: String id of robot base frame (usually iiwa_link_0)
+	 * @return
+	 **/
+	public Frame cartesianPoseToRosFrame(CartesianPose cartesianPose, String robotBaseFrame) {
+		PoseStamped poseStamped = transformPose(cartesianPose.getPose(), robotBaseFrame);
+		if (poseStamped == null) {
+			return null;
+		}
+		
+		Frame frame = Conversions.rosPoseToKukaFrame(poseStamped.getPose());
+		RedundancyInformation redundancy = cartesianPose.getRedundancy();
+		
+		if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+			IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn()); //You can get this info from the robot Cartesian Position (SmartPad)
+            frame.setRedundancyInformation(robot, redundantData);
+		}
+		
+		return frame;
 	}
 
 	/**
@@ -244,12 +395,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(iiwaName + "/subscriber");
 	}
-
+	
 	/**
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
 	 * Do <b>NOT</b> manually call this. <p> 
 	 * @see org.ros.node.AbstractNodeMain#onStart(org.ros.node.ConnectedNode)
-	 */
+	 **/
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 
@@ -262,14 +413,14 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
 		jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
 		jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
+		tfListener = new TransformListener(connectedNode);
 
 		// Subscribers' callbacks
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && cp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > cp.getHeader().getSeq()) {
+				if (position.getHeader().getSeq() == 0 || position.getHeader().getSeq() > cp.getHeader().getSeq()) {
 					synchronized (new_cp) {
 						cp = position;
 						currentCommandType = CommandType.CARTESIAN_POSE;
@@ -283,8 +434,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && cv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
+				if (velocity.getHeader().getSeq() == 0 || velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
 					cv = velocity;
 					currentCommandType = CommandType.CARTESIAN_VELOCITY;
 				}
@@ -306,8 +456,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPosition position) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && jp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > jp.getHeader().getSeq()) {
+				if (position.getHeader().getSeq() == 0 || position.getHeader().getSeq() > jp.getHeader().getSeq()) {
 					synchronized (new_jp) {
 						jp = position;
 						currentCommandType = CommandType.JOINT_POSITION;
@@ -321,8 +470,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((positionVelocity.getHeader().getSeq() == 0 && jpv.getHeader().getSeq() == 0) 
-						|| positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
+				if (positionVelocity.getHeader().getSeq() == 0 || positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
 					synchronized (new_jpv) {
 						jpv = positionVelocity;
 						currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
@@ -336,8 +484,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
 				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && jv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
+				if (velocity.getHeader().getSeq() == 0 || velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
 					jv = velocity;
 					currentCommandType = CommandType.JOINT_VELOCITY;
 				}
@@ -374,6 +521,22 @@ public class iiwaSubscriber extends AbstractNodeMain {
 					iiwaName + "/configuration/pathParametersLin", 
 					"iiwa_msgs/SetPathParametersLin",
 					setPathParametersLinCallback);
+		}
+		
+		// Creating TimeToDestination service if a callback has been defined.
+		if (setWorkpieceCallback != null) {
+			setWorkpieceServer = node.newServiceServer(
+					iiwaName + "/configuration/setWorkpiece", 
+					"iiwa_msgs/SetWorkpiece",
+					setWorkpieceCallback);
+		}
+
+		// Creating TimeToDestination service if a callback has been defined.
+		if (setEndpointFrameCallback != null) {
+			setEndpointFrameServer = node.newServiceServer(
+					iiwaName + "/configuration/setEndpointFrame", 
+					"iiwa_msgs/SetEndpointFrame",
+					setEndpointFrameCallback);
 		}
 	}
 }

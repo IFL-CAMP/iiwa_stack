@@ -1,0 +1,14 @@
+package de.tum.in.camp.kuka.ros;
+public class CommantTypes {
+	public enum CommandType {
+		CARTESIAN_POSE,
+		CARTESIAN_POSE_LIN,
+		CARTESIAN_VELOCITY,
+		JOINT_POSITION,
+		JOINT_POSITION_VELOCITY,
+		JOINT_VELOCITY,
+		POINT_TO_POINT,
+		POINT_TO_POINT_LIN,
+		POINT_TO_POINT_SPLINE	
+	}
+}
