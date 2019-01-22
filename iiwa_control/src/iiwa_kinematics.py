@@ -4,7 +4,7 @@ import rospy
 
 from iiwa_msgs.msg import JointPosition
 from iiwa_msgs.srv import ConfigureSmartServo, ConfigureSmartServoRequest, ConfigureSmartServoResponse
-from iiwa_msgs.srv import SetPathParameters, SetPathParametersRequest, SetPathParametersResponse
+from iiwa_msgs.srv import SetPathParametersLin, SetPathParametersLinRequest, SetPathParametersLinResponse
 from numpy import pi, sqrt, cos, sin, arctan2, array, matrix
 from numpy.linalg import norm
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, WrenchStamped
@@ -76,19 +76,27 @@ class IiwaKinematics(object):
     hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
     robot_name = get_param('~robot_name', 'iiwa')
 
-    self.joint_names = ['{}_joint_1'.format(robot_name), '{}_joint_2'.format(robot_name), '{}_joint_3'.format(robot_name), '{}_joint_4'.format(robot_name),
-                        '{}_joint_5'.format(robot_name), '{}_joint_6'.format(robot_name), '{}_joint_7'.format(robot_name)]
+    self.joint_names = ['{}_joint_1'.format(robot_name),
+                        '{}_joint_2'.format(robot_name),
+                        '{}_joint_3'.format(robot_name),
+                        '{}_joint_4'.format(robot_name),
+                        '{}_joint_5'.format(robot_name),
+                        '{}_joint_6'.format(robot_name),
+                        '{}_joint_7'.format(robot_name)]
 
     joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
-    command_pose_sub = Subscriber('command/CartesianPose', PoseStamped, self.commandPoseCb, queue_size = 1)
+    command_pose_sub = Subscriber('command/CartesianPoseLin', PoseStamped, self.commandPoseCb, queue_size = 1)
     redundancy_sub = Subscriber('command/redundancy', Float64, self.redundancyCb, queue_size = 1)
     joint_position_sub = Subscriber('command/JointPosition', JointPosition, self.jointPositionCb, queue_size = 1)
 
     self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
-    self.joint_trajectory_pub = Publisher(hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
+    self.joint_trajectory_pub = Publisher(
+        hardware_interface + '_trajectory_controller/command', JointTrajectory, queue_size = 1)
 
-    path_parameters_configuration_srv = Service('configuration/pathParameters', SetPathParameters, self.handlePathParametersConfiguration)
-    smart_servo_configuration_srv = Service('configuration/configureSmartServo', ConfigureSmartServo, self.handleSmartServoConfiguration)
+    path_parameters_configuration_srv = Service(
+        'configuration/pathParametersLin', SetPathParametersLin, self.handlePathParametersConfiguration)
+    smart_servo_configuration_srv = Service(
+        'configuration/configureSmartServo', ConfigureSmartServo, self.handleSmartServoConfiguration)
 
     spin()
 
@@ -101,12 +109,14 @@ class IiwaKinematics(object):
 
   def handlePathParametersConfiguration(self, request):
     loginfo('setting path parameters')
-    if request.joint_relative_velocity >= 0.0 and \
-       request.joint_relative_velocity <= 1.0:
-      self.v = linearlyMap(request.joint_relative_velocity, 0.0, 1.0, 2.0, 0.5)
-      return SetPathParametersResponse(True, '')
+
+    v = request.max_cartesian_velocity.linear.x
+
+    if v >= 0.0 and v <= 1000.0:
+      self.v = linearlyMap(v, 0.0, 1000.0, 2.0, 0.5)
+      return SetPathParametersLinResponse(True, '')
     else:
-      return SetPathParametersResponse(False, '')
+      return SetPathParametersLinResponse(False, '')
 
   def redundancyCb(self, msg):
     self.tr = msg.data
