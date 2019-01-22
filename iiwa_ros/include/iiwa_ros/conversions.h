@@ -35,6 +35,8 @@
 
 namespace iiwa_ros
 {
+namespace conversions
+{
 /**
  * @brief Creates a JointQuantity with the same value in all its components.
  *
@@ -78,6 +80,31 @@ iiwa_msgs::JointQuantity jointQuantityFromDouble(const double a1, const double a
   quantity.a6 = a6;
   quantity.a7 = a7;
   return quantity;
+}
+
+/**
+ * @brief Converts a JointQuantity message to a std::vector of type T
+ * @param quantity: the JointQuantity to convert
+ * @return  std::vector<T>
+ */
+template <typename T>
+std::vector<T> jointQuantityToVector(const iiwa_msgs::JointQuantity& quantity)
+{
+  return std::vector<T>{quantity.a1, quantity.a2, quantity.a3, quantity.a4, quantity.a5, quantity.a6, quantity.a7};
+}
+
+template <typename T>
+iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v)
+{
+  iiwa_msgs::JointQuantity return_value;
+  return_value.a1 = v[0];
+  return_value.a2 = v[1];
+  return_value.a3 = v[2];
+  return_value.a4 = v[3];
+  return_value.a5 = v[4];
+  return_value.a6 = v[5];
+  return_value.a7 = v[6];
+  return return_value;
 }
 
 /**
@@ -139,5 +166,6 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double translatio
   quantity.b = rotation_value;
   quantity.c = rotation_value;
   return quantity;
+}
 }
 }
