@@ -27,7 +27,6 @@ import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
-import org.ros.time.TimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -84,9 +83,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 * 
 	 * @param robotName : name of the robot, topics will be created accordingly : <robot name>/state/<iiwa_msgs type> (e.g. MyIIWA/state/CartesianPosition)
 	 */
-	public iiwaPublisher(String robotName, TimeProvider timeProvider) {
+	public iiwaPublisher(String robotName, Configuration configuration) {
 		iiwaName = robotName;
-		helper = new MessageGenerator(iiwaName, timeProvider);
+		helper = new MessageGenerator(iiwaName, configuration);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
 		cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);
@@ -228,7 +227,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	/**
 	 * Publishes the current timestamp on the destinationReached topic.
 	 */
-	public void publishDestinationReached() {
+	public synchronized void publishDestinationReached() {
 		if (destinationReachedPublisher.getNumberOfSubscribers() > 0) {
 			t.setData(node.getCurrentTime());
 			destinationReachedPublisher.publish(t);

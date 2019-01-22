@@ -23,7 +23,14 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import geometry_msgs.Pose;
+import geometry_msgs.PoseStamped;
+
 import java.util.Arrays;
+
+import javax.vecmath.Matrix3d;
+import javax.vecmath.Matrix4d;
+import javax.vecmath.Quat4d;
 
 import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
@@ -52,9 +59,10 @@ public class MessageGenerator {
 	// Objects to create ROS messages
 	private NodeConfiguration nodeConf = NodeConfiguration.newPrivate();
 	private MessageFactory messageFactory = nodeConf.getTopicMessageFactory();
+	private Configuration configuration;
 	private TimeProvider time;
 
-	public MessageGenerator(String robotName, TimeProvider timeProvider) {
+	public MessageGenerator(String robotName, Configuration configuration) {
 		baseFrameID = robotName + baseFrameIDSuffix; // e.g. if robotName == iiwa, then baseFrameID = iiwa_link_0
 
 		// e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
@@ -67,7 +75,8 @@ public class MessageGenerator {
 				robotName+"_joint_6",
 				robotName+"_joint_7"
 		};
-		time = timeProvider;
+		this.configuration = configuration;
+		time = configuration.getTimeProvider();
 	}
 
 	/**
@@ -339,4 +348,24 @@ public class MessageGenerator {
 				quantity.getA7() >= value);
 	}
 
+	public geometry_msgs.Pose getPose(Matrix4d mat) {
+		Matrix3d base = new Matrix3d(
+				mat.getM00(), mat.getM01(), mat.getM02(),
+				mat.getM10(), mat.getM11(), mat.getM12(),
+				mat.getM20(), mat.getM21(), mat.getM22()
+		);
+		Quat4d q = new Quat4d();
+		q.set(base);
+
+		Pose result = buildMessage(Pose._TYPE);
+		result.getOrientation().setX(q.getX());
+		result.getOrientation().setY(q.getY());
+		result.getOrientation().setZ(q.getZ());
+		result.getOrientation().setW(q.getW());
+		result.getPosition().setX(mat.getM03());
+		result.getPosition().setY(mat.getM13());
+		result.getPosition().setZ(mat.getM23());
+
+		return result;
+	}
 }

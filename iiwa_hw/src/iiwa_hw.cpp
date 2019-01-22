@@ -57,12 +57,7 @@ IIWA_HW::IIWA_HW(ros::NodeHandle nh) : last_joint_position_command_(7, 0)
   interface_type_.push_back("VelocityJointInterface");
 }
 
-IIWA_HW::~IIWA_HW()
-{
-}
-
-ros::Rate *IIWA_HW::getRate()
-{
+ros::Rate* IIWA_HW::getRate() {
   return loop_rate_;
 }
 
@@ -118,16 +113,13 @@ bool IIWA_HW::start()
   device_->init();
   device_->reset();
 
-  // general joint to store information
-  boost::shared_ptr<const urdf::Joint> joint;
-
   // create joint handles given the list
-  for (int i = 0; i < IIWA_JOINTS; ++i)
-  {
+  for(size_t i = 0; i < IIWA_JOINTS; ++i) {
     ROS_INFO_STREAM("Handling joint: " << device_->joint_names[i]);
 
     // get current joint configuration
-    joint = urdf_model_.getJoint(device_->joint_names[i]);
+    auto joint = urdf_model_.getJoint(device_->joint_names[i]);
+
     if (!joint.get())
     {
       ROS_ERROR_STREAM("The specified joint " << device_->joint_names[i]
@@ -183,13 +175,11 @@ void IIWA_HW::registerJointLimits(const std::string &joint_name, const hardware_
   bool has_limits = false;
   joint_limits_interface::SoftJointLimits soft_limits;
   bool has_soft_limits = false;
-
-  if (urdf_model != NULL)
-  {
-    const boost::shared_ptr<const urdf::Joint> urdf_joint = urdf_model->getJoint(joint_name);
-
-    if (urdf_joint != NULL)
-    {
+  
+  if (urdf_model != nullptr) {
+    const auto urdf_joint = urdf_model->getJoint(joint_name);
+    
+    if (urdf_joint != nullptr) {
       // Get limits from the URDF file.
       if (joint_limits_interface::getJointLimits(urdf_joint, limits))
         has_limits = true;
@@ -237,25 +227,21 @@ bool IIWA_HW::read(ros::Duration period)
     device_->joint_position_prev = device_->joint_position;
     iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
     iiwaMsgsJointToVector(joint_torque_.torque, device_->joint_effort);
-
-    // if there is no controller active the robot goes to zero position
-    if (!was_connected)
-    {
-      for (int j = 0; j < IIWA_JOINTS; j++)
+    
+    // if there is no controller active the robot goes to zero position 
+    if (!was_connected) {
+      for (size_t j = 0; j < IIWA_JOINTS; j++)
         device_->joint_position_command[j] = device_->joint_position[j];
 
       was_connected = true;
     }
-
-    for (int j = 0; j < IIWA_JOINTS; j++)
-      device_->joint_velocity[j] =
-          filters::exponentialSmoothing((device_->joint_position[j] - device_->joint_position_prev[j]) / period.toSec(),
-                                        device_->joint_velocity[j], 0.2);
-
-    return 1;
-  }
-  else if (delta.toSec() >= 10)
-  {
+    
+    for (size_t j = 0; j < IIWA_JOINTS; j++)
+      device_->joint_velocity[j] = filters::exponentialSmoothing((device_->joint_position[j]-device_->joint_position_prev[j])/period.toSec(), 
+                                                                 device_->joint_velocity[j], 0.2);  
+      
+      return 1;
+  } else if (delta.toSec() >= 10) {
     ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before reading ...");
     timer_ = ros::Time::now();
   }

@@ -1,0 +1,9 @@
+# This service allows to select the frame that is used for cartesian positioning
+
+# Id of Sunrise frame
+string frame_id
+
+---
+
+bool success
+string error
