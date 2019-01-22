@@ -1,0 +1,14 @@
+# Goal
+float64 position
+float64 velocity
+float64 acceleration
+float64 current
+float64 jerk
+
+---
+# Result
+iiwa_tool_msgs/GripperState state
+
+---
+# Feedback
+float64 current_position

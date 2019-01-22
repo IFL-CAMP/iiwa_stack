@@ -109,6 +109,8 @@ public class Configuration extends AbstractNodeMain {
 	}
 
 	private static void configure() {
+		System.out.println("Environment: JVM version "+System.getProperty("java.version"));
+		
 		parseConfigFile(); //TODO : use KUKA's process data?
 
 		// Obtain name of the robot from config file
@@ -248,6 +250,18 @@ public class Configuration extends AbstractNodeMain {
 		if (toolName == null)
 			toolName = "";
 		return toolName;
+	}
+
+	/**
+	 * Get the id of the endpoint frame to use from param <b>endpointFrame</b> in ROS param server.
+	 * 
+	 * @return id of the frame 
+	 */
+	public String getEndpointFrame() {
+		String endpointFrame = getStringParameter("endpointFrame");
+		if (endpointFrame == null)
+			endpointFrame = "";
+		return endpointFrame;
 	}
 
 	/**

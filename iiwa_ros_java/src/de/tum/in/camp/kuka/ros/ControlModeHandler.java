@@ -4,13 +4,19 @@ import iiwa_msgs.CartesianQuantity;
 import iiwa_msgs.ConfigureSmartServoRequest;
 import iiwa_msgs.JointQuantity;
 
+import com.kuka.common.ThreadUtil;
 import com.kuka.connectivity.motionModel.smartServo.ServoMotion;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
+import com.kuka.roboticsAPI.controllerModel.sunrise.SunriseExecutionService;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.CartDOF;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.geometricModel.Workpiece;
+import com.kuka.roboticsAPI.geometricModel.World;
+import com.kuka.roboticsAPI.motionModel.IMotion;
+import com.kuka.roboticsAPI.motionModel.LIN;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.CartesianSineImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -22,39 +28,38 @@ public class ControlModeHandler {
 
 	private LBR robot;
 	private Tool tool;
-	private ObjectFrame toolFrame;
+	private ObjectFrame endpointFrame;
 	private ITaskLogger logger;
 	private iiwaPublisher publisher;
-
-	public double jointVelocity;
-	public double jointAcceleration;
-	public double overrideJointAcceleration;
-	
-	public double[] maxTranslationlVelocity = {1000.0, 1000.0, 1000.0};
 
 	private ConfigureSmartServoRequest lastSmartServoRequest;
 
 	private MessageGenerator helper;
-	private GoalReachedEventListener handler = new GoalReachedEventListener(publisher);
+	private GoalReachedEventListener handler;
+	
+	private Workpiece workpiece;
+	
+	IMotionControlMode currentControlMode;
 
-	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame toolFrame, iiwaPublisher publisher, Configuration configuration) {
+	public ControlModeHandler(LBR robot, Tool tool, ObjectFrame endpointFrame, iiwaPublisher publisher, iiwaActionServer actionServer, Configuration configuration) {
 		this.robot = robot;
 		this.tool = tool;
-		this.toolFrame = toolFrame;
+		this.endpointFrame = endpointFrame;
 		this.publisher = publisher;
 		helper = new MessageGenerator(Configuration.getRobotName(), configuration);
-		jointVelocity = configuration.getDefaultRelativeJointVelocity();
-		jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
-		overrideJointAcceleration = 1.0;
+		
+		handler = new GoalReachedEventListener(this.publisher, actionServer);
 	}
-
+	
+	public void setEndpointFrame(ObjectFrame endpointFrame) {
+		this.endpointFrame = endpointFrame;
+	}
+	
+	public void setWorkpiece(Workpiece workpiece) {
+		this.workpiece = workpiece;
+	}
+	
 	public void setLastSmartServoRequest(ConfigureSmartServoRequest request) { this.lastSmartServoRequest = request; }
-
-	public void setPathParamters(double jointVelocity, double jointAcceleration, double overrideJointAcceleration) {
-		this.jointVelocity = jointVelocity;
-		this.jointAcceleration = jointAcceleration;
-		this.overrideJointAcceleration = overrideJointAcceleration;
-	}
 
 	/**
 	 * Allows to switch control mode on the fly. Kills the given smartServo motion and creates a new one with the given request.
@@ -89,14 +94,20 @@ public class ControlModeHandler {
 	public SmartServo switchSmartServoMotion(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
 		SmartServo oldMotion = motion;
 
-		validateForImpedanceMode();
-
+		//validateForImpedanceMode();
+		
 		motion = createSmartServoMotion();
 
 		if (request != null) {
+			if (request.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+				validateForImpedanceMode();
+			}
 			motion.setMode(buildMotionControlMode(request));
 		} 
 		else if (lastSmartServoRequest != null) {
+			if (lastSmartServoRequest.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+				validateForImpedanceMode();
+			}
 			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
 		}
 		else {
@@ -111,14 +122,20 @@ public class ControlModeHandler {
 	public SmartServoLIN switchSmartServoMotion(SmartServoLIN motion, iiwa_msgs.ConfigureSmartServoRequest request) {
 		SmartServoLIN oldMotion = motion;
 
-		validateForImpedanceMode();
+		//validateForImpedanceMode();
 
 		motion = createSmartServoLinMotion();
 
 		if (request != null) {
+			if (request.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+				validateForImpedanceMode();
+			}
 			motion.setMode(buildMotionControlMode(request));
 		} 
 		else if (lastSmartServoRequest != null) {
+			if (lastSmartServoRequest.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+				validateForImpedanceMode();
+			}
 			motion.setMode(buildMotionControlMode(lastSmartServoRequest));
 		}
 		else {
@@ -168,13 +185,18 @@ public class ControlModeHandler {
 
 		SmartServoLIN newMotion = createSmartServoLinMotion();
 		newMotion.setMode(controlMode);
+		currentControlMode = controlMode;
 		switchMotion(newMotion, oldMotion);
 		return newMotion; 
 	}
 
-
-	public SmartServo switchSmartServoMotion(SmartServoLIN motion, IMotionControlMode controlMode) { 
-		SmartServoLIN oldMotion = motion;
+	/**
+	 * Switches a the SmartServo Motion
+	 * @param oldMotion       Current motion
+	 * @param controlMode  new motion mode
+	 * @return new SmartServo motion
+	 */
+	public SmartServo switchSmartServoMotion(SmartServoLIN oldMotion, IMotionControlMode controlMode) {
 
 		if (!(controlMode instanceof PositionControlMode)) {
 			validateForImpedanceMode();
@@ -182,6 +204,7 @@ public class ControlModeHandler {
 
 		SmartServo newMotion = createSmartServoMotion();
 		newMotion.setMode(controlMode);
+		currentControlMode = controlMode;
 		switchMotion(newMotion, oldMotion);
 		return newMotion;  
 	}
@@ -190,14 +213,21 @@ public class ControlModeHandler {
 	// TODO: doc
 	@SuppressWarnings("rawtypes")
 	public void switchMotion(ServoMotion motion, ServoMotion oldMotion) {
-		toolFrame.moveAsync(motion);
 		if (oldMotion != null) {
 			oldMotion.getRuntime().stopMotion();
 		}
+		
+		while(((SunriseExecutionService)robot.getController().getExecutionService()).isPaused()) {
+			ThreadUtil.milliSleep(10);
+		}
+		
+		endpointFrame.moveAsync(motion);
+		motion.getRuntime(true).updateWithRealtimeSystem();
 		motion.getRuntime().setGoalReachedEventHandler(handler);
 	}
 
 	public SmartServo switchToSmartServo(SmartServo motion, SmartServoLIN linearMotion) {
+		System.out.println("Switching to SmartServo motion");
 		IMotionControlMode currentMode = motion.getMode();
 		if (currentMode == null) { currentMode = new PositionControlMode(); }
 		motion = switchSmartServoMotion(linearMotion, currentMode);
@@ -205,6 +235,7 @@ public class ControlModeHandler {
 	}
 
 	public SmartServoLIN switchToSmartServoLIN(SmartServo motion, SmartServoLIN linearMotion) {
+		System.out.println("Switching to SmartServoLIN motion");
 		IMotionControlMode currentMode = motion.getMode();
 		if (currentMode == null) { currentMode = new PositionControlMode(); }
 		linearMotion = switchSmartServoMotion(motion, currentMode);
@@ -218,7 +249,12 @@ public class ControlModeHandler {
 	 *  - the robot is in a singularity
 	 */
 	private void validateForImpedanceMode() {
-		if (tool != null) {
+		if (workpiece != null) {
+			//System.out.println("Workpiece payload data: "+workpiece.getLoadData().toString());
+			ServoMotion.validateForImpedanceMode(workpiece);
+		}
+		else if (tool != null) {
+			//System.out.println("Tool payload data: "+tool.getLoadData().toString());
 			ServoMotion.validateForImpedanceMode(tool);
 		}
 		else {
@@ -234,18 +270,21 @@ public class ControlModeHandler {
 		SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
 		motion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		motion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
-		motion.setJointVelocityRel(jointVelocity);
-		motion.setJointAccelerationRel(jointAcceleration);
-		motion.overrideJointAcceleration(overrideJointAcceleration);
+		motion.setJointVelocityRel(SpeedLimits.jointVelocity);
+		motion.setJointAccelerationRel(SpeedLimits.jointAcceleration);
+		motion.overrideJointAcceleration(SpeedLimits.overrideJointAcceleration);
 		return motion;
 	}
 
 	public SmartServoLIN createSmartServoLinMotion() {
-		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(toolFrame));
-		linearMotion.setMinimumTrajectoryExecutionTime(20e-3); //TODO : parametrize
+		System.out.println("endpointFrame: "+endpointFrame);
+		
+		SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(endpointFrame));
+		linearMotion.setReferenceFrame(World.Current.getRootFrame());
+		linearMotion.setMinimumTrajectoryExecutionTime(0.1); //TODO : parametrize
 		linearMotion.setTimeoutAfterGoalReach(3600); //TODO : parametrize
-		linearMotion.setMaxTranslationVelocity(maxTranslationlVelocity);
-		//linearMotion.setMaxOrientationVelocity(maxOrientationlVelocity);
+		linearMotion.setMaxTranslationVelocity(SpeedLimits.maxTranslationlVelocity);
+		linearMotion.setMaxOrientationVelocity(SpeedLimits.maxOrientationVelocity);
 		//linearMotion.setMaxTranslationAcceleration(value);
 		//linearMotion.setMaxNullSpaceAcceleration(value);
 		//linearMotion.setMaxNullSpaceVelocity(value);
@@ -255,18 +294,85 @@ public class ControlModeHandler {
 	}
 
 	/**
+	 * Given the parameters from the SmartServo service, it builds up the new control mode to use.
+	 * @param request : parameters from the ConfigureSmartServo service
+	 * @return resulting control mode
+	 */
+	public IMotionControlMode buildMotionControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
+		currentControlMode = null;
+		
+		if (request == null) {
+			currentControlMode = new PositionControlMode(true);
+		}
+		else {
+			switch (request.getControlMode()) {
+	
+			case iiwa_msgs.ControlMode.POSITION_CONTROL: {
+				currentControlMode = new PositionControlMode(true);
+				break;
+			}
+	
+			case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
+				currentControlMode = buildJointImpedanceControlMode(request);
+				break;
+			}
+	
+			case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
+				currentControlMode = buildCartesianImpedanceControlMode(request);
+				break;
+			}
+	
+			case iiwa_msgs.ControlMode.DESIRED_FORCE : {
+				CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
+				CartDOF direction = selectDegreeOfFreedom(request.getDesiredForce().getCartesianDof());
+	
+				if (direction != null && request.getDesiredForce().getDesiredStiffness() >= 0) {
+					cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(),  request.getDesiredForce().getDesiredStiffness());
+					addControlModeLimits(cscm, request.getLimits());
+					currentControlMode = cscm;
+				}
+				break;
+			}
+	
+			case iiwa_msgs.ControlMode.SINE_PATTERN : {
+				CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
+				CartDOF direction = selectDegreeOfFreedom(request.getSinePattern().getCartesianDof());
+	
+				if (direction != null && request.getSinePattern().getFrequency() >= 0 && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
+					cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern().getFrequency(), request.getSinePattern().getAmplitude(), request.getSinePattern().getStiffness());
+					addControlModeLimits(cscm, request.getLimits());
+					currentControlMode = cscm;
+				}
+				break;
+			}
+	
+			default:				
+				logger.error("Control Mode not supported.");
+				throw new UnsupportedControlModeException();  // this should just not happen
+			}
+		}
+
+		if (currentControlMode != null) {
+			return currentControlMode;
+		}
+		else {
+			throw new UnsupportedControlModeException();
+		}
+	}
+
+	/**
 	 * Generates a JointImpedanceControlMode from the given request.
 	 * @param request
 	 * @return
 	 */
 	private JointImpedanceControlMode buildJointImpedanceControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
 		JointImpedanceControlMode jcm = new JointImpedanceControlMode(robot.getJointCount());
-
+	
 		JointQuantity stiffness = request.getJointImpedance().getJointStiffness();
 		if (helper.isJointQuantityGreaterEqualThan(stiffness, 0)) {
 			jcm.setStiffness(Conversions.jointQuantityToVector(stiffness));
 		}
-
+	
 		JointQuantity damping = request.getJointImpedance().getJointDamping();
 		if (helper.isJointQuantityGreaterEqualThan(damping, 0)) {
 			jcm.setDamping(Conversions.jointQuantityToVector(damping));
@@ -281,7 +387,7 @@ public class ControlModeHandler {
 	 */
 	private CartesianImpedanceControlMode buildCartesianImpedanceControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
 		CartesianImpedanceControlMode ccm = new CartesianImpedanceControlMode();
-
+	
 		iiwa_msgs.CartesianQuantity stiffness = request.getCartesianImpedance().getCartesianStiffness();
 		if (stiffness.getX() >= 0) {
 			ccm.parametrize(CartDOF.X).setStiffness(stiffness.getX());
@@ -301,7 +407,7 @@ public class ControlModeHandler {
 		if (stiffness.getC() >= 0) {
 			ccm.parametrize(CartDOF.C).setStiffness(stiffness.getC());
 		}
-
+	
 		CartesianQuantity damping = request.getCartesianImpedance().getCartesianDamping();
 		if (damping.getX() > 0) {
 			ccm.parametrize(CartDOF.X).setDamping(damping.getX());
@@ -321,78 +427,16 @@ public class ControlModeHandler {
 		if (damping.getC() > 0) {
 			ccm.parametrize(CartDOF.C).setDamping(damping.getC());
 		}
-
+	
 		if (request.getCartesianImpedance().getNullspaceStiffness() >= 0) {
 			ccm.setNullSpaceStiffness(request.getCartesianImpedance().getNullspaceStiffness());
 		}
 		if (request.getCartesianImpedance().getNullspaceDamping() > 0) {
 			ccm.setNullSpaceDamping(request.getCartesianImpedance().getNullspaceDamping());
 		}
-
+	
 		addControlModeLimits(ccm, request.getLimits());
 		return ccm;
-	}
-
-	/**
-	 * Given the parameters from the SmartServo service, it builds up the new control mode to use.
-	 * @param request : parameters from the ConfigureSmartServo service
-	 * @return resulting control mode
-	 */
-	public IMotionControlMode buildMotionControlMode(iiwa_msgs.ConfigureSmartServoRequest request) {
-		IMotionControlMode cm = null;
-
-		switch (request.getControlMode()) {
-
-		case iiwa_msgs.ControlMode.POSITION_CONTROL: {
-			cm = new PositionControlMode(true);
-			break;
-		}
-
-		case iiwa_msgs.ControlMode.JOINT_IMPEDANCE: {
-			cm = buildJointImpedanceControlMode(request);
-			break;
-		}
-
-		case iiwa_msgs.ControlMode.CARTESIAN_IMPEDANCE: {
-			cm = buildCartesianImpedanceControlMode(request);
-			break;
-		}
-
-		case iiwa_msgs.ControlMode.DESIRED_FORCE : {
-			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
-			CartDOF direction = selectDegreeOfFreedom(request.getDesiredForce().getCartesianDof());
-
-			if (direction != null && request.getDesiredForce().getDesiredStiffness() >= 0) {
-				cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(),  request.getDesiredForce().getDesiredStiffness());
-				addControlModeLimits(cscm, request.getLimits());
-				cm = cscm;
-			}
-			break;
-		}
-
-		case iiwa_msgs.ControlMode.SINE_PATTERN : {
-			CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
-			CartDOF direction = selectDegreeOfFreedom(request.getSinePattern().getCartesianDof());
-
-			if (direction != null && request.getSinePattern().getFrequency() >= 0 && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
-				cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern().getFrequency(), request.getSinePattern().getAmplitude(), request.getSinePattern().getStiffness());
-				addControlModeLimits(cscm, request.getLimits());
-				cm = cscm;
-			}
-			break;
-		}
-
-		default:				
-			logger.error("Control Mode not supported.");
-			throw new UnsupportedControlModeException();  // this should just not happen
-		}
-
-		if (cm != null) {
-			return cm;
-		}
-		else {
-			throw new UnsupportedControlModeException();
-		}
 	}
 
 	/**
@@ -472,5 +516,36 @@ public class ControlModeHandler {
 		String kukacmname = kukacm.getClass().getSimpleName();
 
 		return roscmname.equals(kukacmname);
+	}
+	
+	public IMotionControlMode getControlMode() {
+		currentControlMode = buildMotionControlMode(lastSmartServoRequest);
+		return currentControlMode;
+	}
+	
+	public void disableSmartServo(SmartServo oldMotion) {
+		System.out.println("Disabling SmartServo");
+		oldMotion.getRuntime().stopMotion();
+	}
+
+	public void disableSmartServo(SmartServoLIN linearMotion) {
+		System.out.println("Disabling SmartServoLIN");
+		linearMotion.getRuntime().stopMotion();
+	}
+	
+	public SmartServo enableSmartServo(SmartServo motion) {
+		System.out.println("Enabling SmartServo");
+		return switchSmartServoMotion(motion, lastSmartServoRequest);
+		/*motion.setMode(getCurrentMode());
+		endpointFrame.moveAsync(motion);
+		motion.getRuntime().setGoalReachedEventHandler(handler);*/
+	}
+	
+	public SmartServoLIN enableSmartServo(SmartServoLIN linearMotion) {
+		System.out.println("Enabling SmartServoLIN");
+		return switchSmartServoMotion(linearMotion, lastSmartServoRequest);
+		/*linearMotion.setMode(getCurrentMode());
+		endpointFrame.moveAsync(linearMotion);
+		linearMotion.getRuntime().setGoalReachedEventHandler(handler);*/
 	}
 }
