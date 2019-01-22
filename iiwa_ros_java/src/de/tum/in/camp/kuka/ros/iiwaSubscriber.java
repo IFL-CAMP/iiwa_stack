@@ -100,16 +100,18 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
 	// Name to use to build the name of the ROS topics
 	private String iiwaName = "iiwa";
+	
+	private Boolean enforceMessageSequence = false;
 
 	/**
 	 * Constructs a series of ROS subscribers for messages defined by the iiwa_msgs ROS package. <p>
 	 * While no messages are received, the initial values are set to the state of the robot at the moment of this call.
 	 * For Cartesian messages, the initial values will refer to the frame of the robot's Flange.
-	 * @param robot: an iiwa Robot, its current state is used to set up initial values for the messages.
+	 * @param robot: the current state of the robot is used to set up initial values for the messages.
 	 * @param robotName: name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider) {
-		this(robot, robot.getFlange(), robotName, timeProvider);
+	public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence) {
+		this(robot, robot.getFlange(), robotName, timeProvider, enforceMessageSequence);
 	}
 
 	/**
@@ -120,8 +122,9 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	 * @param frame: reference frame to set the values of the Cartesian position.
 	 * @param robotName : name of the robot, it will be used for the topic names with this format : <robot name>/command/<iiwa message type>
 	 */
-	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider) {
+	public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence) {
 		iiwaName = robotName;
+		this.enforceMessageSequence = enforceMessageSequence;
 		helper = new MessageGenerator(iiwaName, timeProvider);
 
 		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
@@ -244,6 +247,18 @@ public class iiwaSubscriber extends AbstractNodeMain {
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(iiwaName + "/subscriber");
 	}
+	
+	/**
+	 * Checks that the given message headers are in the correct order. That is, new messages should have a larger sequence number than the last one received.
+	 * True is also returned is both sequence numbers are zero, that means that probably the user is not setting them at all.
+	 * @param received_header - the newly received message header we want to compare.
+	 * @param stored_header - the last received message header that was stored.
+	 * @return
+	 */
+	private Boolean checkMessageSequence(std_msgs.Header received_header, std_msgs.Header stored_header) {
+		return ((received_header.getSeq() == 0 && stored_header.getSeq() == 0) 
+				|| received_header.getSeq() > stored_header.getSeq());
+	}
 
 	/**
 	 * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
@@ -267,14 +282,17 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianPoseSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
-				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && cp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > cp.getHeader().getSeq()) {
-					synchronized (new_cp) {
-						cp = position;
-						currentCommandType = CommandType.CARTESIAN_POSE;
-						new_cp = true;
-					}
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(position.getHeader(), cp.getHeader())) { 					
+						Logger.error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq() 
+							+ " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
+						return; 
+					} 
+				}
+				synchronized (new_cp) {
+					cp = position;
+					currentCommandType = CommandType.CARTESIAN_POSE;
+					new_cp = true;
 				}
 			}
 		});
@@ -282,18 +300,28 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		cartesianVelocitySubscriber.addMessageListener(new MessageListener<geometry_msgs.TwistStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.TwistStamped velocity) {
-				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && cv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > cv.getHeader().getSeq()) {
-					cv = velocity;
-					currentCommandType = CommandType.CARTESIAN_VELOCITY;
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(velocity.getHeader(), cv.getHeader())) { 					
+						Logger.error("Received a TwistStamped message with the SeqNum " + velocity.getHeader().getSeq() 
+							+ ". while expecting a SeqNum larger than " + cv.getHeader().getSeq());
+						return; 
+					} 
 				}
+				cv = velocity;
+				currentCommandType = CommandType.CARTESIAN_VELOCITY;
 			}
 		});
 
 		cartesianPoseLinSubscriber.addMessageListener(new MessageListener<geometry_msgs.PoseStamped>() {
 			@Override
 			public void onNewMessage(geometry_msgs.PoseStamped position) {
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(position.getHeader(), cp_lin.getHeader())) { 					
+						Logger.error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq() 
+							+ " while expecting a SeqNum larger than " + cp_lin.getHeader().getSeq());
+						return; 
+					} 
+				}
 				synchronized (new_cp_lin) {
 					cp_lin = position;
 					currentCommandType = CommandType.CARTESIAN_POSE_LIN;
@@ -305,14 +333,17 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionSubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPosition>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPosition position) {
-				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((position.getHeader().getSeq() == 0 && jp.getHeader().getSeq() == 0) 
-						|| position.getHeader().getSeq() > jp.getHeader().getSeq()) {
-					synchronized (new_jp) {
-						jp = position;
-						currentCommandType = CommandType.JOINT_POSITION;
-						new_jp = true;
-					}
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(position.getHeader(), jp.getHeader())) { 					
+						Logger.error("Received a JointPosition message with the SeqNum " + position.getHeader().getSeq() 
+							+ " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
+						return; 
+					} 
+				}
+				synchronized (new_jp) {
+					jp = position;
+					currentCommandType = CommandType.JOINT_POSITION;
+					new_jp = true;
 				}
 			}
 		});
@@ -320,14 +351,17 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointPositionVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointPositionVelocity>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
-				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((positionVelocity.getHeader().getSeq() == 0 && jpv.getHeader().getSeq() == 0) 
-						|| positionVelocity.getHeader().getSeq() > jpv.getHeader().getSeq()) {
-					synchronized (new_jpv) {
-						jpv = positionVelocity;
-						currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
-						new_jpv = true;
-					}
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(positionVelocity.getHeader(), jpv.getHeader())) { 					
+						Logger.error("Received a JointPositionVelocity message with the SeqNum " + positionVelocity.getHeader().getSeq() 
+							+ " while expecting a SeqNum larger than " + jpv.getHeader().getSeq());
+						return; 
+					} 
+				}
+				synchronized (new_jpv) {
+					jpv = positionVelocity;
+					currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+					new_jpv = true;
 				}
 			}
 		});
@@ -335,12 +369,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
 		jointVelocitySubscriber.addMessageListener(new MessageListener<iiwa_msgs.JointVelocity>() {
 			@Override
 			public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
-				// accept only incrementing sequence numbers (unless the sender is forgetting to set it)
-				if ((velocity.getHeader().getSeq() == 0 && jv.getHeader().getSeq() == 0) 
-						|| velocity.getHeader().getSeq() > jv.getHeader().getSeq()) {
-					jv = velocity;
-					currentCommandType = CommandType.JOINT_VELOCITY;
+				if (enforceMessageSequence) { 
+					if (!checkMessageSequence(velocity.getHeader(), jv.getHeader())) { 					
+						Logger.error("Received a JointVelocity message with the SeqNum " + velocity.getHeader().getSeq() 
+							+ " while expecting a SeqNum larger than " + jv.getHeader().getSeq());
+						return; 
+					} 
 				}
+				jv = velocity;
+				currentCommandType = CommandType.JOINT_VELOCITY;
 			}
 		});
 

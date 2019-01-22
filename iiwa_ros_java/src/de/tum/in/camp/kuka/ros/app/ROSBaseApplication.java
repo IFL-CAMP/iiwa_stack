@@ -171,7 +171,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			throw new RuntimeException("Could not init the RoboticApplication successfully");
 		}
 		try {
-			Logger.info("Waiting for ROS Master to connect... ");
+			Logger.info("Waiting for ROS Master to connect at " + Configuration.getMasterIp());
 			configuration.waitForInitialization();
 			Logger.info("ROS Master is connected!");
 		} catch (InterruptedException e1) {
@@ -231,10 +231,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 			} 
 		}
 		catch (Exception e) {
+			dispose();
 			Logger.info("ROS control loop aborted. " + e.toString());
 		} finally {
-			cleanup();
-			Logger.info("ROS control loop has ended. Application terminated.");
+			Logger.info("ROS control loop has ended. The application will be terminated.");
 		}
 	}
 	
@@ -256,10 +256,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	void cleanup() {
 		running = false;
 		if (nodeMainExecutor != null) {
-			Logger.info("Stopping ROS nodes");
+			Logger.info("Stopping ROS nodes...");
 			nodeMainExecutor.shutdown();	
 			nodeMainExecutor.getScheduledExecutorService().shutdownNow();
 		}
-		Logger.info("Stopped ROS nodes");
+		Logger.info("Stopped ROS nodes.");
 	}
 }
