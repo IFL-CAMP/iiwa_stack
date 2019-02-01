@@ -72,7 +72,7 @@ bool iiwaRos::getRobotIsConnected()
   return (diff < ros::Duration(0.25));
 }
 
-bool iiwaRos::getCartesianPose(geometry_msgs::PoseStamped& value)
+bool iiwaRos::getCartesianPose(iiwa_msgs::CartesianPose& value)
 {
   return holder_state_pose_.get(value);
 }
