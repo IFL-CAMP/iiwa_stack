@@ -41,7 +41,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 
 	// ROSJava Publishers for iiwa_msgs
 	// Cartesian Message Publishers
-	private Publisher<geometry_msgs.PoseStamped> cartesianPosePublisher;
+	private Publisher<iiwa_msgs.CartesianPose> cartesianPosePublisher;
 	private Publisher<geometry_msgs.WrenchStamped> cartesianWrenchPublisher;
 	// Joint Message Publishers
 	private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
@@ -66,7 +66,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	private ConnectedNode node = null;
 
 	// Cache objects
-	private geometry_msgs.PoseStamped cp;
+	private iiwa_msgs.CartesianPose cp;
 	private geometry_msgs.WrenchStamped cw;
 	private iiwa_msgs.JointPosition jp;
 	private iiwa_msgs.JointPositionVelocity jpv;
@@ -87,7 +87,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 		iiwaName = robotName;
 		helper = new MessageGenerator(iiwaName, configuration);
 
-		cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
+		cp = helper.buildMessage(iiwa_msgs.CartesianPose._TYPE);
 		cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);
 		jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
 		jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
@@ -134,7 +134,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 	public void onStart(final ConnectedNode connectedNode) {
 		node = connectedNode;
 		
-		cartesianPosePublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPose", geometry_msgs.PoseStamped._TYPE);
+		cartesianPosePublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianPose", iiwa_msgs.CartesianPose._TYPE);
 		cartesianWrenchPublisher = connectedNode.newPublisher(iiwaName + "/state/CartesianWrench", geometry_msgs.WrenchStamped._TYPE);
 
 		jointPositionPublisher = connectedNode.newPublisher(iiwaName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
@@ -174,8 +174,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 	 */
 	public void publishCurrentState(LBR robot, SmartServo motion, ObjectFrame frame) throws InterruptedException {
 		if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
+			// TODO: Publish redundancy data
 			helper.getCurrentCartesianPose(cp, robot, frame);
-			helper.incrementSeqNumber(cp.getHeader());
+			helper.incrementSeqNumber(cp.getPose().getHeader());
 			cartesianPosePublisher.publish(cp);
 		}
 		if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0) {

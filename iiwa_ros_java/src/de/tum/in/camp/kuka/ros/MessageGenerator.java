@@ -38,6 +38,8 @@ import org.ros.time.TimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
@@ -86,7 +88,7 @@ public class MessageGenerator {
 	 * @param currentPose : the PoseStamped message that will be created.
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 */
-	public void getCurrentCartesianPose(geometry_msgs.PoseStamped currentPose, LBR robot) {
+	public void getCurrentCartesianPose(iiwa_msgs.CartesianPose currentPose, LBR robot) {
 		getCurrentCartesianPose(currentPose, robot, robot.getFlange());
 	}
 
@@ -98,15 +100,20 @@ public class MessageGenerator {
 	 * @param robot : an iiwa Robot, its current state is used to set the values of the message.
 	 * @param frame : reference frame to set the values of the Cartesian position.
 	 */
-	public void getCurrentCartesianPose(geometry_msgs.PoseStamped currentPose, LBR robot, ObjectFrame frame) {
-		Transformation transform = robot.getCurrentCartesianPosition(frame).transformationFromWorld();
+	public void getCurrentCartesianPose(iiwa_msgs.CartesianPose currentPose, LBR robot, ObjectFrame frame) {
+		Frame cartesianFrame = robot.getCurrentCartesianPosition(frame);
+		Transformation transform = cartesianFrame.transformationFromWorld();
 
-		currentPose.getHeader().setFrameId(baseFrameID);  
-		currentPose.getHeader().setStamp(time.getCurrentTime());
+		currentPose.getPose().getHeader().setFrameId(baseFrameID);  
+		currentPose.getPose().getHeader().setStamp(time.getCurrentTime());
 
-		Conversions.kukaTransformationToRosPose(transform, currentPose.getPose());
+		Conversions.kukaTransformationToRosPose(transform, currentPose.getPose().getPose());
+		
+		LBRE1Redundancy redundancy = (LBRE1Redundancy)cartesianFrame.getRedundancyInformationForDevice(robot);
+		currentPose.getRedundancy().setE1(redundancy.getE1());
+		currentPose.getRedundancy().setStatus(redundancy.getStatus());
+		currentPose.getRedundancy().setTurn(redundancy.getTurn());
 	}
-
 
 	/**
 	 * Builds a geometry_msgs.WrenchStamped message given a LBR iiwa Robot.<p>
