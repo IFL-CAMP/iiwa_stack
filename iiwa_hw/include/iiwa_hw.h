@@ -65,8 +65,7 @@
 constexpr int DEFAULT_CONTROL_FREQUENCY = 1000;  // Hz
 constexpr int IIWA_JOINTS = 7;
 
-class IIWA_HW : public hardware_interface::RobotHW
-{
+class IIWA_HW : public hardware_interface::RobotHW {
 public:
   /**
    * Constructor
@@ -76,7 +75,7 @@ public:
   /**
    * Destructor
    */
-  virtual ~IIWA_HW();
+  virtual ~IIWA_HW() = default;
 
   /**
    * \brief Initializes the IIWA device struct and all the hardware and joint limits interfaces needed.
@@ -122,8 +121,7 @@ public:
   void setFrequency(double frequency);
 
   /** Structure for a lbr iiwa, joint handles, etc */
-  struct IIWA_device
-  {
+  struct IIWA_device {
     /** Vector containing the name of the joints - taken from yaml file */
     std::vector<std::string> joint_names;
 
@@ -138,8 +136,7 @@ public:
     /**
      * \brief Initialze vectors
      */
-    void init()
-    {
+    void init() {
       joint_position.resize(IIWA_JOINTS);
       joint_position_prev.resize(IIWA_JOINTS);
       joint_velocity.resize(IIWA_JOINTS);
@@ -157,10 +154,8 @@ public:
     /**
      * \brief Reset values of the vectors
      */
-    void reset()
-    {
-      for (int j = 0; j < IIWA_JOINTS; ++j)
-      {
+    void reset() {
+      for (size_t j = 0; j < IIWA_JOINTS; ++j) {
         joint_position[j] = 0.0;
         joint_position_prev[j] = 0.0;
         joint_velocity[j] = 0.0;
@@ -180,7 +175,7 @@ private:
   ros::NodeHandle nh_;
 
   /* Parameters */
-  std::string interface_, movegroup_name_;
+  std::string robot_name_{""}, interface_{""}, movegroup_name_{""};
   urdf::Model urdf_model_;
 
   hardware_interface::JointStateInterface state_interface_;       /**< Interface for joint state */
@@ -193,7 +188,7 @@ private:
   joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
   joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
 
-  boost::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
+  std::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
 
   /** Objects to control send/receive rate. */
   ros::Time timer_;
@@ -213,8 +208,7 @@ private:
 };
 
 template <typename T>
-void iiwaMsgsJointToVector(const iiwa_msgs::JointQuantity& ax, std::vector<T>& v)
-{
+void iiwaMsgsJointToVector(const iiwa_msgs::JointQuantity& ax, std::vector<T>& v) {
   v[0] = ax.a1;
   v[1] = ax.a2;
   v[2] = ax.a3;
@@ -225,8 +219,7 @@ void iiwaMsgsJointToVector(const iiwa_msgs::JointQuantity& ax, std::vector<T>& v
 }
 
 template <typename T>
-void vectorToIiwaMsgsJoint(const std::vector<T>& v, iiwa_msgs::JointQuantity& ax)
-{
+void vectorToIiwaMsgsJoint(const std::vector<T>& v, iiwa_msgs::JointQuantity& ax) {
   ax.a1 = v[0];
   ax.a2 = v[1];
   ax.a3 = v[2];

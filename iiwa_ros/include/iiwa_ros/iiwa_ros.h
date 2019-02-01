@@ -40,8 +40,8 @@
 #include <iiwa_msgs/JointStiffness.h>
 #include <iiwa_msgs/JointTorque.h>
 #include <iiwa_msgs/JointVelocity.h>
-#include <iiwa_ros/path_parameters_service.h>
 #include <iiwa_ros/path_parameters_lin_service.h>
+#include <iiwa_ros/path_parameters_service.h>
 #include <iiwa_ros/smart_servo_service.h>
 #include <iiwa_ros/time_to_destination_service.h>
 #include <ros/ros.h>
@@ -50,28 +50,22 @@
 #include <mutex>
 #include <string>
 
-namespace iiwa_ros
-{
+namespace iiwa_ros {
 extern ros::Time last_update_time;
 
 template <typename ROSMSG>
-class iiwaHolder
-{
+class iiwaHolder {
 public:
-  iiwaHolder() : is_new(false)
-  {
-  }
+  iiwaHolder() : is_new(false) {}
 
-  void set_value(const ROSMSG& value)
-  {
+  void set_value(const ROSMSG& value) {
     mutex.lock();
     data = value;
     is_new = true;
     mutex.unlock();
   }
 
-  bool get_value(ROSMSG& value)
-  {
+  bool get_value(ROSMSG& value) {
     bool was_new = false;
 
     mutex.lock();
@@ -83,15 +77,9 @@ public:
     return was_new;
   }
 
-  bool has_new_value()
-  {
-    return is_new;
-  }
+  bool has_new_value() { return is_new; }
 
-  ROSMSG get_value_unsynchronized()
-  {
-    return data;
-  }
+  ROSMSG get_value_unsynchronized() { return data; }
 
 private:
   ROSMSG data;
@@ -100,30 +88,21 @@ private:
 };
 
 template <typename ROSMSG>
-class iiwaStateHolder
-{
+class iiwaStateHolder {
 public:
-  void init(const std::string& topic)
-  {
+  void init(const std::string& topic) {
     ros::NodeHandle nh;
     subscriber = nh.subscribe<ROSMSG>(topic, 1, &iiwaStateHolder<ROSMSG>::set, this);
   }
 
-  bool has_new_value()
-  {
-    return holder.has_new_value();
-  }
+  bool has_new_value() { return holder.has_new_value(); }
 
-  void set(ROSMSG value)
-  {
+  void set(ROSMSG value) {
     last_update_time = ros::Time::now();
     holder.set_value(value);
   }
 
-  bool get(ROSMSG& value)
-  {
-    return holder.get_value(value);
-  }
+  bool get(ROSMSG& value) { return holder.get_value(value); }
 
 private:
   iiwaHolder<ROSMSG> holder;
@@ -131,30 +110,20 @@ private:
 };
 
 template <typename ROSMSG>
-class iiwaCommandHolder
-{
+class iiwaCommandHolder {
 public:
-  void init(const std::string& topic)
-  {
+  void init(const std::string& topic) {
     ros::NodeHandle nh;
     publisher = nh.advertise<ROSMSG>(topic, 1);
   }
 
-  void set(const ROSMSG& value)
-  {
-    holder.set_value(value);
-  }
+  void set(const ROSMSG& value) { holder.set_value(value); }
 
-  ROSMSG get()
-  {
-    return holder.get_value_unsynchronized();
-  }
+  ROSMSG get() { return holder.get_value_unsynchronized(); }
 
-  void publishIfNew()
-  {
+  void publishIfNew() {
     static ROSMSG msg;
-    if (publisher.getNumSubscribers() && holder.get_value(msg))
-      publisher.publish(msg);
+    if (publisher.getNumSubscribers() && holder.get_value(msg)) publisher.publish(msg);
   }
 
 private:
@@ -162,8 +131,7 @@ private:
   iiwaHolder<ROSMSG> holder;
 };
 
-class iiwaRos
-{
+class iiwaRos {
 public:
   /**
    * @brief Constructor for class iiwaRos holding all the methods to command and get the state of the robot.
@@ -175,7 +143,7 @@ public:
    *
    * @return void
    */
-  void init();
+  void init(const std::string& robot_namespace = "");
 
   /**
    * @brief Returns true is a new Cartesian pose of the robot is available.
@@ -246,50 +214,38 @@ public:
    *
    * @return iiwa_ros::SmartServoService
    */
-  SmartServoService getSmartServoService()
-  {
-    return smart_servo_service_;
-  }
+  SmartServoService getSmartServoService() { return smart_servo_service_; }
 
   /**
    * @brief Returns the object that allows to call the timeToDestination service.
    *
    * @return iiwa_ros::PathParametersService
    */
-  PathParametersService getPathParametersService()
-  {
-    return path_parameters_service_;
-  }
+  PathParametersService getPathParametersService() { return path_parameters_service_; }
 
   /**
    * @brief Returns the object that allows to call the timeToDestination service.
    *
    * @return iiwa_ros::PathParametersService
    */
-  PathParametersLinService getPathParametersLinService()
-  {
-    return path_parameters_lin_service_;
-  }
+  PathParametersLinService getPathParametersLinService() { return path_parameters_lin_service_; }
 
   /**
    * @brief Returns the object that allows to call the setPathParameters service.
    *
    * @return iiwa_ros::TimeToDestinationService
    */
-  TimeToDestinationService getTimeToDestinationService()
-  {
-    return time_to_destination_service_;
-  };
+  TimeToDestinationService getTimeToDestinationService() { return time_to_destination_service_; };
 
   /**
    * @brief Set the cartesian pose of the robot.
    *
    * @param position the cartesian pose to set the robot.
    * @return void
-   */  
+   */
   void setCartesianPose(const geometry_msgs::PoseStamped& position);
-  
-    /**
+
+  /**
    * @brief Set the cartesian pose of the robot.
    *
    * @param position the cartesian pose to set the robot.
@@ -297,7 +253,7 @@ public:
    * @return void
    */
   void setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback);
-  
+
   /**
    * @brief Set the cartesian pose of the robot with a linear movement.
    *
@@ -305,15 +261,15 @@ public:
    * @return void
    */
   void setCartesianPoseLin(const geometry_msgs::PoseStamped& position);
-  
-   /**
+
+  /**
    * @brief Set the cartesian pose of the robot with a linear movement.
    *
    * @param position the cartesian pose to set the robot.
    * @param callback function to be called when the movement is finished.
    * @return void
    */
-  void setCartesianPoseLin(const geometry_msgs::PoseStamped& position , std::function<void()> callback);
+  void setCartesianPoseLin(const geometry_msgs::PoseStamped& position, std::function<void()> callback);
 
   /**
    * @brief Set the joint position of the robot.
@@ -368,4 +324,4 @@ private:
   std::function<void()> callback_;
   void timeToDestinationWatcher();
 };
-}
+}  // namespace iiwa_ros

@@ -93,7 +93,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
 	@Override
 	protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration);
+		subscriber = new iiwaSubscriber(robot, Configuration.getRobotName(), configuration.getTimeProvider(), configuration.getEnforceMessageSequence());
 
 		// Configure the callback for the SmartServo service inside the subscriber class.
 		subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
