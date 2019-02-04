@@ -7,5 +7,5 @@
   <arg name="origin_xyz" default="'0 0 0'"/> <!-- Note the syntax to pass a vector -->
   <arg name="origin_rpy" default="'0 0 0'"/>
   
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find iiwa_description)/urdf/iiwa7.urdf.xacro' hardware_interface:=$(arg hardware_interface) robot_name:=$(arg robot_name) origin_xyz:=$(arg origin_xyz) origin_rpy:=$(arg origin_rpy)" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find iiwa_description)/urdf/iiwa7.urdf.xacro' hardware_interface:=$(arg hardware_interface) robot_name:=$(arg robot_name) origin_xyz:=$(arg origin_xyz) origin_rpy:=$(arg origin_rpy)" />
 </launch> 
