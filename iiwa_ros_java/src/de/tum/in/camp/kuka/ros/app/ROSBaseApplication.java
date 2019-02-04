@@ -58,7 +58,6 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-import de.tum.in.robotics.SchunkEGN100;
 
 /*
  * Base application for all ROS-Sunrise applications. 
@@ -97,9 +96,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 	protected Configuration configuration;
 	
 	// Tool
-	//protected ROSTool rosTool = null;
+	protected ROSTool rosTool = null;
 	// TODO: Replace this with the tool you are using, e.g.:
-	@Inject protected SchunkEGN100 rosTool;
+	// @Inject protected SchunkEGN100 rosTool;
 
 	// ROS Configuration and Node execution objects.
 	protected NodeConfiguration nodeConfPublisher;

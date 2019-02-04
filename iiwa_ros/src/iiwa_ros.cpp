@@ -69,16 +69,14 @@ bool iiwaRos::getRobotIsConnected() {
   ros::Duration diff = (ros::Time::now() - last_update_time);
   return (diff < ros::Duration(0.25));
 }
-
-bool iiwaRos::getCartesianPose(geometry_msgs::PoseStamped& value) { return holder_state_pose_.get(value); }
+  
+bool iiwaRos::getCartesianPose(iiwa_msgs::CartesianPose& value) { return holder_state_pose_.get(value); }
 bool iiwaRos::getJointPosition(iiwa_msgs::JointPosition& value) { return holder_state_joint_position_.get(value); }
 bool iiwaRos::getJointTorque(iiwa_msgs::JointTorque& value) { return holder_state_joint_torque_.get(value); }
 bool iiwaRos::getJointStiffness(iiwa_msgs::JointStiffness& value) { return holder_state_joint_stiffness_.get(value); }
 bool iiwaRos::getCartesianWrench(geometry_msgs::WrenchStamped& value) { return holder_state_wrench_.get(value); }
 bool iiwaRos::getJointVelocity(iiwa_msgs::JointVelocity& value) { return holder_state_joint_velocity_.get(value); }
-bool iiwaRos::getJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value) {
-  return holder_state_joint_position_velocity_.get(value);
-}
+bool iiwaRos::getJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value) { return holder_state_joint_position_velocity_.get(value); }
 bool iiwaRos::getJointDamping(iiwa_msgs::JointDamping& value) { return holder_state_joint_damping_.get(value); }
 
 void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position) {

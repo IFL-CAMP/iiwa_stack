@@ -32,6 +32,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <iiwa_msgs/CartesianPose.h>
 #include <iiwa_msgs/CartesianVelocity.h>
 #include <iiwa_msgs/JointDamping.h>
 #include <iiwa_msgs/JointPosition.h>
@@ -150,7 +151,7 @@ public:
    * @param value the current Cartesian Pose of the robot.
    * @return bool
    */
-  bool getCartesianPose(geometry_msgs::PoseStamped& value);
+  bool getCartesianPose(iiwa_msgs::CartesianPose& value);
 
   /**
    * @brief Returns true is a new Joint position of the robot is available.
@@ -300,7 +301,7 @@ public:
   bool getRobotIsConnected();
 
 private:
-  iiwaStateHolder<geometry_msgs::PoseStamped> holder_state_pose_;
+  iiwaStateHolder<iiwa_msgs::CartesianPose> holder_state_pose_;
   iiwaStateHolder<iiwa_msgs::JointPosition> holder_state_joint_position_;
   iiwaStateHolder<iiwa_msgs::JointTorque> holder_state_joint_torque_;
   iiwaStateHolder<geometry_msgs::WrenchStamped> holder_state_wrench_;

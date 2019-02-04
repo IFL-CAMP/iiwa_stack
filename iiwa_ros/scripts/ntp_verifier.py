@@ -2,7 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import JointState
-import geometry_msgs
+import iiwa_msgs
 
 rospy.init_node('ntp_verifier')
 
@@ -17,7 +17,7 @@ def print_msg(msg):
 		diff = msg.header.stamp - rospy.Time.now()
 		print('time difference: {} secs'.format(diff.to_sec()))
 
-sub = rospy.Subscriber('/iiwa/state/CartesianPose', geometry_msgs.msg.PoseStamped, ntplog, queue_size=1)
+sub = rospy.Subscriber('/iiwa/state/CartesianPose', iiwa_msgs.msg.CartesianPose, ntplog, queue_size=1)
 
 while not rospy.is_shutdown():
 	print_msg(last_msg)
