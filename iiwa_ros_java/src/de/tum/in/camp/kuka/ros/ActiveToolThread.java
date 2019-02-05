@@ -27,27 +27,22 @@ package de.tum.in.camp.kuka.ros;
 
 import java.util.TimerTask;
 
-import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+public class ActiveToolThread extends TimerTask {
 
-public class PublisherThread extends TimerTask {
-  private iiwaPublisher publisher = null;
-  private ObjectFrame endpointFrame = null;
+  private ActiveTool tool = null;
 
-  public PublisherThread(iiwaPublisher publisher, ObjectFrame endpointFrame) {
-    this.publisher = publisher;
-    this.endpointFrame = endpointFrame;
+  public ActiveToolThread(ActiveTool tool) {
+    this.tool = tool;
   }
 
-  public void changeEndpointFrame(ObjectFrame endpointFrame) {
-    this.endpointFrame = endpointFrame;
-  }
-
+  @Override
   public void run() {
     try {
-      publisher.publishCurrentState(endpointFrame);
+      tool.publishCurrentState();
     }
     catch (InterruptedException e) {
       Logger.error(e.toString());
     }
   }
+
 }

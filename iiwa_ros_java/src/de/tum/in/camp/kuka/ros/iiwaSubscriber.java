@@ -322,9 +322,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
     long time = pose.getHeader().getStamp().totalNsecs();
 
-    System.out.println("Transforming pose from " + pose.getHeader().getFrameId() + " to " + tartget_frame
-        + " for time " + time);
-
     PoseStamped result = helper.buildMessage(PoseStamped._TYPE);
     result.getHeader().setFrameId(tartget_frame);
     result.getHeader().setSeq(pose.getHeader().getSeq());

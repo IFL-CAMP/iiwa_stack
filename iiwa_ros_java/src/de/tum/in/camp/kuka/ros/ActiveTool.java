@@ -26,7 +26,7 @@ package de.tum.in.camp.kuka.ros;
 
 import org.ros.node.NodeMainExecutor;
 
-public interface ROSTool {
+public interface ActiveTool {
   /**
    * This method is called after construction is done.
    */

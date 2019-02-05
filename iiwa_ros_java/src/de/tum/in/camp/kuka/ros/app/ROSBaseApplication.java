@@ -50,12 +50,14 @@ import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
 
+import de.tum.in.camp.kuka.ros.ActionServerThread;
+import de.tum.in.camp.kuka.ros.ActiveToolThread;
 import de.tum.in.camp.kuka.ros.AddressGeneration;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
 import de.tum.in.camp.kuka.ros.PublisherThread;
-import de.tum.in.camp.kuka.ros.ROSTool;
+import de.tum.in.camp.kuka.ros.ActiveTool;
 import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
@@ -90,16 +92,22 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected boolean running = true;
 
   // ROS Nodes.
-  protected iiwaPublisher publisher = null;
-  protected iiwaActionServer actionServer = null;
   protected Configuration configuration = null;
 
+  protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
   Timer publisherTimer = null;
 
-  // Tool
-  protected ROSTool rosTool = null;
-  // TODO: Replace this with the tool you are using, e.g.:
+  protected iiwaActionServer actionServer = null;
+  ActionServerThread actionServerThread = null;
+  Timer actionServerTimer = null;
+
+  // Active tool, you can replace this with a tool you are using that supports ROS messages.
+  protected ActiveTool rosTool = null;
+  ActiveToolThread activeToolThread = null;
+  Timer activeToolTimer = null;
+
+  // For example: /TODO maybe provide this class as an example.
   // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
@@ -304,15 +312,19 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       publisherTimer = new Timer();
       publisherTimer.scheduleAtFixedRate(publisherThread, 0, 1);
 
-      while (running) {
-        decimationCounter++;
-        if (rosTool != null) {
-          rosTool.publishCurrentState();
-        }
-        actionServer.publishCurrentState();
+      actionServerThread = new ActionServerThread(actionServer);
+      actionServerTimer = new Timer();
+      actionServerTimer.scheduleAtFixedRate(actionServerThread, 0, 500);
 
+      if (rosTool != null) {
+        activeToolThread = new ActiveToolThread(rosTool);
+        activeToolTimer = new Timer();
+        activeToolTimer.scheduleAtFixedRate(activeToolThread, 0, 100);
+      }
+
+      while (running) {
         // Perform control loop specified by subclass.
-        if ((decimationCounter % controlDecimation) == 0) controlLoop();
+        controlLoop();
       }
     }
     catch (Exception e) {
@@ -340,18 +352,24 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     super.onApplicationStateChanged(state);
   };
 
-  void cleanup() {
+  private void cleanup() {
     running = false;
-    if (publisherTimer != null) {
-      publisherTimer.cancel();
-      publisherTimer.purge();
-    }
+    disposeTimer(publisherTimer);
+    disposeTimer(actionServerTimer);
+    disposeTimer(activeToolTimer);
     if (nodeMainExecutor != null) {
       Logger.info("Stopping ROS nodes...");
       nodeMainExecutor.shutdown();
       nodeMainExecutor.getScheduledExecutorService().shutdownNow();
     }
     Logger.info("Stopped ROS nodes.");
+  }
+
+  private void disposeTimer(Timer timer) {
+    if (timer != null) {
+      timer.cancel();
+      timer.purge();
+    }
   }
 
   public boolean isRunning() {
