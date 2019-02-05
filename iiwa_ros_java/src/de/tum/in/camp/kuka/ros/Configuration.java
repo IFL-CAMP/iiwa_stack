@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische Universitï¿½t Mï¿½nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -109,26 +109,24 @@ public class Configuration extends AbstractNodeMain {
 	}
 
 	private static void configure() {
-		System.out.println("Environment: JVM version "+System.getProperty("java.version"));
-		
-		parseConfigFile(); //TODO : use KUKA's process data?
+		robotName = applicationData.getProcessData("robot_name").getValue();
+		robotIp = applicationData.getProcessData("robot_ip").getValue();
 
-		// Obtain name of the robot from config file
-		robotName = config.get("robot_name");
-		System.out.println("Robot name: " + robotName);
-		robotIp = config.get("robot_ip");
-		System.out.println("IP from configuration: " + robotIp); // automatic discovery not reliable with x66
+		// Check if NTP Server is used or not.
+		ntpWithHost  = applicationData.getProcessData("ntp").getValue();
 
-		// Obtain if NTP server is used from config file
-		ntpWithHost  = config.get("ntp_with_host").equals("true");
-
-		// Obtain IP:port of the ROS Master 
-		masterIp = config.get("master_ip");
-		masterPort = config.get("master_port");
+		// Obtain IP and port of the ROS Master 
+		masterIp = applicationData.getProcessData("master_ip").getValue();
+		masterPort = applicationData.getProcessData("master_port").getValue();
 		masterUri = "http://" + masterIp + ":" + masterPort;
-		System.out.println("Master URI: " + masterUri);
 
 		staticConfigurationSuccessful = true;
+	}
+	
+	private void printConfiguration() {
+		System.out.println("Robot name: " + robotName);
+		System.out.println("IP from configuration: " + robotIp);
+		System.out.println("Master URI: " + masterUri);
 	}
 
 	/**
@@ -211,8 +209,10 @@ public class Configuration extends AbstractNodeMain {
 	}
 
 	private ParameterTree getParameterTree() {
-		if (initSemaphore.availablePermits() > 0)
-			System.out.println("waitForInitialization not called before using parameters!");
+		if (initSemaphore.availablePermits() > 0) { 
+			System.out.println("waitForInitialization not called before using parameters!"); 
+		}
+		if (node == null) { return null;  }
 		return node.getParameterTree();
 	}
 
@@ -274,6 +274,19 @@ public class Configuration extends AbstractNodeMain {
 		if (publishStates == null)
 			publishStates = false;
 		return publishStates;
+	}
+	
+	/**
+	 * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS param server.
+	 * 
+	 * @return the default relative joint speed
+	 */
+	public Boolean getEnforceMessageSequence() {
+		Boolean enforceMessageSequence = getBooleanParameter("enforceMessageSequence");
+		if (enforceMessageSequence == null) {
+			enforceMessageSequence = false;
+		}
+		return enforceMessageSequence;
 	}
 
 	/**
@@ -399,8 +412,7 @@ public class Configuration extends AbstractNodeMain {
 		List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
 		List<?> rawParam = getListParameter("toolbarSpecifications");
 
-		if (rawParam == null)
-			return null;
+		if (rawParam == null) { return null; }
 
 		@SuppressWarnings("unchecked")
 		List<String> stringParam = new LinkedList<String>((Collection<? extends String>) rawParam);
@@ -415,8 +427,8 @@ public class Configuration extends AbstractNodeMain {
 				buttons.add(stringParam.get(0));
 				stringParam.remove(0);
 			}
-			if (buttons.size() == 0) // toolbar name but no buttons; TODO: log
-				continue;
+			// toolbar name but no buttons; TODO: log
+			if (buttons.size() == 0)  { continue; }
 			ts.buttonIDs = buttons.toArray(new String[buttons.size()]);
 			ret.add(ts);
 		}
@@ -432,6 +444,7 @@ public class Configuration extends AbstractNodeMain {
 	public Double getDoubleParameter(String argname) {
 		params = getParameterTree();
 		Double ret = null;
+		if (params == null) { return null; }
 		try {
 			ret = params.getDouble(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
@@ -448,6 +461,7 @@ public class Configuration extends AbstractNodeMain {
 	public Boolean getBooleanParameter(String argname) {
 		params = getParameterTree();
 		Boolean ret = null;
+		if (params == null) { return null; }
 		try {
 			ret = params.getBoolean(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {
@@ -464,6 +478,7 @@ public class Configuration extends AbstractNodeMain {
 	public String getStringParameter(String argname) {
 		params = getParameterTree();
 		String ret = null;
+		if (params == null) { return null; }
 		try {
 			ret = params.getString(robotName + "/" + argname);			
 		} catch (ParameterNotFoundException e) {

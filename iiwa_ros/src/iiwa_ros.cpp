@@ -31,145 +31,103 @@
 #include "iiwa_ros/iiwa_ros.h"
 #include <thread>
 
-
 using namespace std;
 
-namespace iiwa_ros
-{
+namespace iiwa_ros {
 ros::Time last_update_time;
 
-iiwaRos::iiwaRos()
-{
+iiwaRos::iiwaRos() {}
+
+void iiwaRos::init(const string& robot_namespace) {
+  // Build the correct ROS namespace if one was given, else use the root namespace.
+  std::string ros_namespace{"/"};
+  if (!robot_namespace.empty()) { ros_namespace.append(robot_namespace + "/"); }
+
+  holder_state_pose_.init(ros_namespace + "state/CartesianPose");
+  holder_state_joint_position_.init(ros_namespace + "state/JointPosition");
+  holder_state_joint_torque_.init(ros_namespace + "state/JointTorque");
+  holder_state_wrench_.init(ros_namespace + "state/CartesianWrench");
+  holder_state_joint_stiffness_.init(ros_namespace + "state/JointStiffness");
+  holder_state_joint_position_velocity_.init(ros_namespace + "state/JointPositionVelocity");
+  holder_state_joint_damping_.init(ros_namespace + "state/JointDamping");
+  holder_state_joint_velocity_.init(ros_namespace + "state/JointVelocity");
+  holder_state_destination_reached_.init(ros_namespace + "state/DestinationReached");
+
+  holder_command_pose_.init(ros_namespace + "command/CartesianPose");
+  holder_command_pose_lin_.init(ros_namespace + "command/CartesianPoseLin");
+  holder_command_joint_position_.init(ros_namespace + "command/JointPosition");
+  holder_command_joint_position_velocity_.init(ros_namespace + "/command/JointPositionVelocity");
+  holder_command_joint_velocity_.init(ros_namespace + "command/JointVelocity");
+
+  smart_servo_service_.setServiceName(ros_namespace + "configuration/configureSmartServo");
+  path_parameters_service_.setServiceName(ros_namespace + "configuration/pathParameters");
+  path_parameters_lin_service_.setServiceName(ros_namespace + "configuration/pathParametersLin");
+  time_to_destination_service_.setServiceName(ros_namespace + "state/timeToDestination");
 }
 
-void iiwaRos::init()
-{
-  holder_state_pose_.init("state/CartesianPose");
-  holder_state_joint_position_.init("state/JointPosition");
-  holder_state_joint_torque_.init("state/JointTorque");
-  holder_state_wrench_.init("state/CartesianWrench");
-  holder_state_joint_stiffness_.init("state/JointStiffness");
-  holder_state_joint_position_velocity_.init("state/JointPositionVelocity");
-  holder_state_joint_damping_.init("state/JointDamping");
-  holder_state_joint_velocity_.init("state/JointVelocity");
-  holder_state_destination_reached_.init("state/DestinationReached");
-
-  holder_command_pose_.init("command/CartesianPose");
-  holder_command_pose_lin_.init("command/CartesianPoseLin");
-  holder_command_joint_position_.init("command/JointPosition");
-  holder_command_joint_position_velocity_.init("command/JointPositionVelocity");
-  holder_command_joint_velocity_.init("command/JointVelocity");
-
-  smart_servo_service_.setServiceName("configuration/configureSmartServo");
-  path_parameters_service_.setServiceName("configuration/pathParameters");
-  path_parameters_lin_service_.setServiceName("configuration/pathParametersLin");
-  time_to_destination_service_.setServiceName("state/timeToDestination");
-}
-
-bool iiwaRos::getRobotIsConnected()
-{
+bool iiwaRos::getRobotIsConnected() {
   ros::Duration diff = (ros::Time::now() - last_update_time);
   return (diff < ros::Duration(0.25));
 }
+  
+bool iiwaRos::getCartesianPose(iiwa_msgs::CartesianPose& value) { return holder_state_pose_.get(value); }
+bool iiwaRos::getJointPosition(iiwa_msgs::JointPosition& value) { return holder_state_joint_position_.get(value); }
+bool iiwaRos::getJointTorque(iiwa_msgs::JointTorque& value) { return holder_state_joint_torque_.get(value); }
+bool iiwaRos::getJointStiffness(iiwa_msgs::JointStiffness& value) { return holder_state_joint_stiffness_.get(value); }
+bool iiwaRos::getCartesianWrench(geometry_msgs::WrenchStamped& value) { return holder_state_wrench_.get(value); }
+bool iiwaRos::getJointVelocity(iiwa_msgs::JointVelocity& value) { return holder_state_joint_velocity_.get(value); }
+bool iiwaRos::getJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value) { return holder_state_joint_position_velocity_.get(value); }
+bool iiwaRos::getJointDamping(iiwa_msgs::JointDamping& value) { return holder_state_joint_damping_.get(value); }
 
-bool iiwaRos::getCartesianPose(geometry_msgs::PoseStamped& value)
-{
-  return holder_state_pose_.get(value);
-}
-bool iiwaRos::getJointPosition(iiwa_msgs::JointPosition& value)
-{
-  return holder_state_joint_position_.get(value);
-}
-bool iiwaRos::getJointTorque(iiwa_msgs::JointTorque& value)
-{
-  return holder_state_joint_torque_.get(value);
-}
-bool iiwaRos::getJointStiffness(iiwa_msgs::JointStiffness& value)
-{
-  return holder_state_joint_stiffness_.get(value);
-}
-bool iiwaRos::getCartesianWrench(geometry_msgs::WrenchStamped& value)
-{
-  return holder_state_wrench_.get(value);
-}
-bool iiwaRos::getJointVelocity(iiwa_msgs::JointVelocity& value)
-{
-  return holder_state_joint_velocity_.get(value);
-}
-bool iiwaRos::getJointPositionVelocity(iiwa_msgs::JointPositionVelocity& value)
-{
-  return holder_state_joint_position_velocity_.get(value);
-}
-bool iiwaRos::getJointDamping(iiwa_msgs::JointDamping& value)
-{
-  return holder_state_joint_damping_.get(value);
-}
-
-void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position)
-{
+void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position) {
   holder_command_pose_.set(position);
   holder_command_pose_.publishIfNew();
 }
 
-void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback)
-{
+void iiwaRos::setCartesianPose(const geometry_msgs::PoseStamped& position, std::function<void()> callback) {
   setCartesianPose(position);
   callback_ = callback;
   std::thread t(&iiwaRos::timeToDestinationWatcher, this);
   t.detach();
 }
 
-void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position)
-{
+void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position) {
   holder_command_pose_lin_.set(position);
   holder_command_pose_lin_.publishIfNew();
 }
 
-void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position , std::function<void()> callback)
-{
+void iiwaRos::setCartesianPoseLin(const geometry_msgs::PoseStamped& position, std::function<void()> callback) {
   setCartesianPoseLin(position);
   callback_ = callback;
   std::thread t(&iiwaRos::timeToDestinationWatcher, this);
   t.detach();
 }
 
-void iiwaRos::setJointPosition(const iiwa_msgs::JointPosition& position)
-{
+void iiwaRos::setJointPosition(const iiwa_msgs::JointPosition& position) {
   holder_command_joint_position_.set(position);
   holder_command_joint_position_.publishIfNew();
 }
-void iiwaRos::setJointVelocity(const iiwa_msgs::JointVelocity& velocity)
-{
+void iiwaRos::setJointVelocity(const iiwa_msgs::JointVelocity& velocity) {
   holder_command_joint_velocity_.set(velocity);
   holder_command_joint_velocity_.publishIfNew();
 }
-void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value)
-{
+void iiwaRos::setJointPositionVelocity(const iiwa_msgs::JointPositionVelocity& value) {
   holder_command_joint_position_velocity_.set(value);
   holder_command_joint_position_velocity_.publishIfNew();
 }
 
-void iiwaRos::timeToDestinationWatcher()
-{	 
+void iiwaRos::timeToDestinationWatcher() {
   bool flag = false;
   sleep(0.5);
-  for(;;)
-  {
-    if(time_to_destination_service_.getTimeToDestination() > 0)
-    {
-      if(flag == false)
-      {
-	flag = true;
+  for (;;) {
+    if (time_to_destination_service_.getTimeToDestination() > 0) {
+      if (flag == false) { flag = true; }
+    } else {
+      if (flag == true) {
+        callback_();
+        return;
       }
-    }
-    else  
-    {
-      if(flag == true)
-      { 				
-	callback_();
-	return;
-      }   
     }
   }
 }
-}
+}  // namespace iiwa_ros
