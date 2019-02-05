@@ -37,6 +37,8 @@ import org.ros.message.MessageFactory;
 import org.ros.node.NodeConfiguration;
 import org.ros.time.TimeProvider;
 
+import std_msgs.Time;
+
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
@@ -376,5 +378,14 @@ public class MessageGenerator {
     result.getPosition().setZ(mat.getM23());
 
     return result;
+  }
+  
+  /**
+   * Returns the current timestamp.
+   * 
+   * @return
+   */
+  public org.ros.message.Time getCurrentTime() {
+	  return time.getCurrentTime();
   }
 }
