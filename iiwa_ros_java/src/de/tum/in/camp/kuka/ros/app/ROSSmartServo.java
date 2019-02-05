@@ -230,7 +230,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 			@Override
 			public void build(SetWorkpieceRequest req, SetWorkpieceResponse res) throws ServiceException {
 				try {
-					List<SceneGraphObject> oldWorkpieces = tool.getChildren();
+					List<SceneGraphObject> oldWorkpieces;
+					if (tool != null) {
+						oldWorkpieces = tool.getChildren();
+					}
+					else {
+						oldWorkpieces = robot.getChildren();
+					}
+					
 					for (SceneGraphObject oldObject : oldWorkpieces) {
 						if (oldObject instanceof Workpiece) {
 							((Workpiece)oldObject).detach();
