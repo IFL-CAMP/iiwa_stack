@@ -25,22 +25,29 @@
 
 package de.tum.in.camp.kuka.ros;
 
-public class UnsupportedControlModeException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
+import java.util.TimerTask;
 
-  public UnsupportedControlModeException() {
-    super();
+import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+
+public class PublisherThread extends TimerTask {
+  private iiwaPublisher publisher = null;
+  private ObjectFrame endpointFrame = null;
+
+  public PublisherThread(iiwaPublisher publisher, ObjectFrame endpointFrame) {
+    this.publisher = publisher;
+    this.endpointFrame = endpointFrame;
   }
 
-  public UnsupportedControlModeException(String message) {
-    super(message);
+  public void changeEndpointFrame(ObjectFrame endpointFrame) {
+    this.endpointFrame = endpointFrame;
   }
 
-  public UnsupportedControlModeException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public UnsupportedControlModeException(Throwable cause) {
-    super(cause);
+  public void run() {
+    try {
+      publisher.publishCurrentState(endpointFrame);
+    }
+    catch (InterruptedException e) {
+      Logger.error(e.toString());
+    }
   }
 }

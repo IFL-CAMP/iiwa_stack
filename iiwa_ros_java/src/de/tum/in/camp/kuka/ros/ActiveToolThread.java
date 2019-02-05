@@ -25,22 +25,24 @@
 
 package de.tum.in.camp.kuka.ros;
 
-public class UnsupportedControlModeException extends RuntimeException {
-  private static final long serialVersionUID = 1L;
+import java.util.TimerTask;
 
-  public UnsupportedControlModeException() {
-    super();
+public class ActiveToolThread extends TimerTask {
+
+  private ActiveTool tool = null;
+
+  public ActiveToolThread(ActiveTool tool) {
+    this.tool = tool;
   }
 
-  public UnsupportedControlModeException(String message) {
-    super(message);
+  @Override
+  public void run() {
+    try {
+      tool.publishCurrentState();
+    }
+    catch (InterruptedException e) {
+      Logger.error(e.toString());
+    }
   }
 
-  public UnsupportedControlModeException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public UnsupportedControlModeException(Throwable cause) {
-    super(cause);
-  }
 }

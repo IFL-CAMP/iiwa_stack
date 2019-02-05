@@ -24,16 +24,23 @@
 
 package de.tum.in.camp.kuka.ros;
 
-public class CommantTypes {
-  public enum CommandType {
-    CARTESIAN_POSE, 
-    CARTESIAN_POSE_LIN, 
-    CARTESIAN_VELOCITY, 
-    JOINT_POSITION, 
-    JOINT_POSITION_VELOCITY, 
-    JOINT_VELOCITY, 
-    POINT_TO_POINT, 
-    POINT_TO_POINT_LIN, 
-    POINT_TO_POINT_SPLINE
-  }
+import org.ros.node.NodeMainExecutor;
+
+public interface ActiveTool {
+  /**
+   * This method is called after construction is done.
+   */
+  public void initialize(Configuration configuration, NodeMainExecutor mainExecutor);
+
+  /**
+   * This method is called periodically. Implement reaction to incoming commands here.
+   */
+  public void moveTool();
+
+  /**
+   * This method is called periodically. Publish TF or other status data here.
+   * 
+   * @throws InterruptedException
+   */
+  public void publishCurrentState() throws InterruptedException;
 }
