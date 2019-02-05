@@ -1,8 +1,8 @@
 /**  
  * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische Universitï¿½t Mï¿½nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -279,48 +279,52 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		// Publish joint state?
 		publisher.setPublishJointStates(configuration.getPublishJointStates());
 		
-		if (configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
-			((NtpTimeProvider) configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS); // TODO: update time as param
-		}
+    // Initialize the ntp updates if necessary.
+    if (configuration.getTimeProvider() instanceof org.ros.time.NtpTimeProvider) {
+      // TODO: update time as parameter.
+      ((NtpTimeProvider) configuration.getTimeProvider()).startPeriodicUpdates(100, TimeUnit.MILLISECONDS);
+    }
 
-		// Run what is needed before the control loop in the subclasses.
-		beforeControlLoop();
+    // Run what is needed before the control loop in the subclasses.
+    beforeControlLoop();
 
-		running = true;
+    running = true;
 
-		// The run loop
-		Logger.info("Starting the ROS control loop...");
-		try {
-			while(running) { 
-				decimationCounter++;
+    // The run loop
+    Logger.info("Starting the ROS control loop...");
+    try {
 
-				// This will publish the current robot state on the various ROS topics.
-				publisher.publishCurrentState(robot, motion, endpointFrame);
-				if (rosTool != null) {
-					rosTool.publishCurrentState();
-				}
-				//actionServer.publishCurrentState();
+      publisherThread = new PublisherThread(publisher, endpointFrame);
+      publisherTimer = new Timer();
+      publisherTimer.scheduleAtFixedRate(publisherThread, 0, 1);
 
-				if ((decimationCounter % controlDecimation) == 0)
-					controlLoop();  // Perform control loop specified by subclass
-			} 
-		}
-		catch (Exception e) {
-			dispose();
-			Logger.info("ROS control loop aborted. " + e.toString());
-			e.printStackTrace();
-		} finally {
-			Logger.info("ROS control loop has ended. The application will be terminated.");
-		}
-	}
-	
-	@Override
-	public void dispose() {
-		configuration.cleanup();
-		cleanup();
-		super.dispose();
-	}
-	
+      while (running) {
+        decimationCounter++;
+        if (rosTool != null) {
+          rosTool.publishCurrentState();
+        }
+        actionServer.publishCurrentState();
+
+        // Perform control loop specified by subclass.
+        if ((decimationCounter % controlDecimation) == 0) controlLoop();
+      }
+    }
+    catch (Exception e) {
+      dispose();
+      Logger.info("ROS control loop aborted. " + e.toString());
+      e.printStackTrace();
+    }
+    finally {
+      Logger.info("ROS control loop has ended. The application will be terminated.");
+    }
+  }
+
+  @Override
+  public void dispose() {
+    configuration.cleanup();
+    cleanup();
+    super.dispose();
+  }
 	@Override 
 	public void onApplicationStateChanged(RoboticsAPIApplicationState state) {
 		if (state == RoboticsAPIApplicationState.STOPPING) {
@@ -329,15 +333,19 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 		super.onApplicationStateChanged(state);
 	};
 
-	void cleanup() {
-		running = false;
-		if (nodeMainExecutor != null) {
-			Logger.info("Stopping ROS nodes...");
-			nodeMainExecutor.shutdown();	
-			nodeMainExecutor.getScheduledExecutorService().shutdownNow();
-		}
-		Logger.info("Stopped ROS nodes.");
-	}
+  void cleanup() {
+    running = false;
+    if (publisherTimer != null) {
+      publisherTimer.cancel();
+      publisherTimer.purge();
+    }
+    if (nodeMainExecutor != null) {
+      Logger.info("Stopping ROS nodes...");
+      nodeMainExecutor.shutdown();
+      nodeMainExecutor.getScheduledExecutorService().shutdownNow();
+    }
+    Logger.info("Stopped ROS nodes.");
+  }
 	
 	public boolean isRunning() {
 		return running;
