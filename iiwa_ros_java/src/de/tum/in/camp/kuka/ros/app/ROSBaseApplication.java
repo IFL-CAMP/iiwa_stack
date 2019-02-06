@@ -114,7 +114,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   ActiveToolThread activeToolThread = null;
   Timer activeToolTimer = null;
 
-  // For example: /TODO maybe provide this class as an example.
+  // Example available at https://github.com/exo-core/iiwa_stack_tools
   // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
