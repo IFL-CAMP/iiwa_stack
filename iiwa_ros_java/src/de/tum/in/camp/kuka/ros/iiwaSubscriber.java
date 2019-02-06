@@ -53,7 +53,7 @@ import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
 
-import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
+import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 
 /**
  * This class provides ROS subscribers for ROS messages defined in the iiwa_msgs ROS package. It allows to
@@ -240,7 +240,6 @@ public class iiwaSubscriber extends AbstractNodeMain {
         return cp;
       }
       else {
-
         return null;
       }
     }

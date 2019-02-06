@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
  * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
@@ -54,6 +54,7 @@ import com.kuka.roboticsAPI.geometricModel.Workpiece;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.AddressGeneration;
+import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.Conversions;
 import de.tum.in.camp.kuka.ros.Logger;
 import de.tum.in.camp.kuka.ros.Motions;
@@ -62,7 +63,6 @@ import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
 import de.tum.in.camp.kuka.ros.Utility;
 import de.tum.in.camp.kuka.ros.iiwaActionServer.Goal;
 import de.tum.in.camp.kuka.ros.iiwaSubscriber;
-import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
 
 /*
  * This application allows to command the robot using SmartServo motions.
