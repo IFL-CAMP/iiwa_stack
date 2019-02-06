@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakultï¿½t
+ * fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany http://campar.in.tum.de All
  * rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
@@ -25,11 +25,13 @@
 
 package de.tum.in.camp.kuka.ros.app;
 
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
@@ -62,6 +64,7 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
+import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -72,14 +75,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   protected LBR robot = null;
   protected Tool tool = null;
-  protected String robotBaseFrameID = ""; // TODO: this could be moved to the ROSSmartServo app.
-  protected static final String robotBaseFrameIDSuffix = "_link_0";
   protected String toolFrameID = "";
   protected static final String toolFrameIDSuffix = "_link_ee";
 
   protected SmartServo motion = null;
   protected SmartServoLIN linearMotion = null;
   protected ControlModeHandler controlModeHandler = null;
+  protected Lock controlModeLock = new ReentrantLock();
+  protected CommandType lastCommandType = CommandType.JOINT_POSITION;
   protected GoalReachedEventListener handler = null;
 
   // Tool frame.
@@ -111,9 +114,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
-  protected NodeConfiguration nodeConfPublisher = null;
-  protected NodeConfiguration nodeConfActionServer = null;
-  protected NodeConfiguration nodeConfConfiguration = null;
+  protected NodeConfiguration configurationNodeConfiguration = null;
+  protected NodeConfiguration publisherNodeConfiguration = null;
+  protected NodeConfiguration actionServerNodeConfiguration = null;
   protected NodeMainExecutor nodeMainExecutor = null;
 
   // Configurable Toolbars.
@@ -152,36 +155,15 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     configuration = new Configuration(getApplicationData());
     publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider());
     actionServer = new iiwaActionServer(robot, configuration);
-    robotBaseFrameID = configuration.getRobotName() + robotBaseFrameIDSuffix; // TODO: this could be moved to
-                                                                              // the ROSSmartServo app.
 
     // ROS initialization.
     try {
-      URI uri = new URI(configuration.getMasterURI());
-
-      nodeConfConfiguration = NodeConfiguration.newPublic(configuration.getRobotIp());
-      nodeConfConfiguration.setTimeProvider(configuration.getTimeProvider());
-      nodeConfConfiguration.setNodeName(configuration.getRobotName() + "/iiwa_configuration");
-      nodeConfConfiguration.setMasterUri(uri);
-      nodeConfConfiguration.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-      nodeConfConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-
-      nodeConfPublisher = NodeConfiguration.newPublic(configuration.getRobotIp());
-      nodeConfPublisher.setTimeProvider(configuration.getTimeProvider());
-      nodeConfPublisher.setNodeName(configuration.getRobotName() + "/iiwa_publisher");
-      nodeConfPublisher.setMasterUri(uri);
-      nodeConfPublisher.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-      nodeConfPublisher.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-
-      nodeConfActionServer = NodeConfiguration.newPublic(configuration.getRobotIp());
-      nodeConfActionServer.setTimeProvider(configuration.getTimeProvider());
-      nodeConfActionServer.setNodeName(configuration.getRobotName() + "/iiwa_action_server");
-      nodeConfActionServer.setMasterUri(uri);
-      nodeConfActionServer.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-      nodeConfActionServer.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
+      configurationNodeConfiguration = configureNode("/iiwa_configuration", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+      publisherNodeConfiguration = configureNode("/iiwa_publisher", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+      actionServerNodeConfiguration = configureNode("/iiwa_action_server", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
 
       // Additional configuration needed in subclasses.
-      configureNodes(uri);
+      configureNodes();
     }
     catch (Exception e) {
       if (debug) {
@@ -203,9 +185,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       }
 
       // Start the Publisher node with the set up configuration.
-      nodeMainExecutor.execute(configuration, nodeConfConfiguration);
-      nodeMainExecutor.execute(publisher, nodeConfPublisher);
-      nodeMainExecutor.execute(actionServer, nodeConfActionServer);
+      nodeMainExecutor.execute(configuration, configurationNodeConfiguration);
+      nodeMainExecutor.execute(publisher, publisherNodeConfiguration);
+      nodeMainExecutor.execute(actionServer, actionServerNodeConfiguration);
 
       // Additional Nodes from subclasses.
       addNodesToExecutor(nodeMainExecutor);

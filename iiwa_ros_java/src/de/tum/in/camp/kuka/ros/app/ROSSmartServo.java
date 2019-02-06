@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
  * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
@@ -41,12 +41,9 @@ import iiwa_msgs.Spline;
 import iiwa_msgs.TimeToDestinationRequest;
 import iiwa_msgs.TimeToDestinationResponse;
 
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-import org.ros.address.BindAddress;
 import org.ros.exception.ServiceException;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
@@ -62,6 +59,7 @@ import de.tum.in.camp.kuka.ros.Logger;
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
+import de.tum.in.camp.kuka.ros.Utility;
 import de.tum.in.camp.kuka.ros.iiwaActionServer.Goal;
 import de.tum.in.camp.kuka.ros.iiwaSubscriber;
 import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
@@ -71,30 +69,28 @@ import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
  */
 public class ROSSmartServo extends ROSBaseApplication {
 
-  private Lock configureSmartServoLock = new ReentrantLock();
-
   private iiwaSubscriber subscriber; // IIWARos Subscriber.
-  private NodeConfiguration nodeConfSubscriber; // Configuration of the
-                                                // subscriber ROS node.
+  private NodeConfiguration subscriberNodeConfiguration; // Configuration of the
+  // subscriber ROS node.
 
-  private CommandType lastCommandType = CommandType.JOINT_POSITION;
   private Motions motions;
+  private String robotBaseFrameID = "";
+  private static final String robotBaseFrameIDSuffix = "_link_0";
 
   @Override
-  protected void configureNodes(URI uri) {
+  protected void configureNodes() {
     // Configuration for the Subscriber.
-    nodeConfSubscriber = NodeConfiguration.newPublic(configuration.getRobotIp());
-    nodeConfSubscriber.setTimeProvider(configuration.getTimeProvider());
-    nodeConfSubscriber.setNodeName(configuration.getRobotName() + "/iiwa_subscriber");
-    nodeConfSubscriber.setMasterUri(uri);
-    nodeConfSubscriber.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-    nodeConfSubscriber.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
+    try {
+      subscriberNodeConfiguration = configureNode("/iiwa_subscriber", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+    }
+    catch (URISyntaxException e) {
+      Logger.error(e.toString());
+    }
   }
 
   @Override
   protected void addNodesToExecutor(NodeMainExecutor nodeMainExecutor) {
-    subscriber = new iiwaSubscriber(robot, configuration.getRobotName(), configuration.getTimeProvider(),
-        configuration.getEnforceMessageSequence());
+    subscriber = new iiwaSubscriber(robot, configuration.getRobotName(), configuration.getTimeProvider(), configuration.getEnforceMessageSequence());
 
     // Configure the callback for the SmartServo service inside the subscriber
     // class.
@@ -310,19 +306,10 @@ public class ROSSmartServo extends ROSBaseApplication {
     nodeMainExecutor.execute(subscriber, subscriberNodeConfiguration);
   }
 
-  // TODO move this somewhere else.
-  @SuppressWarnings("unused")
-  private boolean isTwistGreaterThan(geometry_msgs.Twist twist, double value) {
-    return (twist.getLinear().getX() > value && twist.getLinear().getY() > value && twist.getLinear().getZ() > value
-        && twist.getAngular().getX() > value && twist.getAngular().getY() > value && twist.getAngular().getZ() > value);
-  }
-
-  private boolean isVector3GreaterThan(geometry_msgs.Vector3 vector, double value) {
-    return (vector.getX() > value && vector.getY() > value && vector.getZ() > value);
-  }
-
   @Override
-  protected void initializeApp() {}
+  protected void initializeApp() {
+    robotBaseFrameID = configuration.getRobotName() + robotBaseFrameIDSuffix;
+  }
 
   @Override
   protected void beforeControlLoop() {
@@ -369,8 +356,9 @@ public class ROSSmartServo extends ROSBaseApplication {
           actionServer.markCurrentGoalFailed("Received new Action command. Dropping old task.");
         }
 
-        // TODO: ask Arne: Why the need to set this to null? 
-        // the methods to get the last commands already check if a new one has arrived, with the exception of the velocity commands.
+        // TODO: ask Arne: Why the need to set this to null?
+        // the methods to get the last commands already check if a new one has arrived, with the exception of
+        // the velocity commands.
         // This was the velocity commands will only run for 1 control period.
         CommandType copy = subscriber.currentCommandType;
         subscriber.currentCommandType = null;

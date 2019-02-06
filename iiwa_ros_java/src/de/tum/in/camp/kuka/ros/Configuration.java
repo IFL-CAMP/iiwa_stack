@@ -26,6 +26,8 @@
 package de.tum.in.camp.kuka.ros;
 
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,10 +112,11 @@ public class Configuration extends AbstractNodeMain {
    * Get the ROS Master URI, obtained from the configuration file. Format : http://IP:port
    * 
    * @return ROS Master URI
+   * @throws URISyntaxException 
    */
-  public String getMasterURI() {
+  public URI getMasterURI() throws URISyntaxException {
     checkConfiguration();
-    return masterUri;
+    return new URI(masterUri);
   }
 
   /**
