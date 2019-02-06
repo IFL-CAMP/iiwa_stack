@@ -24,7 +24,7 @@
 
 package de.tum.in.camp.kuka.ros;
 
-public class CommantTypes {
+public class CommandTypes {
   public enum CommandType {
     CARTESIAN_POSE, 
     CARTESIAN_POSE_LIN, 
