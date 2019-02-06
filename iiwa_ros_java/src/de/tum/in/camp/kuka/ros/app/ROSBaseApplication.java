@@ -407,11 +407,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     return nodeConfiguration;
   }
 
+  /**
+   * 
+   */
   private void fakeHandGuidanceMode() {
     if (handGuidanceEnabled) {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
-        getLogger().warn("Enabling Fake Hand Guiding Mode.");
+        Logger.warn("Enabling Fake Hand Guiding Mode.");
         handGuidanceControlMode.setStiffness(2, 2, 2, 2, 2, 0, 0);
         handGuidanceControlMode.setDampingForAllJoints(0.7);
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
@@ -425,7 +428,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     else {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
-        getLogger().warn("Disabling Fake Hand Guiding Mode.");
+        Logger.warn("Disabling Fake Hand Guiding Mode.");
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, new PositionControlMode(true));
         }
