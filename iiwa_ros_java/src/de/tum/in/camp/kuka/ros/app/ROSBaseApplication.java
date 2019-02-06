@@ -393,10 +393,22 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     }
   }
 
+  /**
+   * Returns if the control loop of the application is currently active.
+   */
   public boolean isRunning() {
     return running;
   }
 
+  /**
+   * Utility function to create the configuration of a ROS node.
+   * 
+   * @param nodeName name of the ROS node.
+   * @param tcpPort port to use for the ROS TCP connection - cannot be the same as the XML one.
+   * @param xmlPort port to use for the ROS XML connection - cannot be the same as the TCP one.
+   * @return
+   * @throws URISyntaxException
+   */
   protected NodeConfiguration configureNode(String nodeName, int tcpPort, int xmlPort) throws URISyntaxException {
     NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(configuration.getRobotIp());
     nodeConfiguration.setTimeProvider(configuration.getTimeProvider());
