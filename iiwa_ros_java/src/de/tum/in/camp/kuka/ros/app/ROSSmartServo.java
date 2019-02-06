@@ -339,14 +339,13 @@ public class ROSSmartServo extends ROSBaseApplication {
         Goal<?> actionGoal = actionServer.getCurrentGoal();
         switch (actionGoal.goalType) {
           case POINT_TO_POINT: {
-            movePointToPoint(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPose(),
-                ((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getRedundancy());
+            movePointToPoint(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPose(), ((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal()
+                .getCartesianPose().getRedundancy());
             break;
           }
           case POINT_TO_POINT_LIN: {
-            movePointToPointLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose()
-                .getPose(), ((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose()
-                .getRedundancy());
+            movePointToPointLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPose(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
+                .getGoal().getCartesianPose().getRedundancy());
             break;
           }
           case JOINT_POSITION: {
@@ -405,16 +404,14 @@ public class ROSSmartServo extends ROSBaseApplication {
 
   @Override
   protected void controlLoop() {
-    configureSmartServoLock.lock();
     moveRobot();
     if (rosTool != null) {
       rosTool.moveTool();
     }
-    configureSmartServoLock.unlock();
   }
 
   /**
-   * Checks what king of command has been executed at last and changes the controller type if necessary
+   * Checks what kind of command has been executed at last and changes the controller type if necessary.
    * 
    * @param commandType
    */
@@ -431,8 +428,7 @@ public class ROSSmartServo extends ROSBaseApplication {
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) {
           motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
         }
-        else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN
-            || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
+        else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
           motion = controlModeHandler.enableSmartServo(motion);
         }
         break;
@@ -442,8 +438,7 @@ public class ROSSmartServo extends ROSBaseApplication {
         if (lastCommandType != CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) {
           linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
         }
-        else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN
-            || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
+        else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
           linearMotion = controlModeHandler.enableSmartServo(linearMotion);
         }
         break;
@@ -492,7 +487,6 @@ public class ROSSmartServo extends ROSBaseApplication {
     }
     else {
       Logger.warn("Invalid motion target pose");
-      // throw new IllegalArgumentException("Invalid motion target pose");
     }
   }
 
@@ -504,7 +498,6 @@ public class ROSSmartServo extends ROSBaseApplication {
     }
     else {
       Logger.warn("Invalid motion target pose");
-      // throw new IllegalArgumentException("Invalid motion target pose");
     }
   }
 
@@ -517,7 +510,6 @@ public class ROSSmartServo extends ROSBaseApplication {
     }
     else {
       Logger.warn("Invalid motion target pose");
-      // throw new IllegalArgumentException("Invalid motion target pose");
     }
   }
 
@@ -530,7 +522,6 @@ public class ROSSmartServo extends ROSBaseApplication {
     }
     else {
       Logger.warn("Invalid motion target pose");
-      // throw new IllegalArgumentException("Invalid motion target pose");
     }
   }
 
