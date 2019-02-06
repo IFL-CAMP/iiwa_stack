@@ -230,7 +230,7 @@ public class MessageGenerator {
       stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
     }
     catch (Exception e) {
-      System.out.println("ERROR: asking for joint stiffness while not in joint impedance mode!");
+      Logger.error("Asking for joint stiffness while not in joint impedance mode!");
       return;
     }
 
@@ -256,7 +256,7 @@ public class MessageGenerator {
       damping = ((JointImpedanceControlMode) motion.getMode()).getDamping();
     }
     catch (Exception e) {
-      System.out.println("ERROR: asking for joint damping while not in joint impedance mode!");
+      Logger.error("Asking for joint damping while not in joint impedance mode!");
       return;
     }
 
