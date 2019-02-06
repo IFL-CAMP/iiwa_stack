@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakultï¿½t
- * fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany http://campar.in.tum.de All
+ * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
+ * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
  * rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
@@ -48,9 +48,13 @@ import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyBar;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKeyListener;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyAlignment;
+import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
@@ -124,7 +128,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected List<IUserKey> generalKeys = new ArrayList<IUserKey>();
   protected List<IUserKeyListener> generalKeyLists = new ArrayList<IUserKeyListener>();
 
-  protected abstract void configureNodes(URI uri);
+  protected JointImpedanceControlMode handGuidanceControlMode;
+  private IUserKeyBar handGuidanceKeybar;
+  private IUserKey handGuidanceKey;
+  private IUserKeyListener handGuidanceKeyList;
+  private boolean handGuidanceEnabled = false;
+  private boolean handGuidanceSwitched = false;
+
+  protected abstract void configureNodes();
 
   protected abstract void addNodesToExecutor(NodeMainExecutor nodeExecutor);
 
@@ -206,6 +217,29 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     }
 
     // END of ROS initialization.
+
+    handGuidanceControlMode = new JointImpedanceControlMode(robot.getJointCount());
+    handGuidanceKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
+    handGuidanceKeyList = new IUserKeyListener() {
+      @Override
+      public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
+        controlModeLock.lock();
+        if (event == UserKeyEvent.FirstKeyDown) {
+          handGuidanceEnabled = true;
+          handGuidanceSwitched = true;
+        }
+        else if (event == UserKeyEvent.SecondKeyDown) {
+          handGuidanceEnabled = false;
+          handGuidanceSwitched = true;
+        }
+        controlModeLock.unlock();
+      };
+    };
+
+    handGuidanceKey = handGuidanceKeybar.addDoubleUserKey(0, handGuidanceKeyList, true);
+    handGuidanceKey.setText(UserKeyAlignment.TopMiddle, "ON");
+    handGuidanceKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
+    handGuidanceKeybar.publish();
 
     // Additional initialization from subclasses.
     initializeApp();
@@ -305,8 +339,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       }
 
       while (running) {
-        // Perform control loop specified by subclass.
-        controlLoop();
+        controlModeLock.lock();
+        fakeHandGuidanceMode();
+        if (!handGuidanceEnabled && !handGuidanceSwitched) {
+          // Perform control loop specified by subclass.
+          controlLoop();
+        }
+        controlModeLock.unlock();
       }
     }
     catch (Exception e) {
@@ -356,5 +395,44 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   public boolean isRunning() {
     return running;
+  }
+
+  protected NodeConfiguration configureNode(String nodeName, int tcpPort, int xmlPort) throws URISyntaxException {
+    NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(configuration.getRobotIp());
+    nodeConfiguration.setTimeProvider(configuration.getTimeProvider());
+    nodeConfiguration.setNodeName(configuration.getRobotName() + nodeName);
+    nodeConfiguration.setMasterUri(configuration.getMasterURI());
+    nodeConfiguration.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
+    nodeConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
+    return nodeConfiguration;
+  }
+
+  private void fakeHandGuidanceMode() {
+    if (handGuidanceEnabled) {
+      if (handGuidanceSwitched) {
+        handGuidanceSwitched = false;
+        getLogger().warn("Enabling Fake Hand Guiding Mode.");
+        handGuidanceControlMode.setStiffness(2, 2, 2, 2, 2, 0, 0);
+        handGuidanceControlMode.setDampingForAllJoints(0.7);
+        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+          linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, handGuidanceControlMode);
+        }
+        else {
+          motion = controlModeHandler.changeSmartServoControlMode(motion, handGuidanceControlMode);
+        }
+      }
+    }
+    else {
+      if (handGuidanceSwitched) {
+        handGuidanceSwitched = false;
+        getLogger().warn("Disabling Fake Hand Guiding Mode.");
+        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+          linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, new PositionControlMode(true));
+        }
+        else {
+          motion = controlModeHandler.changeSmartServoControlMode(motion, new PositionControlMode(true));
+        }
+      }
+    }
   }
 }

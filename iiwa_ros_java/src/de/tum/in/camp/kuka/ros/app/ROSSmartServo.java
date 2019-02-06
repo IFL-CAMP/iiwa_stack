@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
  * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
@@ -94,213 +94,206 @@ public class ROSSmartServo extends ROSBaseApplication {
 
     // Configure the callback for the SmartServo service inside the subscriber
     // class.
-    subscriber
-        .setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
-          @Override
-          public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
-            configureSmartServoLock.lock();
-            try {
-              // TODO: reduce code duplication
-              if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-                // We can just change the parameters if the control strategy is the same.
-                if (controlModeHandler.isSameControlMode(linearMotion.getMode(), req.getControlMode())) {
-                  // If the request was for PositionControlMode and we are already there, do nothing.
-                  if (!(linearMotion.getMode() instanceof PositionControlMode)) {
-                    linearMotion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
-                  }
-                }
-                else {
-                  linearMotion = controlModeHandler.switchSmartServoMotion(linearMotion, req);
-                }
+    subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
+      @Override
+      public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
+        controlModeLock.lock();
+        try {
+          // TODO: reduce code duplication
+          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+            // We can just change the parameters if the control strategy is the same.
+            if (controlModeHandler.isSameControlMode(linearMotion.getMode(), req.getControlMode())) {
+              // If the request was for PositionControlMode and we are already there, do nothing.
+              if (!(linearMotion.getMode() instanceof PositionControlMode)) {
+                linearMotion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
               }
-              else {
-                // We can just change the parameters if the control strategy is the same.
-                if (controlModeHandler.isSameControlMode(motion.getMode(), req.getControlMode())) {
-                  // If the request was for PositionControlMode and we are already there, do nothing.
-                  if (!(motion.getMode() instanceof PositionControlMode)) {
-                    motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
-                  }
-                }
-                else {
-                  motion = controlModeHandler.switchSmartServoMotion(motion, req);
-                }
-              }
-
-              res.setSuccess(true);
-              controlModeHandler.setLastSmartServoRequest(req);
-            }
-            catch (Exception e) {
-              res.setSuccess(false);
-              if (e.getMessage() != null) {
-                res.setError(e.getClass().getName() + ": " + e.getMessage());
-              }
-              else {
-                res.setError("because I hate you :)");
-              }
-              return;
-            }
-            finally {
-              configureSmartServoLock.unlock();
-            }
-          }
-        });
-
-    // TODO: doc
-    subscriber
-        .setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse>() {
-
-          @Override
-          public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
-            try {
-              if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-                linearMotion.getRuntime().updateWithRealtimeSystem();
-                res.setRemainingTime(linearMotion.getRuntime().getRemainingTime());
-              }
-              else {
-                motion.getRuntime().updateWithRealtimeSystem();
-                res.setRemainingTime(motion.getRuntime().getRemainingTime());
-              }
-            }
-            catch (Exception e) {
-              // An exception should be thrown only if a motion/runtime is not available.
-              res.setRemainingTime(-999);
-            }
-          }
-        });
-
-    // TODO: doc
-    subscriber
-        .setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
-          @Override
-          public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res)
-              throws ServiceException {
-            configureSmartServoLock.lock();
-            try {
-              if (req.getJointRelativeVelocity() >= 0) {
-                SpeedLimits.jointVelocity = req.getJointRelativeVelocity();
-              }
-              if (req.getJointRelativeAcceleration() >= 0) {
-                SpeedLimits.jointAcceleration = req.getJointRelativeAcceleration();
-              }
-              if (req.getOverrideJointAcceleration() >= 0) {
-                SpeedLimits.overrideJointAcceleration = req.getOverrideJointAcceleration();
-              }
-              if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
-                iiwa_msgs.ConfigureSmartServoRequest request = null;
-                motion = controlModeHandler.switchSmartServoMotion(motion, request);
-              }
-
-              res.setSuccess(true);
-            }
-            catch (Exception e) {
-              res.setError(e.getClass().getName() + ": " + e.getMessage());
-              res.setSuccess(false);
-            }
-            finally {
-              configureSmartServoLock.unlock();
-            }
-          }
-        });
-
-    // TODO: doc
-    subscriber
-        .setPathParametersLinCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse>() {
-          @Override
-          public void build(SetPathParametersLinRequest req, SetPathParametersLinResponse res) throws ServiceException {
-            configureSmartServoLock.lock();
-            try {
-              // TODO: this just works for linear velocity atm
-              if (isVector3GreaterThan(req.getMaxCartesianVelocity().getLinear(), 0)) {
-                double[] maxLinearSpeed = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
-                for (int i = 0; i < maxLinearSpeed.length; i++) {
-                  maxLinearSpeed[i] = Conversions.rosTranslationToKuka(maxLinearSpeed[i]);
-                }
-                SpeedLimits.maxTranslationlVelocity = maxLinearSpeed;
-              }
-              if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-                iiwa_msgs.ConfigureSmartServoRequest request = null;
-                linearMotion = controlModeHandler.switchSmartServoMotion(linearMotion, request);
-
-              }
-              res.setSuccess(true);
-            }
-            catch (Exception e) {
-              res.setError(e.getClass().getName() + ": " + e.getMessage());
-              res.setSuccess(false);
-            }
-            finally {
-              configureSmartServoLock.unlock();
-            }
-          }
-        });
-
-    // TODO: doc
-    subscriber
-        .setWorkpieceCallback(new ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse>() {
-          @Override
-          public void build(SetWorkpieceRequest req, SetWorkpieceResponse res) throws ServiceException {
-            try {
-              List<SceneGraphObject> oldWorkpieces;
-              if (tool != null) {
-                oldWorkpieces = tool.getChildren();
-              }
-              else {
-                oldWorkpieces = robot.getChildren();
-              }
-
-              for (SceneGraphObject oldObject : oldWorkpieces) {
-                if (oldObject instanceof Workpiece) {
-                  ((Workpiece) oldObject).detach();
-                }
-              }
-
-              robot.setSafetyWorkpiece(null);
-              controlModeHandler.setWorkpiece(null);
-
-              if (req.getWorkpieceId() != null && !req.getWorkpieceId().isEmpty()) {
-                Workpiece workpiece = getApplicationData().createFromTemplate(req.getWorkpieceId());
-                workpiece.attachTo(toolFrame);
-                robot.setSafetyWorkpiece(workpiece);
-                controlModeHandler.setWorkpiece(workpiece);
-              }
-
-              res.setSuccess(true);
-            }
-            catch (Exception e) {
-              Logger.error(e.getClass().getName() + ": " + e.getMessage());
-              e.printStackTrace();
-
-              res.setError(e.getClass().getName() + ": " + e.getMessage());
-              res.setSuccess(false);
-            }
-          }
-        });
-
-    // TODO: doc
-    subscriber
-        .setEndpointFrameCallback(new ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse>() {
-          @Override
-          public void build(SetEndpointFrameRequest req, SetEndpointFrameResponse res) throws ServiceException {
-            if (req.getFrameId().isEmpty()) {
-              endpointFrame = toolFrame;
-            }
-            else if (req.getFrameId().equals(configuration.getRobotName() + toolFrameIDSuffix)) {
-              endpointFrame = robot.getFlange();
             }
             else {
-              endpointFrame = tool.getFrame(req.getFrameId());
-            }
-
-            motions.setEnpointFrame(endpointFrame);
-            controlModeHandler.setEndpointFrame(endpointFrame);
-            if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-              linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
-            }
-            else {
-              motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+              linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, req);
             }
           }
-        });
+          else {
+            // We can just change the parameters if the control strategy is the same.
+            if (controlModeHandler.isSameControlMode(motion.getMode(), req.getControlMode())) {
+              // If the request was for PositionControlMode and we are already there, do nothing.
+              if (!(motion.getMode() instanceof PositionControlMode)) {
+                motion.getRuntime().changeControlModeSettings(controlModeHandler.buildMotionControlMode(req));
+              }
+            }
+            else {
+              motion = controlModeHandler.changeSmartServoControlMode(motion, req);
+            }
+          }
+
+          res.setSuccess(true);
+          controlModeHandler.setLastSmartServoRequest(req);
+        }
+        catch (Exception e) {
+          res.setSuccess(false);
+          if (e.getMessage() != null) {
+            res.setError(e.getClass().getName() + ": " + e.getMessage());
+          }
+          else {
+            res.setError("because I hate you :)");
+          }
+          return;
+        }
+        finally {
+          controlModeLock.unlock();
+        }
+      }
+    });
+
+    // TODO: doc
+    subscriber.setTimeToDestinationCallback(new ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse>() {
+
+      @Override
+      public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
+        try {
+          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+            linearMotion.getRuntime().updateWithRealtimeSystem();
+            res.setRemainingTime(linearMotion.getRuntime().getRemainingTime());
+          }
+          else {
+            motion.getRuntime().updateWithRealtimeSystem();
+            res.setRemainingTime(motion.getRuntime().getRemainingTime());
+          }
+        }
+        catch (Exception e) {
+          // An exception should be thrown only if a motion/runtime is not available.
+          res.setRemainingTime(-999);
+        }
+      }
+    });
+
+    // TODO: doc
+    subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
+      @Override
+      public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
+        controlModeLock.lock();
+        try {
+          if (req.getJointRelativeVelocity() >= 0) {
+            SpeedLimits.jointVelocity = req.getJointRelativeVelocity();
+          }
+          if (req.getJointRelativeAcceleration() >= 0) {
+            SpeedLimits.jointAcceleration = req.getJointRelativeAcceleration();
+          }
+          if (req.getOverrideJointAcceleration() >= 0) {
+            SpeedLimits.overrideJointAcceleration = req.getOverrideJointAcceleration();
+          }
+          if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
+            iiwa_msgs.ConfigureSmartServoRequest request = null;
+            motion = controlModeHandler.changeSmartServoControlMode(motion, request);
+          }
+
+          res.setSuccess(true);
+        }
+        catch (Exception e) {
+          res.setError(e.getClass().getName() + ": " + e.getMessage());
+          res.setSuccess(false);
+        }
+        finally {
+          controlModeLock.unlock();
+        }
+      }
+    });
+
+    // TODO: doc
+    subscriber.setPathParametersLinCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse>() {
+      @Override
+      public void build(SetPathParametersLinRequest req, SetPathParametersLinResponse res) throws ServiceException {
+        controlModeLock.lock();
+        try {
+          // TODO: this just works for linear velocity atm
+          if (Utility.isVector3GreaterThan(req.getMaxCartesianVelocity().getLinear(), 0)) {
+            double[] maxLinearSpeed = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
+            for (int i = 0; i < maxLinearSpeed.length; i++) {
+              maxLinearSpeed[i] = Conversions.rosTranslationToKuka(maxLinearSpeed[i]);
+            }
+            SpeedLimits.maxTranslationlVelocity = maxLinearSpeed;
+          }
+          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+            iiwa_msgs.ConfigureSmartServoRequest request = null;
+            linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, request);
+
+          }
+          res.setSuccess(true);
+        }
+        catch (Exception e) {
+          res.setError(e.getClass().getName() + ": " + e.getMessage());
+          res.setSuccess(false);
+        }
+        finally {
+          controlModeLock.unlock();
+        }
+      }
+    });
+
+    // TODO: doc
+    subscriber.setWorkpieceCallback(new ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse>() {
+      @Override
+      public void build(SetWorkpieceRequest req, SetWorkpieceResponse res) throws ServiceException {
+        try {
+          List<SceneGraphObject> oldWorkpieces;
+          if (tool != null) {
+            oldWorkpieces = tool.getChildren();
+          }
+          else {
+            oldWorkpieces = robot.getChildren();
+          }
+
+          for (SceneGraphObject oldObject : oldWorkpieces) {
+            if (oldObject instanceof Workpiece) {
+              ((Workpiece) oldObject).detach();
+            }
+          }
+
+          robot.setSafetyWorkpiece(null);
+          controlModeHandler.setWorkpiece(null);
+
+          if (req.getWorkpieceId() != null && !req.getWorkpieceId().isEmpty()) {
+            Workpiece workpiece = getApplicationData().createFromTemplate(req.getWorkpieceId());
+            workpiece.attachTo(toolFrame);
+            robot.setSafetyWorkpiece(workpiece);
+            controlModeHandler.setWorkpiece(workpiece);
+          }
+
+          res.setSuccess(true);
+        }
+        catch (Exception e) {
+          Logger.error(e.getClass().getName() + ": " + e.getMessage());
+          e.printStackTrace();
+
+          res.setError(e.getClass().getName() + ": " + e.getMessage());
+          res.setSuccess(false);
+        }
+      }
+    });
+
+    // TODO: doc
+    subscriber.setEndpointFrameCallback(new ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse>() {
+      @Override
+      public void build(SetEndpointFrameRequest req, SetEndpointFrameResponse res) throws ServiceException {
+        if (req.getFrameId().isEmpty()) {
+          endpointFrame = toolFrame;
+        }
+        else if (req.getFrameId().equals(configuration.getRobotName() + toolFrameIDSuffix)) {
+          endpointFrame = robot.getFlange();
+        }
+        else {
+          endpointFrame = tool.getFrame(req.getFrameId());
+        }
+
+        motions.setEnpointFrame(endpointFrame);
+        controlModeHandler.setEndpointFrame(endpointFrame);
+        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+          linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
+        }
+        else {
+          motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+        }
+      }
+    });
 
     // Execute the subscriber node.
     nodeMainExecutor.execute(subscriber, subscriberNodeConfiguration);

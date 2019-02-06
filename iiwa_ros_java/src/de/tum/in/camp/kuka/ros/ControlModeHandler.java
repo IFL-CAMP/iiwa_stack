@@ -85,76 +85,39 @@ public class ControlModeHandler {
   public void setLastSmartServoRequest(ConfigureSmartServoRequest request) {
     this.lastSmartServoRequest = request;
   }
-
-  /**
-   * Allows to switch control mode on the fly. Kills the given smartServo motion and creates a new one with
-   * the given request. If the given request is null, the last received request will be used. This is the case
-   * if only velocity and/or acceleration need(s) to be changed.
-   * 
-   * @param motion
-   * @param request
-   */
-  // @SuppressWarnings("rawtypes")
-  // public ServoMotion switchSmartServoMotion(ServoMotion motion,
-  // iiwa_msgs.ConfigureSmartServoRequest request) {
-  // ServoMotion oldMotion = motion;
-  //
-  // validateForImpedanceMode();
-  //
-  // if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
-  // else if (motion instanceof SmartServoLIN) { motion =
-  // createSmartServoLinMotion(); }
-  //
-  // if (request != null) {
-  // motion.setMode(buildMotionControlMode(request));
-  // }
-  // else if (lastSmartServoRequest != null) {
-  // motion.setMode(buildMotionControlMode(lastSmartServoRequest));
-  // }
-  // else {
-  // motion.setMode(new PositionControlMode());
-  // }
-  //
-  // switchMotion(motion, oldMotion);
-  //
-  // return motion;
-  // }
-
-  public SmartServo switchSmartServoMotion(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+  
+  public SmartServo changeSmartServoControlMode(SmartServo motion, IMotionControlMode controlMode) {
     SmartServo oldMotion = motion;
-
-    // validateForImpedanceMode();
-
     motion = createSmartServoMotion();
-
-    if (request != null) {
-      if (request.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
-        validateForImpedanceMode();
-      }
-      motion.setMode(buildMotionControlMode(request));
-    }
-    else if (lastSmartServoRequest != null) {
-      if (lastSmartServoRequest.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
-        validateForImpedanceMode();
-      }
-      motion.setMode(buildMotionControlMode(lastSmartServoRequest));
-    }
-    else {
+    if (controlMode == null || controlMode instanceof PositionControlMode) {
       motion.setMode(new PositionControlMode());
+    } 
+    else {
+      validateForImpedanceMode();
+      motion.setMode(controlMode);
     }
-
     switchMotion(motion, oldMotion);
-
-    return motion;
+    return motion;    
   }
 
-  public SmartServoLIN switchSmartServoMotion(SmartServoLIN motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+  public SmartServoLIN changeSmartServoControlMode(SmartServoLIN motion, IMotionControlMode controlMode) {
     SmartServoLIN oldMotion = motion;
-
-    // validateForImpedanceMode();
-
     motion = createSmartServoLinMotion();
+    if (controlMode == null || controlMode instanceof PositionControlMode) {
+      motion.setMode(new PositionControlMode());
+    } 
+    else {
+      validateForImpedanceMode();
+      motion.setMode(controlMode);
+    }
+    switchMotion(motion, oldMotion);
+    return motion;    
+  }
 
+
+  public SmartServo changeSmartServoControlMode(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+    SmartServo oldMotion = motion;
+    motion = createSmartServoMotion();
     if (request != null) {
       if (request.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
         validateForImpedanceMode();
@@ -170,44 +133,31 @@ public class ControlModeHandler {
     else {
       motion.setMode(new PositionControlMode());
     }
-
     switchMotion(motion, oldMotion);
-
     return motion;
   }
 
-  /**
-   * Allows to switch control mode on the fly. Kills the given smartServo motion and creates a new one with
-   * the given controlMode.
-   * 
-   * @param motion
-   * @param controlMode
-   * @return
-   */
-  // @SuppressWarnings("rawtypes")
-  // public ServoMotion switchSmartServoMotion(ServoMotion motion,
-  // IMotionControlMode controlMode) {
-  // if (controlMode != motion.getMode()) {
-  //
-  // ServoMotion oldMotion = motion;
-  //
-  // if (!(controlMode instanceof PositionControlMode)) {
-  // validateForImpedanceMode();
-  // }
-  //
-  // if (motion instanceof SmartServo) { motion = createSmartServoMotion(); }
-  // else if (motion instanceof SmartServoLIN) { motion =
-  // createSmartServoLinMotion(); }
-  //
-  // motion.setMode(controlMode);
-  //
-  // switchMotion(motion, oldMotion);
-  // }
-  // else {
-  // motion.getRuntime().changeControlModeSettings(controlMode);
-  // }
-  // return motion;
-  // }
+  public SmartServoLIN changeSmartServoControlMode(SmartServoLIN motion, iiwa_msgs.ConfigureSmartServoRequest request) {
+    SmartServoLIN oldMotion = motion;
+    motion = createSmartServoLinMotion();
+    if (request != null) {
+      if (request.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+        validateForImpedanceMode();
+      }
+      motion.setMode(buildMotionControlMode(request));
+    }
+    else if (lastSmartServoRequest != null) {
+      if (lastSmartServoRequest.getControlMode() != iiwa_msgs.ControlMode.POSITION_CONTROL) {
+        validateForImpedanceMode();
+      }
+      motion.setMode(buildMotionControlMode(lastSmartServoRequest));
+    }
+    else {
+      motion.setMode(new PositionControlMode());
+    }
+    switchMotion(motion, oldMotion);
+    return motion;
+  }
 
   public SmartServoLIN switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) {
     SmartServo oldMotion = motion;
@@ -588,7 +538,7 @@ public class ControlModeHandler {
 
   public SmartServo enableSmartServo(SmartServo motion) {
     System.out.println("Enabling SmartServo");
-    return switchSmartServoMotion(motion, lastSmartServoRequest);
+    return changeSmartServoControlMode(motion, lastSmartServoRequest);
     /*
      * motion.setMode(getCurrentMode()); endpointFrame.moveAsync(motion);
      * motion.getRuntime().setGoalReachedEventHandler(handler);
@@ -597,7 +547,7 @@ public class ControlModeHandler {
 
   public SmartServoLIN enableSmartServo(SmartServoLIN linearMotion) {
     System.out.println("Enabling SmartServoLIN");
-    return switchSmartServoMotion(linearMotion, lastSmartServoRequest);
+    return changeSmartServoControlMode(linearMotion, lastSmartServoRequest);
     /*
      * linearMotion.setMode(getCurrentMode()); endpointFrame.moveAsync(linearMotion);
      * linearMotion.getRuntime().setGoalReachedEventHandler(handler);
