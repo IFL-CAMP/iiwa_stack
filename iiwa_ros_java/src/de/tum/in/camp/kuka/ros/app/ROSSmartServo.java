@@ -362,6 +362,9 @@ public class ROSSmartServo extends ROSBaseApplication {
           actionServer.markCurrentGoalFailed("Received new Action command. Dropping old task.");
         }
 
+        // TODO: ask Arne: Why the need to set this to null? 
+        // the methods to get the last commands already check if a new one has arrived, with the exception of the velocity commands.
+        // This was the velocity commands will only run for 1 control period.
         CommandType copy = subscriber.currentCommandType;
         subscriber.currentCommandType = null;
 
