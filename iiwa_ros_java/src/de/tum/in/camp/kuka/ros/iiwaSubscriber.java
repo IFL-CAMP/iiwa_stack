@@ -310,23 +310,24 @@ public class iiwaSubscriber extends AbstractNodeMain {
   }
 
   /**
-   * Transforms a pose from on TF frame to another
+   * Transforms a pose to the given TF reference frame.
    * 
    * @param pose
    * @param tartget_frame
    * @return pose transformed to target_frame
    **/
-  public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String tartget_frame) {
-    if (pose == null || pose.getHeader().getFrameId() == null || tartget_frame == null) { return null; }
+  public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String tartgetFrame) {
+    if (pose == null || pose.getHeader().getFrameId() == null || tartgetFrame == null) { return null; }
+    if (pose.getHeader().getFrameId() == tartgetFrame) { return pose; }
 
     long time = pose.getHeader().getStamp().totalNsecs();
 
     PoseStamped result = helper.buildMessage(PoseStamped._TYPE);
-    result.getHeader().setFrameId(tartget_frame);
+    result.getHeader().setFrameId(tartgetFrame);
     result.getHeader().setSeq(pose.getHeader().getSeq());
     result.getHeader().setStamp(pose.getHeader().getStamp());
 
-    if (tfListener.getTree().canTransform(pose.getHeader().getFrameId(), tartget_frame)) {
+    if (tfListener.getTree().canTransform(pose.getHeader().getFrameId(), tartgetFrame)) {
       Quaternion q_raw = pose.getPose().getOrientation();
       Point t_raw = pose.getPose().getPosition();
 
@@ -335,7 +336,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
       Matrix4d mat = new Matrix4d(q, t, 1);
 
-      Transform transform = tfListener.getTree().lookupTransformBetween(pose.getHeader().getFrameId(), tartget_frame,
+      Transform transform = tfListener.getTree().lookupTransformBetween(pose.getHeader().getFrameId(), tartgetFrame,
           time);
 
       if (transform == null) { return null; }
