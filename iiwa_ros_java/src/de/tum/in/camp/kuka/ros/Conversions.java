@@ -106,8 +106,7 @@ public final class Conversions {
     if ((sqx + sqy + sqz + sqw) < 10e-8) { // This is a faily safe assumption,
                                            // we are expecting the norm to be
                                            // around 1 anyway.
-      throw new IllegalArgumentException(
-          "Commanded geometry_msgs.Pose contains an invalid quaternion. The norm of the given quaternion has to be 1.");
+      throw new IllegalArgumentException("Commanded geometry_msgs.Pose contains an invalid quaternion. The norm of the given quaternion has to be 1.");
     }
 
     MatrixBuilder mb = new MatrixBuilder();
@@ -226,8 +225,6 @@ public final class Conversions {
     Vector transl = Vector.of(tx, ty, tz);
 
     Transformation t = Transformation.of(transl, rot);
-    Logger.info("KUKA Transformation: T=(" + t.getX() + ", " + t.getY() + ", " + t.getZ() + "), R=(" + t.getAlphaRad()
-        + ", " + t.getBetaRad() + ", " + t.getGammaRad() + ")");
 
     return t;
   }
@@ -251,8 +248,7 @@ public final class Conversions {
    * @return resulting Frame
    * @throws InvalidArgumentException
    */
-  public static Frame rosPoseToKukaFrame(AbstractFrame parent, geometry_msgs.Pose rosPose)
-      throws IllegalArgumentException {
+  public static Frame rosPoseToKukaFrame(AbstractFrame parent, geometry_msgs.Pose rosPose) throws IllegalArgumentException {
     return new Frame(parent, rosPoseToKukaTransformation(rosPose));
   }
 
@@ -288,11 +284,9 @@ public final class Conversions {
    * @param kukaJointPos : resulting JointPosition
    * @param scaleFactor : each element of rosJointPos with be scaled using this value
    */
-  public static void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos,
-      double scaleFactor) {
-    kukaJointPos.set(rosJointPos.getA1() * scaleFactor, rosJointPos.getA2() * scaleFactor, rosJointPos.getA3()
-        * scaleFactor, rosJointPos.getA4() * scaleFactor, rosJointPos.getA5() * scaleFactor, rosJointPos.getA6()
-        * scaleFactor, rosJointPos.getA7() * scaleFactor);
+  public static void rosJointQuantityToKuka(iiwa_msgs.JointQuantity rosJointPos, JointPosition kukaJointPos, double scaleFactor) {
+    kukaJointPos.set(rosJointPos.getA1() * scaleFactor, rosJointPos.getA2() * scaleFactor, rosJointPos.getA3() * scaleFactor, rosJointPos.getA4() * scaleFactor,
+        rosJointPos.getA5() * scaleFactor, rosJointPos.getA6() * scaleFactor, rosJointPos.getA7() * scaleFactor);
   }
 
   /**
@@ -302,8 +296,8 @@ public final class Conversions {
    * @return a double vector
    */
   public static double[] rosJointQuantityToArray(iiwa_msgs.JointQuantity rosJointQuant) {
-    double[] ret = { rosJointQuant.getA1(), rosJointQuant.getA2(), rosJointQuant.getA3(), rosJointQuant.getA4(),
-        rosJointQuant.getA5(), rosJointQuant.getA6(), rosJointQuant.getA7() };
+    double[] ret = { rosJointQuant.getA1(), rosJointQuant.getA2(), rosJointQuant.getA3(), rosJointQuant.getA4(), rosJointQuant.getA5(), rosJointQuant.getA6(),
+        rosJointQuant.getA7() };
     return ret;
   }
 

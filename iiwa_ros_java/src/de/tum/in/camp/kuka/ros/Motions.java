@@ -70,15 +70,14 @@ public class Motions {
 
   private long currentTime = System.nanoTime();
   private long previousTime = System.nanoTime();
-  private double loopPeriod = 0.0; // Loop period in s
-  private final double softJointLimit = 0.0174533; // in radians
+  private double loopPeriod = 0.0; // Loop period in s.
+  private final double softJointLimit = 0.0174533; // in radians.
 
   private PTPCheckForGoalReachedThread goalReachedThread;
 
   int i = 0;
 
-  public Motions(LBR robot, String robotBaseFrameId, SmartServo motion, ObjectFrame endPointFrame,
-      iiwaPublisher publisher, iiwaActionServer actionServer) {
+  public Motions(LBR robot, String robotBaseFrameId, SmartServo motion, ObjectFrame endPointFrame, iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.robot = robot;
     this.robotBaseFrameId = robotBaseFrameId;
     this.endPointFrame = endPointFrame;
@@ -103,14 +102,12 @@ public class Motions {
    * @param commandPosition
    * @param status : Redundancy information. Set to -1 if not needed
    */
-  public void cartesianPositionMotion(SmartServo motion, geometry_msgs.PoseStamped commandPosition,
-      RedundancyInformation redundancy) {
+  public void cartesianPositionMotion(SmartServo motion, geometry_msgs.PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(),
-            redundancy.getTurn()); // You can get this info from the robot
-                                   // Cartesian Position (SmartPad)
+        // You can get this info from the robot Cartesian Position (SmartPad).
+        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       if (robot.isReadyToMove()) {
@@ -119,14 +116,12 @@ public class Motions {
     }
   }
 
-  public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition,
-      RedundancyInformation redundancy) {
+  public void cartesianPositionLinMotion(SmartServoLIN linearMotion, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(),
-            redundancy.getTurn()); // You can get this info from the robot
-                                   // Cartesian Position (SmartPad)
+        // You can get this info from the robot Cartesian Position (SmartPad).
+        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       if (robot.isReadyToMove()) {
@@ -135,14 +130,12 @@ public class Motions {
     }
   }
 
-  public void pointToPointMotion(IMotionControlMode motion, PoseStamped commandPosition,
-      RedundancyInformation redundancy) {
+  public void pointToPointMotion(IMotionControlMode motion, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(),
-            redundancy.getTurn()); // You can get this info from the robot
-                                   // Cartesian Position (SmartPad)
+        // You can get this info from the robot Cartesian Position (SmartPad).
+        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       IMotionContainer mc = endPointFrame.moveAsync(ptp(destinationFrame).setMode(motion));
@@ -151,19 +144,16 @@ public class Motions {
     }
   }
 
-  public void pointToPointMotionLin(IMotionControlMode mode, PoseStamped commandPosition,
-      RedundancyInformation redundancy) {
+  public void pointToPointMotionLin(IMotionControlMode mode, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(),
-            redundancy.getTurn()); // You can get this info from the robot
-                                   // Cartesian Position (SmartPad)
+        // You can get this info from the robot Cartesian Position (SmartPad).
+        IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       // endPointFrame.moveAsync(lin(destinationFrame));
-      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
-          .setCartAcceleration(SpeedLimits.cartesianAcceleration)
+      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
           .setOrientationAcceleration(SpeedLimits.orientationAcceleration); // .setMode(mode);
       IMotionContainer mc = endPointFrame.moveAsync(linMotion);
       // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
@@ -179,8 +169,7 @@ public class Motions {
    * @param splineMsg
    * @param subscriber: Required for TF lookups
    */
-  public boolean pointToPointMotionSpline(IMotionControlMode motion, iiwa_msgs.Spline splineMsg,
-      iiwaSubscriber subscriber) {
+  public boolean pointToPointMotionSpline(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
     if (splineMsg == null) { return false; }
 
     boolean success = true;
@@ -240,8 +229,7 @@ public class Motions {
     return success;
   }
 
-  public void cartesianVelocityMotion(SmartServo motion, geometry_msgs.TwistStamped commandVelocity,
-      ObjectFrame toolFrame) {
+  public void cartesianVelocityMotion(SmartServo motion, geometry_msgs.TwistStamped commandVelocity, ObjectFrame toolFrame) {
     if (commandVelocity != null) {
       if (loopPeriod > 1.0) {
         loopPeriod = 0.0;
@@ -253,22 +241,16 @@ public class Motions {
       destinationFrame.setX(commandVelocity.getTwist().getLinear().getX() * loopPeriod + destinationFrame.getX());
       destinationFrame.setY(commandVelocity.getTwist().getLinear().getY() * loopPeriod + destinationFrame.getY());
       destinationFrame.setZ(commandVelocity.getTwist().getLinear().getZ() * loopPeriod + destinationFrame.getZ());
-      destinationFrame.setAlphaRad(commandVelocity.getTwist().getAngular().getX() * loopPeriod
-          + destinationFrame.getAlphaRad());
-      destinationFrame.setBetaRad(commandVelocity.getTwist().getAngular().getY() * loopPeriod
-          + destinationFrame.getBetaRad());
-      destinationFrame.setGammaRad(commandVelocity.getTwist().getAngular().getZ() * loopPeriod
-          + destinationFrame.getGammaRad());
+      destinationFrame.setAlphaRad(commandVelocity.getTwist().getAngular().getX() * loopPeriod + destinationFrame.getAlphaRad());
+      destinationFrame.setBetaRad(commandVelocity.getTwist().getAngular().getY() * loopPeriod + destinationFrame.getBetaRad());
+      destinationFrame.setGammaRad(commandVelocity.getTwist().getAngular().getZ() * loopPeriod + destinationFrame.getGammaRad());
       previousTime = currentTime;
       if (robot.isReadyToMove()) {
         motion.getRuntime().setDestination(destinationFrame);
       }
       currentTime = System.nanoTime();
-      loopPeriod = (double) (currentTime - previousTime) / 1000000000.0; // loopPeriod
-                                                                         // is
-                                                                         // stored
-                                                                         // in
-                                                                         // seconds.
+      // loopPeriod is stored in seconds.
+      loopPeriod = (double) (currentTime - previousTime) / 1000000000.0;
     }
   }
 
@@ -298,41 +280,32 @@ public class Motions {
       }
 
       jp = motion.getRuntime().getCurrentJointDestination();
-      Conversions.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod); // compute
-                                                                                                        // the
-                                                                                                        // joint
-                                                                                                        // displacement
-                                                                                                        // over
-                                                                                                        // the
-                                                                                                        // current
-                                                                                                        // period.
+      // Compute the joint displacement over the current period.
+      Conversions.rosJointQuantityToKuka(commandVelocity.getVelocity(), jointDisplacement, loopPeriod);
       Conversions.rosJointQuantityToKuka(commandVelocity.getVelocity(), jv);
 
       for (int i = 0; i < robot.getJointCount(); ++i) {
         double updatedPotision = jp.get(i) + jointDisplacement.get(i);
-        if ((updatedPotision <= maxJointLimits.get(i) - softJointLimit && updatedPotision >= minJointLimits.get(i)
-            + softJointLimit)) {
-          jp.set(i, updatedPotision); // add the displacement to the joint
-                                      // destination.
+        if ((updatedPotision <= maxJointLimits.get(i) - softJointLimit && updatedPotision >= minJointLimits.get(i) + softJointLimit)) {
+          // Add the displacement to the joint destination.
+          jp.set(i, updatedPotision);
         }
       }
       previousTime = currentTime;
 
-      if (robot.isReadyToMove() /*
-                                 * This KUKA APIs should work, but notrly... &&
-                                 * !(jp.isNearlyEqual(maxJointLimits, 0.1) || jp.isNearlyEqual(minJointLimits,
-                                 * 0.1))
-                                 */) {
+      if (robot.isReadyToMove())
+      /*
+       * This KUKA APIs should work, but notrly... && !(jp.isNearlyEqual(maxJointLimits, 0.1) ||
+       * jp.isNearlyEqual(minJointLimits, 0.1))
+       */
+      {
 
         motion.getRuntime().setDestination(jp, jv);
       }
 
       currentTime = System.nanoTime();
-      loopPeriod = (double) (currentTime - previousTime) / 1000000000.0; // loopPeriod
-                                                                         // is
-                                                                         // stored
-                                                                         // in
-                                                                         // seconds.
+      // loopPeriod is stored in seconds.
+      loopPeriod = (double) (currentTime - previousTime) / 1000000000.0;
     }
   }
 

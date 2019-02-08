@@ -151,8 +151,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @param robotName : name of the robot, it will be used for the topic names with this format : <robot
    *          name>/command/<iiwa message type>
    */
-  public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider,
-      Boolean enforceMessageSequence) {
+  public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence) {
     iiwaName = robotName;
     this.robot = robot;
     this.enforceMessageSequence = enforceMessageSequence;
@@ -181,48 +180,42 @@ public class iiwaSubscriber extends AbstractNodeMain {
   /**
    * Add a callback to the SmartServo service
    */
-  public void setConfigureSmartServoCallback(
-      ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> callback) {
+  public void setConfigureSmartServoCallback(ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> callback) {
     configureSmartServoCallback = callback;
   }
 
   /**
    * Add a callback to the TimeToDestination service
    */
-  public void setTimeToDestinationCallback(
-      ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
+  public void setTimeToDestinationCallback(ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> callback) {
     timeToDestinationCallback = callback;
   }
 
   /**
    * Add a callback to the SetPathParameters service
    */
-  public void setPathParametersCallback(
-      ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> callback) {
+  public void setPathParametersCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> callback) {
     setPathParametersCallback = callback;
   }
 
   /**
    * Add a callback to the SetPathParametersLin service
    */
-  public void setPathParametersLinCallback(
-      ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> callback) {
+  public void setPathParametersLinCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> callback) {
     setPathParametersLinCallback = callback;
   }
 
   /**
    * Add a callback to the SetWorkpiece service
    */
-  public void setWorkpieceCallback(
-      ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> callback) {
+  public void setWorkpieceCallback(ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> callback) {
     setWorkpieceCallback = callback;
   }
 
   /**
    * Add a callback to the SetEndpointFrame service
    */
-  public void setEndpointFrameCallback(
-      ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> callback) {
+  public void setEndpointFrameCallback(ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> callback) {
     setEndpointFrameCallback = callback;
   }
 
@@ -316,18 +309,19 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @param tartget_frame
    * @return pose transformed to target_frame
    **/
-  public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String tartgetFrame) {
-    if (pose == null || pose.getHeader().getFrameId() == null || tartgetFrame == null) { return null; }
-    if (pose.getHeader().getFrameId() == tartgetFrame) { return pose; }
+  public geometry_msgs.PoseStamped transformPose(geometry_msgs.PoseStamped pose, String targetFrame) {
+
+    if (pose == null || pose.getHeader().getFrameId() == null || targetFrame == null) { return null; }
+    if (pose.getHeader().getFrameId().equals(targetFrame)) { return pose; }
 
     long time = pose.getHeader().getStamp().totalNsecs();
 
     PoseStamped result = helper.buildMessage(PoseStamped._TYPE);
-    result.getHeader().setFrameId(tartgetFrame);
+    result.getHeader().setFrameId(targetFrame);
     result.getHeader().setSeq(pose.getHeader().getSeq());
     result.getHeader().setStamp(pose.getHeader().getStamp());
 
-    if (tfListener.getTree().canTransform(pose.getHeader().getFrameId(), tartgetFrame)) {
+    if (tfListener.getTree().canTransform(pose.getHeader().getFrameId(), targetFrame)) {
       Quaternion q_raw = pose.getPose().getOrientation();
       Point t_raw = pose.getPose().getPosition();
 
@@ -336,8 +330,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
       Matrix4d mat = new Matrix4d(q, t, 1);
 
-      Transform transform = tfListener.getTree().lookupTransformBetween(pose.getHeader().getFrameId(), tartgetFrame,
-          time);
+      Transform transform = tfListener.getTree().lookupTransformBetween(pose.getHeader().getFrameId(), targetFrame, time);
 
       if (transform == null) { return null; }
       transform.invert();
@@ -345,9 +338,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
       Matrix4d transformed = transform.asMatrix();
       transformed.mul(mat);
 
-      Matrix3d base = new Matrix3d(transformed.getM00(), transformed.getM01(), transformed.getM02(),
-          transformed.getM10(), transformed.getM11(), transformed.getM12(), transformed.getM20(), transformed.getM21(),
-          transformed.getM22());
+      Matrix3d base = new Matrix3d(transformed.getM00(), transformed.getM01(), transformed.getM02(), transformed.getM10(), transformed.getM11(), transformed.getM12(),
+          transformed.getM20(), transformed.getM21(), transformed.getM22());
       q.set(base);
 
       result.setPose(helper.getPose(transformed));
@@ -368,16 +360,15 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @return
    **/
   public Frame cartesianPoseToRosFrame(CartesianPose cartesianPose, String robotBaseFrame) {
-    PoseStamped poseStamped = transformPose(cartesianPose.getPose(), robotBaseFrame);
+    PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(), robotBaseFrame);
     if (poseStamped == null) { return null; }
 
     Frame frame = Conversions.rosPoseToKukaFrame(poseStamped.getPose());
     RedundancyInformation redundancy = cartesianPose.getRedundancy();
 
     if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-      IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(),
-          redundancy.getTurn()); // You can get this info from the robot
-                                 // Cartesian Position (SmartPad)
+      // You can get this info from the robot SmartPad.
+      IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
       frame.setRedundancyInformation(robot, redundantData);
     }
 
@@ -412,8 +403,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @return
    */
   private Boolean checkMessageSequence(std_msgs.Header received_header, std_msgs.Header stored_header) {
-    return ((received_header.getSeq() == 0 && stored_header.getSeq() == 0) || received_header.getSeq() > stored_header
-        .getSeq());
+    return ((received_header.getSeq() == 0 && stored_header.getSeq() == 0) || received_header.getSeq() > stored_header.getSeq());
   }
 
   /**
@@ -429,18 +419,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
     node = connectedNode;
 
     // Creating the subscribers
-    cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose",
-        geometry_msgs.PoseStamped._TYPE);
-    cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin",
-        geometry_msgs.PoseStamped._TYPE);
-    cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity",
-        geometry_msgs.TwistStamped._TYPE);
-    jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition",
-        iiwa_msgs.JointPosition._TYPE);
-    jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity",
-        iiwa_msgs.JointPositionVelocity._TYPE);
-    jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity",
-        iiwa_msgs.JointVelocity._TYPE);
+    cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
+    cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin", geometry_msgs.PoseStamped._TYPE);
+    cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", geometry_msgs.TwistStamped._TYPE);
+    jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
+    jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
+    jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
     tfListener = new TransformListener(connectedNode);
 
     // Subscribers' callbacks
@@ -449,8 +433,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(geometry_msgs.PoseStamped position) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(position.getHeader(), cp.getHeader())) {
-            Logger.error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq()
-                + " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
+            Logger.error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq() + " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
             return;
           }
         }
@@ -467,8 +450,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(geometry_msgs.TwistStamped velocity) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(velocity.getHeader(), cv.getHeader())) {
-            Logger.error("Received a TwistStamped message with the SeqNum " + velocity.getHeader().getSeq()
-                + ". while expecting a SeqNum larger than " + cv.getHeader().getSeq());
+            Logger.error("Received a TwistStamped message with the SeqNum " + velocity.getHeader().getSeq() + ". while expecting a SeqNum larger than " + cv.getHeader().getSeq());
             return;
           }
         }
@@ -482,8 +464,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(geometry_msgs.PoseStamped position) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(position.getHeader(), cp_lin.getHeader())) {
-            Logger.error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq()
-                + " while expecting a SeqNum larger than " + cp_lin.getHeader().getSeq());
+            Logger
+                .error("Received a PoseStamped message with the SeqNum " + position.getHeader().getSeq() + " while expecting a SeqNum larger than " + cp_lin.getHeader().getSeq());
             return;
           }
         }
@@ -500,8 +482,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(iiwa_msgs.JointPosition position) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(position.getHeader(), jp.getHeader())) {
-            Logger.error("Received a JointPosition message with the SeqNum " + position.getHeader().getSeq()
-                + " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
+            Logger.error("Received a JointPosition message with the SeqNum " + position.getHeader().getSeq() + " while expecting a SeqNum larger than " + jp.getHeader().getSeq());
             return;
           }
         }
@@ -518,8 +499,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(iiwa_msgs.JointPositionVelocity positionVelocity) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(positionVelocity.getHeader(), jpv.getHeader())) {
-            Logger.error("Received a JointPositionVelocity message with the SeqNum "
-                + positionVelocity.getHeader().getSeq() + " while expecting a SeqNum larger than "
+            Logger.error("Received a JointPositionVelocity message with the SeqNum " + positionVelocity.getHeader().getSeq() + " while expecting a SeqNum larger than "
                 + jpv.getHeader().getSeq());
             return;
           }
@@ -537,8 +517,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
       public void onNewMessage(iiwa_msgs.JointVelocity velocity) {
         if (enforceMessageSequence) {
           if (!checkMessageSequence(velocity.getHeader(), jv.getHeader())) {
-            Logger.error("Received a JointVelocity message with the SeqNum " + velocity.getHeader().getSeq()
-                + " while expecting a SeqNum larger than " + jv.getHeader().getSeq());
+            Logger.error("Received a JointVelocity message with the SeqNum " + velocity.getHeader().getSeq() + " while expecting a SeqNum larger than " + jv.getHeader().getSeq());
             return;
           }
         }
@@ -549,38 +528,32 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
     // Creating SmartServo service if a callback has been defined.
     if (configureSmartServoCallback != null) {
-      configureSmartServoServer = node.newServiceServer(iiwaName + "/configuration/configureSmartServo",
-          "iiwa_msgs/ConfigureSmartServo", configureSmartServoCallback);
+      configureSmartServoServer = node.newServiceServer(iiwaName + "/configuration/configureSmartServo", "iiwa_msgs/ConfigureSmartServo", configureSmartServoCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
     if (timeToDestinationCallback != null) {
-      timeToDestinationServer = node.newServiceServer(iiwaName + "/state/timeToDestination",
-          "iiwa_msgs/TimeToDestination", timeToDestinationCallback);
+      timeToDestinationServer = node.newServiceServer(iiwaName + "/state/timeToDestination", "iiwa_msgs/TimeToDestination", timeToDestinationCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
     if (setPathParametersCallback != null) {
-      setPathParametersServer = node.newServiceServer(iiwaName + "/configuration/pathParameters",
-          "iiwa_msgs/SetPathParameters", setPathParametersCallback);
+      setPathParametersServer = node.newServiceServer(iiwaName + "/configuration/pathParameters", "iiwa_msgs/SetPathParameters", setPathParametersCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
     if (setPathParametersLinCallback != null) {
-      setPathParametersLinServer = node.newServiceServer(iiwaName + "/configuration/pathParametersLin",
-          "iiwa_msgs/SetPathParametersLin", setPathParametersLinCallback);
+      setPathParametersLinServer = node.newServiceServer(iiwaName + "/configuration/pathParametersLin", "iiwa_msgs/SetPathParametersLin", setPathParametersLinCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
     if (setWorkpieceCallback != null) {
-      setWorkpieceServer = node.newServiceServer(iiwaName + "/configuration/setWorkpiece", "iiwa_msgs/SetWorkpiece",
-          setWorkpieceCallback);
+      setWorkpieceServer = node.newServiceServer(iiwaName + "/configuration/setWorkpiece", "iiwa_msgs/SetWorkpiece", setWorkpieceCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
     if (setEndpointFrameCallback != null) {
-      setEndpointFrameServer = node.newServiceServer(iiwaName + "/configuration/setEndpointFrame",
-          "iiwa_msgs/SetEndpointFrame", setEndpointFrameCallback);
+      setEndpointFrameServer = node.newServiceServer(iiwaName + "/configuration/setEndpointFrame", "iiwa_msgs/SetEndpointFrame", setEndpointFrameCallback);
     }
   }
 }
