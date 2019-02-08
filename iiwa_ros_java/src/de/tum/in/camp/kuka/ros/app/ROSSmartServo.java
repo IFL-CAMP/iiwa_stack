@@ -286,10 +286,10 @@ public class ROSSmartServo extends ROSBaseApplication {
         motions.setEnpointFrame(endpointFrame);
         controlModeHandler.setEndpointFrame(endpointFrame);
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-          linearMotion = controlModeHandler.switchToSmartServoLIN(motion, linearMotion);
+          linearMotion = controlModeHandler.switchToSmartServoLIN(motion);
         }
         else {
-          motion = controlModeHandler.switchToSmartServo(motion, linearMotion);
+          motion = controlModeHandler.switchToSmartServo(linearMotion);
         }
       }
     });
