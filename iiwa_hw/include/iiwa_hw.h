@@ -44,7 +44,9 @@
 // iiwa_msgs and ROS inteface includes
 #include <iiwa_msgs/JointPosition.h>
 #include <iiwa_msgs/JointTorque.h>
-#include "iiwa_ros/iiwa_ros.h"
+#include <iiwa_ros/command/joint_position.hpp>
+#include <iiwa_ros/state/joint_position.hpp>
+#include <iiwa_ros/state/joint_torque.hpp>
 
 // ROS headers
 #include <control_toolbox/filters.h>
@@ -108,7 +110,7 @@ public:
   /**
    * \brief Retuns the ros::Rate object to control the receiving/sending rate.
    */
-  ros::Rate* getRate();
+  ros::Rate getRate();
 
   /**
    * \brief Retuns the current frequency used by a ros::Rate object to control the receiving/sending rate.
@@ -123,19 +125,22 @@ public:
   /** Structure for a lbr iiwa, joint handles, etc */
   struct IIWA_device {
     /** Vector containing the name of the joints - taken from yaml file */
-    std::vector<std::string> joint_names;
+    std::vector<std::string> joint_names{};
 
-    std::vector<double> joint_lower_limits, /**< Lower joint limits */
-        joint_upper_limits,                 /**< Upper joint limits */
-        joint_effort_limits;                /**< Effort joint limits */
+    std::vector<double> joint_lower_limits{};  /**< Lower joint limits */
+    std::vector<double> joint_upper_limits{};  /**< Upper joint limits */
+    std::vector<double> joint_effort_limits{}; /**< Effort joint limits */
 
     /**< Joint state and commands */
-    std::vector<double> joint_position, joint_position_prev, joint_velocity, joint_effort, joint_position_command,
-        joint_stiffness_command, joint_damping_command, joint_effort_command;
+    std::vector<double> joint_position{};
+    std::vector<double> joint_position_prev{};
+    std::vector<double> joint_velocity{};
+    std::vector<double> joint_effort{};
+    std::vector<double> joint_position_command{};
+    std::vector<double> joint_stiffness_command{};
+    std::vector<double> joint_damping_command{};
+    std::vector<double> joint_effort_command{};
 
-    /**
-     * \brief Initialze vectors
-     */
     void init() {
       joint_position.resize(IIWA_JOINTS);
       joint_position_prev.resize(IIWA_JOINTS);
@@ -151,22 +156,15 @@ public:
       joint_effort_limits.resize(IIWA_JOINTS);
     }
 
-    /**
-     * \brief Reset values of the vectors
-     */
     void reset() {
-      for (size_t j = 0; j < IIWA_JOINTS; ++j) {
-        joint_position[j] = 0.0;
-        joint_position_prev[j] = 0.0;
-        joint_velocity[j] = 0.0;
-        joint_effort[j] = 0.0;
-        joint_position_command[j] = 0.0;
-        joint_effort_command[j] = 0.0;
-
-        // set default values for these two for now
-        joint_stiffness_command[j] = 0.0;
-        joint_damping_command[j] = 0.0;
-      }
+      std::fill(joint_position.begin(), joint_position.end(), 0);
+      std::fill(joint_position_prev.begin(), joint_position_prev.end(), 0);
+      std::fill(joint_velocity.begin(), joint_velocity.end(), 0);
+      std::fill(joint_effort.begin(), joint_effort.end(), 0);
+      std::fill(joint_position_command.begin(), joint_position_command.end(), 0);
+      std::fill(joint_effort_command.begin(), joint_effort_command.end(), 0);
+      std::fill(joint_stiffness_command.begin(), joint_stiffness_command.end(), 0);
+      std::fill(joint_damping_command.begin(), joint_damping_command.end(), 0);
     }
   };
 
@@ -188,23 +186,26 @@ private:
   joint_limits_interface::PositionJointSaturationInterface pj_sat_interface_;
   joint_limits_interface::PositionJointSoftLimitsInterface pj_limits_interface_;
 
-  std::shared_ptr<IIWA_HW::IIWA_device> device_; /**< IIWA device. */
+  std::shared_ptr<IIWA_HW::IIWA_device> device_{nullptr}; /**< IIWA device. */
 
   /** Objects to control send/receive rate. */
-  ros::Time timer_;
-  ros::Rate* loop_rate_;
-  double control_frequency_;
+  ros::Time timer_{};
+  ros::Rate loop_rate_{DEFAULT_CONTROL_FREQUENCY};
+  double control_frequency_{DEFAULT_CONTROL_FREQUENCY};
 
-  iiwa_ros::iiwaRos iiwa_ros_conn_;
-  iiwa_msgs::JointPosition joint_position_;
-  iiwa_msgs::JointTorque joint_torque_;
+  iiwa_ros::state::JointPosition joint_position_state_{};
+  iiwa_ros::state::JointTorque joint_torque_state_{};
+  iiwa_ros::command::JointPosition joint_position_command_{};
 
-  iiwa_msgs::JointPosition command_joint_position_;
-  iiwa_msgs::JointTorque command_joint_torque_;
+  iiwa_msgs::JointPosition joint_position_{};
+  iiwa_msgs::JointTorque joint_torque_{};
 
-  std::vector<double> last_joint_position_command_;
+  iiwa_msgs::JointPosition command_joint_position_{};
+  iiwa_msgs::JointTorque command_joint_torque_{};
 
-  std::vector<std::string> interface_type_; /**< Contains the strings defining the possible hardware interfaces. */
+  std::vector<double> last_joint_position_command_{};
+
+  std::vector<std::string> interface_type_{"PositionJointInterface", "EffortJointInterface", "VelocityJointInterface"};
 };
 
 template <typename T>

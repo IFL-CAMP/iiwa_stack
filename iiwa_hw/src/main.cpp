@@ -42,13 +42,9 @@
 
 bool g_quit = false;
 
-void quitRequested(int sig)
-{
-  g_quit = true;
-}
+void quitRequested(int sig) { g_quit = true; }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   // initialize ROS
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
@@ -66,7 +62,8 @@ int main(int argc, char** argv)
   IIWA_HW iiwa_robot(iiwa_nh);
 
   // configuration routines
-  iiwa_robot.start();
+  auto success = iiwa_robot.start();
+  ROS_INFO_STREAM("iiwa_hw.start returned " << success);
 
   ros::Time last(ros::Time::now());
   ros::Time now;
@@ -76,8 +73,7 @@ int main(int argc, char** argv)
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
   // run as fast as possible
-  while (!g_quit)
-  {
+  while (!g_quit) {
     // get the time / period
     now = ros::Time::now();
     period = now - last;
@@ -93,7 +89,7 @@ int main(int argc, char** argv)
     iiwa_robot.write(period);
 
     // wait for some milliseconds defined in controlFrequency
-    iiwa_robot.getRate()->sleep();
+    iiwa_robot.getRate().sleep();
   }
 
   std::cerr << "Stopping spinner..." << std::endl;

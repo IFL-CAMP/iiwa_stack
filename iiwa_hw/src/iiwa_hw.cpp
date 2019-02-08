@@ -42,37 +42,31 @@
 
 #include "iiwa_hw.h"
 
-using namespace std;
+IIWA_HW::IIWA_HW(ros::NodeHandle nh)
+  : last_joint_position_command_(7, 0)
+  , timer_{ros::Time::now()}
+  , nh_{nh}
+  , device_{std::make_shared<IIWA_HW::IIWA_device>()} {}
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh) : last_joint_position_command_(7, 0) {
-  nh_ = nh;
-
-  timer_ = ros::Time::now();
-  control_frequency_ = DEFAULT_CONTROL_FREQUENCY;
-  loop_rate_ = new ros::Rate(control_frequency_);
-
-  interface_type_.push_back("PositionJointInterface");
-  interface_type_.push_back("EffortJointInterface");
-  interface_type_.push_back("VelocityJointInterface");
-}
-
-ros::Rate* IIWA_HW::getRate() { return loop_rate_; }
+ros::Rate IIWA_HW::getRate() { return loop_rate_; }
 
 double IIWA_HW::getFrequency() { return control_frequency_; }
 
 void IIWA_HW::setFrequency(double frequency) {
   control_frequency_ = frequency;
-  loop_rate_ = new ros::Rate(control_frequency_);
+  loop_rate_ = ros::Rate{control_frequency_};
 }
 
 bool IIWA_HW::start() {
-  // construct a new IIWA device (interface and state storage)
-  device_.reset(new IIWA_HW::IIWA_device());
-
   // TODO : make use of this
   // get inteface param or give default values
   nh_.param("hardware_interface", interface_, std::string("PositionJointInterface"));
   nh_.param("robot_name", robot_name_, std::string("iiwa"));
+
+  joint_position_state_.init(robot_name_);
+  joint_torque_state_.init(robot_name_);
+
+  joint_position_command_.init(robot_name_);
 
   /* TODO
    * nh_.param("move_group", movegroup_name_, "arm");
@@ -94,8 +88,6 @@ bool IIWA_HW::start() {
     ROS_ERROR("No URDF model in the robot_description parameter, this is required to define the joint limits.");
     throw std::runtime_error("No URDF model available");
   }
-
-  iiwa_ros_conn_.init(robot_name_);
 
   // initialize and set to zero the state and command values
   device_->init();
@@ -141,7 +133,6 @@ bool IIWA_HW::start() {
 
   ROS_INFO("Register state and effort interfaces");
 
-  // TODO: CHECK
   // register ros-controls interfaces
   this->registerInterface(&state_interface_);
   this->registerInterface(&effort_interface_);
@@ -196,9 +187,9 @@ bool IIWA_HW::read(ros::Duration period) {
 
   static bool was_connected = false;
 
-  if (iiwa_ros_conn_.getRobotIsConnected()) {
-    iiwa_ros_conn_.getJointPosition(joint_position_);
-    iiwa_ros_conn_.getJointTorque(joint_torque_);
+  if (joint_position_state_.isConnected()) {
+    joint_position_ = joint_position_state_.getPosition();
+    joint_torque_ = joint_torque_state_.getTorque();
 
     device_->joint_position_prev = device_->joint_position;
     iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
@@ -206,15 +197,16 @@ bool IIWA_HW::read(ros::Duration period) {
 
     // if there is no controller active the robot goes to zero position
     if (!was_connected) {
-      for (size_t j = 0; j < IIWA_JOINTS; j++) device_->joint_position_command[j] = device_->joint_position[j];
+      for (size_t j = 0; j < IIWA_JOINTS; j++) { device_->joint_position_command[j] = device_->joint_position[j]; }
 
       was_connected = true;
     }
 
-    for (size_t j = 0; j < IIWA_JOINTS; j++)
+    for (size_t j = 0; j < IIWA_JOINTS; j++) {
       device_->joint_velocity[j] =
           filters::exponentialSmoothing((device_->joint_position[j] - device_->joint_position_prev[j]) / period.toSec(),
                                         device_->joint_velocity[j], 0.2);
+    }
 
     return 1;
   } else if (delta.toSec() >= 10) {
@@ -233,12 +225,11 @@ bool IIWA_HW::write(ros::Duration period) {
   ros::Duration delta = ros::Time::now() - timer_;
 
   // reading the force/torque values
-  if (iiwa_ros_conn_.getRobotIsConnected()) {
+  if (joint_position_state_.isConnected()) {
     // Joint Position Control
     if (interface_ == interface_type_.at(0)) {
-      if (device_->joint_position_command ==
-          last_joint_position_command_)  // avoid sending the same joint command over and over
-        return 0;
+      // avoid sending the same joint command over and over
+      if (device_->joint_position_command == last_joint_position_command_) { return 0; }
 
       last_joint_position_command_ = device_->joint_position_command;
 
@@ -246,7 +237,7 @@ bool IIWA_HW::write(ros::Duration period) {
       vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
       command_joint_position_.header.stamp = ros::Time::now();
 
-      iiwa_ros_conn_.setJointPosition(command_joint_position_);
+      joint_position_command_.setPosition(command_joint_position_);
     }
     // Joint Impedance Control
     else if (interface_ == interface_type_.at(1)) {
