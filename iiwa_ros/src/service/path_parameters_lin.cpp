@@ -28,70 +28,46 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include <iiwa_ros/service/path_parameters_lin.hpp>
 
-#include <iiwa_msgs/SetPathParameters.h>
-#include <iiwa_ros/iiwa_services.hpp>
+namespace iiwa_ros {
+namespace service {
 
-namespace iiwa_ros
-{
-class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters>
-{
-public:
-  PathParametersService();
+// PathParametersLinService::PathParametersLinService(const std::string& robot_namespace, const bool verbose)
+//  : iiwaServices<iiwa_msgs::SetPathParametersLin>(robot_namespace, verbose) {}
 
-  /**
-   * @brief ...
-   *
-   * @param service_name ...
-   * @param verbose ...
-   */
-  PathParametersService(const std::string& service_name, const bool verbose = true);
-  /**
-   * @brief ...
-   *
-   * @param joint_relative_velocity ...
-   * @return bool
-   */
-  bool setJointRelativeVelocity(const double joint_relative_velocity);
-
-  /**
-   * @brief ...
-   *
-   * @param joint_relative_acceleration ...
-   * @return bool
-   */
-  bool setJointRelativeAcceleration(const double joint_relative_acceleration);
-
-  /**
-   * @brief ...
-   *
-   * @param override_joint_acceleration ...
-   * @return bool
-   */
-  bool setOverrideJointAcceleration(const double override_joint_acceleration);
-
-  /**
-   * @brief ...
-   *
-   * @param joint_relative_velocity ...
-   * @param joint_relative_acceleration ...
-   * @return bool
-   */
-  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration);
-
-  /**
-   * @brief ...
-   *
-   * @param joint_relative_velocity ...
-   * @param joint_relative_acceleration ...
-   * @param override_joint_acceleration ...
-   * @return bool
-   */
-  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration,
-                         const double override_joint_acceleration);
-
-protected:
-  virtual bool callService();
-};
+void PathParametersLinService::init(const std::string& robot_namespace) {
+  setup(robot_namespace);
+  ros::NodeHandle node_handle{};
+  client_ =
+      node_handle.serviceClient<iiwa_msgs::SetPathParametersLin>(ros_namespace_ + "configuration/pathParametersLin");
+  service_ready_ = true;
 }
+
+bool PathParametersLinService::callService() {
+  if (service_ready_) {
+    if (client_.call(config_)) {
+      if (!config_.response.success && verbose_) {
+        service_error_ = config_.response.error;
+        ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
+      } else if (verbose_) {
+        ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+      }
+    } else if (verbose_) {
+      ROS_ERROR_STREAM(service_name_ << " could not be called");
+    }
+    return config_.response.success;
+  }
+  ROS_ERROR_STREAM("The service client was not intialized yet.");
+}
+
+bool PathParametersLinService::setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity) {
+  setPathParametersLin(max_cartesian_velocity);
+}
+
+bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity) {
+  setPathParametersLin(max_cartesian_velocity);
+}
+
+}  // namespace service
+}  // namespace iiwa_ros

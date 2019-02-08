@@ -30,47 +30,72 @@
 
 #pragma once
 
-#include <iiwa_msgs/TimeToDestination.h>
-#include <iiwa_ros/iiwa_services.hpp>
+#include <iiwa_msgs/SetPathParameters.h>
+#include <iiwa_ros/service/iiwa_services.hpp>
 
-namespace iiwa_ros
-{
-/**
- * @brief This class provides a wrapper for service call of the TimeToDestination service.
- * Once an object of this class is created using the appropriate service name (e.g. /iiwa/state/timeToDestination),
- * it is possible to just call its functions to get the time left - in <b>seconds</b> - to reach the last given
- * destination.
- * If the robot already reached its last commanded destination, a negative number will be returned. That is the time -
- * in <b>seconds</b> - since the robot reached that destination.
- * The value <b>-999</b> will be returned if an error occurs.
- */
-class TimeToDestinationService : public iiwaServices<iiwa_msgs::TimeToDestination>
-{
+namespace iiwa_ros {
+namespace service {
+
+class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters> {
 public:
-  TimeToDestinationService();
+  PathParametersService() = default;
+  virtual ~PathParametersService() override = default;
 
   /**
-   * @brief Creates a Service client given the name of the timeToDestination service: e.g.
-   * "/iiwa/state/timeToDestination"
+   * @brief ...
    *
-   * @param service_name Name of the ROS Service server to connect to.
-   * @param verbose If true some ROS_INFO messages will be printed out during service calls.
+   * @param service_name ...
+   * @param verbose ...
    */
-  TimeToDestinationService(const std::string& service_name, const bool verbose = true);
+  //  PathParametersService(const std::string& robot_namespace, const bool verbose = true);
+  /**
+   * @brief ...
+   *
+   * @param joint_relative_velocity ...
+   * @return bool
+   */
+  bool setJointRelativeVelocity(const double joint_relative_velocity);
 
   /**
-   * @brief Returns the time left to reach the last commanded destination in <b>seconds</b>.
-   * A negative value represents the time since the robot reached its last commanded destination.
-   * The value <b>-999</b> will be returned if an error occurs.
+   * @brief ...
    *
-   * @return double
+   * @param joint_relative_acceleration ...
+   * @return bool
    */
-  double getTimeToDestination();
+  bool setJointRelativeAcceleration(const double joint_relative_acceleration);
+
+  /**
+   * @brief ...
+   *
+   * @param override_joint_acceleration ...
+   * @return bool
+   */
+  bool setOverrideJointAcceleration(const double override_joint_acceleration);
+
+  /**
+   * @brief ...
+   *
+   * @param joint_relative_velocity ...
+   * @param joint_relative_acceleration ...
+   * @return bool
+   */
+  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration);
+
+  /**
+   * @brief ...
+   *
+   * @param joint_relative_velocity ...
+   * @param joint_relative_acceleration ...
+   * @param override_joint_acceleration ...
+   * @return bool
+   */
+  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration,
+                         const double override_joint_acceleration);
+  virtual void init(const std::string& robot_namespace) override;
 
 protected:
-  virtual bool callService();
-
-private:
-  double time_to_destination_;
+  virtual bool callService() override;
 };
-}
+
+}  // namespace service
+}  // namespace iiwa_ros

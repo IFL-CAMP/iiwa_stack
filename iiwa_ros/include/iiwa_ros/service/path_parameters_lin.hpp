@@ -28,50 +28,46 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iiwa_ros/time_to_destination_service.h>
+#pragma once
 
-namespace iiwa_ros
-{
-TimeToDestinationService::TimeToDestinationService() : iiwaServices<iiwa_msgs::TimeToDestination>()
-{
-}
+#include <iiwa_msgs/SetPathParametersLin.h>
+#include <iiwa_ros/service/iiwa_services.hpp>
 
-TimeToDestinationService::TimeToDestinationService(const std::string& service_name, const bool verbose)
-  : iiwaServices<iiwa_msgs::TimeToDestination>(service_name, verbose)
-{
-}
+namespace iiwa_ros {
+namespace service {
 
-double TimeToDestinationService::getTimeToDestination()
-{
-  if (service_ready_)
-  {
-    if (callService())
-    {
-      return time_to_destination_;
-    }
-    else
-    {
-      return -999;  // It cannot return -1 since it might be a meaningfull result.
-    }
-  }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
-}
+class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin> {
+public:
+  PathParametersLinService() = default;
+  virtual ~PathParametersLinService() override = default;
 
-bool TimeToDestinationService::callService()
-{
-  if (client_.call(config_))
-  {
-    if (verbose_)
-    {
-        ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
-    }
-    time_to_destination_ = config_.response.remaining_time;
-    return true;
-  }
-  else if (verbose_)
-  {
-    ROS_ERROR_STREAM(service_name_ << " could not be called");
-  }
-  return false;
-}
-}
+  /**
+   * @brief ...
+   *
+   * @param service_name ...
+   * @param verbose ...
+   */
+  //  PathParametersLinService(const std::string& robot_namespace, const bool verbose = true);
+  /**
+   * @brief ...
+   *
+   * @param max_cartesian_velocity ...
+   * @return bool
+   */
+  bool setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity);
+
+  /**
+   * @brief ...
+   *
+   * @param max_cartesian_velocity ...
+   * @return bool
+   */
+  bool setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity);
+  virtual void init(const std::string& robot_namespace) override;
+
+protected:
+  virtual bool callService() override;
+};
+
+}  // namespace service
+}  // namespace iiwa_ros

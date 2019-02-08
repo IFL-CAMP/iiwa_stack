@@ -28,42 +28,43 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
+#include <iiwa_ros/service/time_to_destination.hpp>
 
-#include <iiwa_msgs/SetPathParametersLin.h>
-#include <iiwa_ros/iiwa_services.hpp>
+namespace iiwa_ros {
+namespace service {
 
-namespace iiwa_ros
-{
-class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin>
-{
-public:
-  PathParametersLinService();
+// TimeToDestinationService::TimeToDestinationService(const std::string& robot_namespace, const bool verbose)
+//  : iiwaServices<iiwa_msgs::TimeToDestination>{robot_namespace, verbose} {}
 
-  /**
-   * @brief ...
-   *
-   * @param service_name ...
-   * @param verbose ...
-   */
-  PathParametersLinService(const std::string& service_name, const bool verbose = true);
-  /**
-   * @brief ...
-   *
-   * @param max_cartesian_velocity ...
-   * @return bool
-   */
-  bool setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity);
-
-  /**
-   * @brief ...
-   *
-   * @param max_cartesian_velocity ...
-   * @return bool
-   */
-  bool setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity);
-
-protected:
-  virtual bool callService();
-};
+void TimeToDestinationService::init(const std::string& robot_namespace) {
+  setup(robot_namespace);
+  ros::NodeHandle node_handle{};
+  client_ = node_handle.serviceClient<iiwa_msgs::TimeToDestination>(ros_namespace_ + "state/timeToDestination");
+  service_ready_ = true;
 }
+
+double TimeToDestinationService::getTimeToDestination() {
+  if (service_ready_) {
+    if (callService()) {
+      return time_to_destination_;
+    } else {
+      return -999;  // It cannot return -1 since it might be a meaningfull result.
+    }
+  }
+
+  ROS_ERROR_STREAM("The service client was not intialized yet.");
+}
+
+bool TimeToDestinationService::callService() {
+  if (client_.call(config_)) {
+    if (verbose_) { ROS_DEBUG_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called."); }
+    time_to_destination_ = config_.response.remaining_time;
+    return true;
+  } else if (verbose_) {
+    ROS_ERROR_STREAM(service_name_ << " could not be called");
+  }
+  return false;
+}
+
+}  // namespace service
+}  // namespace iiwa_ros

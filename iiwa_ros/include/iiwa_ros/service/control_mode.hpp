@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -30,21 +30,22 @@
 
 #pragma once
 
-#include <iiwa_msgs/ConfigureSmartServo.h>
-#include <iiwa_ros/iiwa_services.hpp>
+#include <iiwa_msgs/ConfigureControlMode.h>
+#include <iiwa_ros/service/iiwa_services.hpp>
 
-namespace iiwa_ros
-{
+namespace iiwa_ros {
+namespace service {
+
 /**
  * @brief This class provides a wrapper for service call of the ConfigureSmartServo service.
  * Once an object of this class is created using the appropriate service name (e.g.
  * /iiwa/configuration/configureSmartServo),
  * it is possible to just call its functions to set the desired control mode on the robot.
  */
-class SmartServoService : public iiwaServices<iiwa_msgs::ConfigureSmartServo>
-{
+class SmartServoService : public iiwaServices<iiwa_msgs::ConfigureControlMode> {
 public:
-  SmartServoService();
+  SmartServoService() = default;
+  virtual ~SmartServoService() override = default;
 
   /**
    * @brief Creates a Service client given the name of the configureSmartServo service: e.g.
@@ -53,7 +54,7 @@ public:
    * @param service_name Name of the ROS Service server to connect to.
    * @param verbose If true some ROS_INFO messages will be printed out during service calls.
    */
-  SmartServoService(const std::string& service_name, const bool verbose = true);
+  //  SmartServoService(const std::string& robot_namespace, const bool verbose = true);
 
   /**
    * @brief Sets the control mode to PositionControl.
@@ -234,9 +235,10 @@ public:
                           const double stiffness, const iiwa_msgs::CartesianQuantity& max_path_deviation,
                           const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
                           const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
+  virtual void init(const std::string& robot_namespace) override;
 
 protected:
-  virtual bool callService();
+  virtual bool callService() override;
 
   void initCartesianLimits(const iiwa_msgs::CartesianQuantity& max_path_deviation,
                            const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
@@ -263,4 +265,6 @@ protected:
                            const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
                            const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
 };
-}
+
+}  // namespace service
+}  // namespace iiwa_ros
