@@ -68,7 +68,6 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -169,9 +168,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
     // ROS initialization.
     try {
-      configurationNodeConfiguration = configureNode("/iiwa_configuration", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
-      publisherNodeConfiguration = configureNode("/iiwa_publisher", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
-      actionServerNodeConfiguration = configureNode("/iiwa_action_server", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+      configurationNodeConfiguration = configureNode("/iiwa_configuration", 30000, 30001);
+      publisherNodeConfiguration = configureNode("/iiwa_publisher", 30002, 30003);
+      actionServerNodeConfiguration = configureNode("/iiwa_action_server", 30004, 30005);
 
       // Additional configuration needed in subclasses.
       configureNodes();

@@ -53,7 +53,6 @@ import com.kuka.roboticsAPI.geometricModel.SceneGraphObject;
 import com.kuka.roboticsAPI.geometricModel.Workpiece;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
-import de.tum.in.camp.kuka.ros.AddressGeneration;
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.Conversions;
 import de.tum.in.camp.kuka.ros.Logger;
@@ -81,7 +80,7 @@ public class ROSSmartServo extends ROSBaseApplication {
   protected void configureNodes() {
     // Configuration for the Subscriber.
     try {
-      subscriberNodeConfiguration = configureNode("/iiwa_subscriber", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+      subscriberNodeConfiguration = configureNode("/iiwa_subscriber", 30006, 30007);
     }
     catch (URISyntaxException e) {
       Logger.error(e.toString());
