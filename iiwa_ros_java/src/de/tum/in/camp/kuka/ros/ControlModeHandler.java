@@ -64,8 +64,7 @@ public class ControlModeHandler {
 
   IMotionControlMode currentControlMode = null;
 
-  public ControlModeHandler(LBR robot, Tool tool, ObjectFrame endpointFrame, iiwaPublisher publisher,
-      iiwaActionServer actionServer, Configuration configuration) {
+  public ControlModeHandler(LBR robot, Tool tool, ObjectFrame endpointFrame, iiwaPublisher publisher, iiwaActionServer actionServer, Configuration configuration) {
     this.robot = robot;
     this.tool = tool;
     this.endpointFrame = endpointFrame;
@@ -85,19 +84,19 @@ public class ControlModeHandler {
   public void setLastSmartServoRequest(ConfigureSmartServoRequest request) {
     this.lastSmartServoRequest = request;
   }
-  
+
   public SmartServo changeSmartServoControlMode(SmartServo motion, IMotionControlMode controlMode) {
     SmartServo oldMotion = motion;
     motion = createSmartServoMotion();
     if (controlMode == null || controlMode instanceof PositionControlMode) {
       motion.setMode(new PositionControlMode());
-    } 
+    }
     else {
       validateForImpedanceMode();
       motion.setMode(controlMode);
     }
     switchMotion(motion, oldMotion);
-    return motion;    
+    return motion;
   }
 
   public SmartServoLIN changeSmartServoControlMode(SmartServoLIN motion, IMotionControlMode controlMode) {
@@ -105,15 +104,14 @@ public class ControlModeHandler {
     motion = createSmartServoLinMotion();
     if (controlMode == null || controlMode instanceof PositionControlMode) {
       motion.setMode(new PositionControlMode());
-    } 
+    }
     else {
       validateForImpedanceMode();
       motion.setMode(controlMode);
     }
     switchMotion(motion, oldMotion);
-    return motion;    
+    return motion;
   }
-
 
   public SmartServo changeSmartServoControlMode(SmartServo motion, iiwa_msgs.ConfigureSmartServoRequest request) {
     SmartServo oldMotion = motion;
@@ -159,40 +157,6 @@ public class ControlModeHandler {
     return motion;
   }
 
-  public SmartServoLIN switchSmartServoMotion(SmartServo motion, IMotionControlMode controlMode) {
-    SmartServo oldMotion = motion;
-
-    if (!(controlMode instanceof PositionControlMode)) {
-      validateForImpedanceMode();
-    }
-
-    SmartServoLIN newMotion = createSmartServoLinMotion();
-    newMotion.setMode(controlMode);
-    currentControlMode = controlMode;
-    switchMotion(newMotion, oldMotion);
-    return newMotion;
-  }
-
-  /**
-   * Switches a the SmartServo Motion
-   * 
-   * @param oldMotion Current motion
-   * @param controlMode new motion mode
-   * @return new SmartServo motion
-   */
-  public SmartServo switchSmartServoMotion(SmartServoLIN oldMotion, IMotionControlMode controlMode) {
-
-    if (!(controlMode instanceof PositionControlMode)) {
-      validateForImpedanceMode();
-    }
-
-    SmartServo newMotion = createSmartServoMotion();
-    newMotion.setMode(controlMode);
-    currentControlMode = controlMode;
-    switchMotion(newMotion, oldMotion);
-    return newMotion;
-  }
-
   // TODO: doc
   @SuppressWarnings("rawtypes")
   public void switchMotion(ServoMotion motion, ServoMotion oldMotion) {
@@ -209,24 +173,45 @@ public class ControlModeHandler {
     motion.getRuntime().setGoalReachedEventHandler(handler);
   }
 
-  public SmartServo switchToSmartServo(SmartServo motion, SmartServoLIN linearMotion) {
-    System.out.println("Switching to SmartServo motion");
-    IMotionControlMode currentMode = motion.getMode();
+  /**
+   * Given a current SmartServoLin motion, it return a SmartServo motion with the same control mode.
+   */
+  public SmartServo switchToSmartServo(SmartServoLIN linearMotion) {
+    Logger.debug("Switching to SmartServo motion");
+    IMotionControlMode currentMode = linearMotion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
     }
-    motion = switchSmartServoMotion(linearMotion, currentMode);
-    return motion;
+    if (!(currentMode instanceof PositionControlMode)) {
+      validateForImpedanceMode();
+    }
+
+    SmartServo newMotion = createSmartServoMotion();
+    newMotion.setMode(currentMode);
+    currentControlMode = currentMode;
+    switchMotion(newMotion, linearMotion);
+    return newMotion;
   }
 
-  public SmartServoLIN switchToSmartServoLIN(SmartServo motion, SmartServoLIN linearMotion) {
-    System.out.println("Switching to SmartServoLIN motion");
+  /**
+   * Given a current SmartServo motion, it return a SmartServoLIN motion with the same control mode.
+   */
+  public SmartServoLIN switchToSmartServoLIN(SmartServo motion) {
+    Logger.debug("Switching to SmartServoLIN motion");
     IMotionControlMode currentMode = motion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
     }
-    linearMotion = switchSmartServoMotion(motion, currentMode);
-    return linearMotion;
+
+    if (!(currentMode instanceof PositionControlMode)) {
+      validateForImpedanceMode();
+    }
+
+    SmartServoLIN newMotion = createSmartServoLinMotion();
+    newMotion.setMode(currentMode);
+    currentControlMode = currentMode;
+    switchMotion(newMotion, motion);
+    return newMotion;
   }
 
   /**
@@ -236,11 +221,9 @@ public class ControlModeHandler {
    */
   private void validateForImpedanceMode() {
     if (workpiece != null) {
-      // System.out.println("Workpiece payload data: "+workpiece.getLoadData().toString());
       ServoMotion.validateForImpedanceMode(workpiece);
     }
     else if (tool != null) {
-      // System.out.println("Tool payload data: "+tool.getLoadData().toString());
       ServoMotion.validateForImpedanceMode(tool);
     }
     else {
@@ -264,8 +247,6 @@ public class ControlModeHandler {
   }
 
   public SmartServoLIN createSmartServoLinMotion() {
-    System.out.println("endpointFrame: " + endpointFrame);
-
     SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(endpointFrame));
     linearMotion.setReferenceFrame(World.Current.getRootFrame());
     linearMotion.setMinimumTrajectoryExecutionTime(0.1); // TODO : parametrize
@@ -315,8 +296,7 @@ public class ControlModeHandler {
           CartDOF direction = selectDegreeOfFreedom(request.getDesiredForce().getCartesianDof());
 
           if (direction != null && request.getDesiredForce().getDesiredStiffness() >= 0) {
-            cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce()
-                .getDesiredForce(), request.getDesiredForce().getDesiredStiffness());
+            cscm = CartesianSineImpedanceControlMode.createDesiredForce(direction, request.getDesiredForce().getDesiredForce(), request.getDesiredForce().getDesiredStiffness());
             addControlModeLimits(cscm, request.getLimits());
             currentControlMode = cscm;
           }
@@ -327,10 +307,9 @@ public class ControlModeHandler {
           CartesianSineImpedanceControlMode cscm = new CartesianSineImpedanceControlMode();
           CartDOF direction = selectDegreeOfFreedom(request.getSinePattern().getCartesianDof());
 
-          if (direction != null && request.getSinePattern().getFrequency() >= 0
-              && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
-            cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern()
-                .getFrequency(), request.getSinePattern().getAmplitude(), request.getSinePattern().getStiffness());
+          if (direction != null && request.getSinePattern().getFrequency() >= 0 && request.getSinePattern().getAmplitude() >= 0 && request.getSinePattern().getStiffness() >= 0) {
+            cscm = CartesianSineImpedanceControlMode.createSinePattern(direction, request.getSinePattern().getFrequency(), request.getSinePattern().getAmplitude(), request
+                .getSinePattern().getStiffness());
             addControlModeLimits(cscm, request.getLimits());
             currentControlMode = cscm;
           }
@@ -469,25 +448,23 @@ public class ControlModeHandler {
    * @param controlMode
    * @param limits
    */
-  private void addControlModeLimits(CartesianImpedanceControlMode controlMode,
-      iiwa_msgs.CartesianControlModeLimits limits) {
+  private void addControlModeLimits(CartesianImpedanceControlMode controlMode, iiwa_msgs.CartesianControlModeLimits limits) {
     CartesianQuantity maxPathDeviation = limits.getMaxPathDeviation();
     if (helper.isCartesianQuantityGreaterThan(maxPathDeviation, 0)) {
-      controlMode.setMaxPathDeviation(maxPathDeviation.getX(), maxPathDeviation.getY(), maxPathDeviation.getZ(),
-          maxPathDeviation.getA(), maxPathDeviation.getB(), maxPathDeviation.getC());
+      controlMode.setMaxPathDeviation(maxPathDeviation.getX(), maxPathDeviation.getY(), maxPathDeviation.getZ(), maxPathDeviation.getA(), maxPathDeviation.getB(),
+          maxPathDeviation.getC());
     }
 
     CartesianQuantity maxControlForce = limits.getMaxControlForce();
     if (helper.isCartesianQuantityGreaterThan(maxControlForce, 0)) {
-      controlMode.setMaxControlForce(maxControlForce.getX(), maxControlForce.getY(), maxControlForce.getZ(),
-          maxControlForce.getA(), maxControlForce.getB(), maxControlForce.getC(), limits.getMaxControlForceStop());
+      controlMode.setMaxControlForce(maxControlForce.getX(), maxControlForce.getY(), maxControlForce.getZ(), maxControlForce.getA(), maxControlForce.getB(),
+          maxControlForce.getC(), limits.getMaxControlForceStop());
     }
 
     CartesianQuantity maxCartesianVelocity = limits.getMaxCartesianVelocity();
     if (helper.isCartesianQuantityGreaterThan(maxCartesianVelocity, 0)) {
-      controlMode.setMaxCartesianVelocity(maxCartesianVelocity.getX(), maxCartesianVelocity.getY(),
-          maxCartesianVelocity.getZ(), maxCartesianVelocity.getA(), maxCartesianVelocity.getB(),
-          maxCartesianVelocity.getC());
+      controlMode.setMaxCartesianVelocity(maxCartesianVelocity.getX(), maxCartesianVelocity.getY(), maxCartesianVelocity.getZ(), maxCartesianVelocity.getA(),
+          maxCartesianVelocity.getB(), maxCartesianVelocity.getC());
     }
   }
 
@@ -526,18 +503,17 @@ public class ControlModeHandler {
     return currentControlMode;
   }
 
-  public void disableSmartServo(SmartServo oldMotion) {
-    System.out.println("Disabling SmartServo");
-    oldMotion.getRuntime().stopMotion();
+  public void disableSmartServo(SmartServo motion) {
+    if (!(currentControlMode instanceof PositionControlMode)) { changeSmartServoControlMode(motion, new PositionControlMode(true));  }
+    motion.getRuntime().stopMotion();
   }
 
-  public void disableSmartServo(SmartServoLIN linearMotion) {
-    System.out.println("Disabling SmartServoLIN");
-    linearMotion.getRuntime().stopMotion();
+  public void disableSmartServo(SmartServoLIN motion) {
+    if (!(currentControlMode instanceof PositionControlMode)) { changeSmartServoControlMode(motion, new PositionControlMode(true));  }
+    motion.getRuntime().stopMotion();
   }
 
   public SmartServo enableSmartServo(SmartServo motion) {
-    System.out.println("Enabling SmartServo");
     return changeSmartServoControlMode(motion, lastSmartServoRequest);
     /*
      * motion.setMode(getCurrentMode()); endpointFrame.moveAsync(motion);
@@ -546,7 +522,6 @@ public class ControlModeHandler {
   }
 
   public SmartServoLIN enableSmartServo(SmartServoLIN linearMotion) {
-    System.out.println("Enabling SmartServoLIN");
     return changeSmartServoControlMode(linearMotion, lastSmartServoRequest);
     /*
      * linearMotion.setMode(getCurrentMode()); endpointFrame.moveAsync(linearMotion);

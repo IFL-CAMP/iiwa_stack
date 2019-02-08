@@ -1,29 +1,24 @@
 /**
- * Copyright (C) 2018 Arne Peters - arne.peters@tum.de Technische Universität
- * München Chair for Robotics, Artificial Intelligence and Embedded Systems
- * Fakultät für Informatik / I6, Boltzmannstraße 3, 85748 Garching bei München,
- * Germany http://www6.in.tum.de All rights reserved.
+ * Copyright (C) 2018 Arne Peters - arne.peters@tum.de Technische Universität München Chair for Robotics,
+ * Artificial Intelligence and Embedded Systems Fakultät für Informatik / I6, Boltzmannstraße 3, 85748
+ * Garching bei München, Germany http://www6.in.tum.de All rights reserved.
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided
+ * that the following conditions are met:
  * 
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
+ * following disclaimer.
  * 
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+ * the following disclaimer in the documentation and/or other materials provided with the distribution.
  * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -46,7 +41,7 @@ import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.github.rosjava_actionlib.ActionServer;
 import com.github.rosjava_actionlib.ActionServerListener;
 
-import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
+import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToCartesianPoseActionResult;
@@ -71,8 +66,7 @@ public class iiwaActionServer extends AbstractNodeMain {
     }
   }
 
-  public abstract class iiwaActionServerListener<T_ACTION_GOAL extends Message> implements
-      ActionServerListener<T_ACTION_GOAL> {
+  public abstract class iiwaActionServerListener<T_ACTION_GOAL extends Message> implements ActionServerListener<T_ACTION_GOAL> {
     private iiwaActionServer server = null;
     private CommandType goalType = null;
 
@@ -82,8 +76,7 @@ public class iiwaActionServer extends AbstractNodeMain {
     }
 
     /**
-     * Gets called after a new has been received. We initially accept all goals
-     * kill the old ones afterwards.
+     * Gets called after a new has been received. We initially accept all goals kill the old ones afterwards.
      */
     @Override
     public boolean acceptGoal(T_ACTION_GOAL arg0) {
@@ -136,33 +129,27 @@ public class iiwaActionServer extends AbstractNodeMain {
     node = connectedNode;
     goalQueue.clear();
 
-    cartesianPoseServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(
-        node, iiwaName + "/action/move_to_cartesian_pose", MoveToCartesianPoseActionGoal._TYPE,
-        MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-    cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this,
-        CommandType.POINT_TO_POINT) {
+    cartesianPoseServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName
+        + "/action/move_to_cartesian_pose", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
+    cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT) {
       @Override
       public String getGoalId(MoveToCartesianPoseActionGoal goal) {
         return goal.getGoalId().getId();
       }
     });
 
-    cartesianPoseLinServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(
-        node, iiwaName + "/action/move_to_cartesian_pose_lin", MoveToCartesianPoseActionGoal._TYPE,
-        MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-    cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this,
-        CommandType.POINT_TO_POINT_LIN) {
+    cartesianPoseLinServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName
+        + "/action/move_to_cartesian_pose_lin", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
+    cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT_LIN) {
       @Override
       public String getGoalId(MoveToCartesianPoseActionGoal goal) {
         return goal.getGoalId().getId();
       }
     });
 
-    jointPositionServer = new ActionServer<MoveToJointPositionActionGoal, MoveToJointPositionActionFeedback, MoveToJointPositionActionResult>(
-        node, iiwaName + "/action/move_to_joint_position", MoveToJointPositionActionGoal._TYPE,
-        MoveToJointPositionActionFeedback._TYPE, MoveToJointPositionActionResult._TYPE);
-    jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this,
-        CommandType.JOINT_POSITION) {
+    jointPositionServer = new ActionServer<MoveToJointPositionActionGoal, MoveToJointPositionActionFeedback, MoveToJointPositionActionResult>(node, iiwaName
+        + "/action/move_to_joint_position", MoveToJointPositionActionGoal._TYPE, MoveToJointPositionActionFeedback._TYPE, MoveToJointPositionActionResult._TYPE);
+    jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this, CommandType.JOINT_POSITION) {
       @Override
       public String getGoalId(MoveToJointPositionActionGoal goal) {
         return goal.getGoalId().getId();

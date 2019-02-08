@@ -192,7 +192,7 @@ public class Configuration extends AbstractNodeMain {
 
   private ParameterTree getParameterTree() {
     if (initSemaphore.availablePermits() > 0) {
-      System.out.println("waitForInitialization not called before using parameters!");
+      Logger.warn("waitForInitialization not called before using parameters!");
     }
     if (node == null) { return null; }
     return node.getParameterTree();
@@ -306,7 +306,7 @@ public class Configuration extends AbstractNodeMain {
         timeProvider = provider;
       }
       catch (UnknownHostException e) {
-        System.err.println("Could not setup NTP time provider!");
+        Logger.error("Could not setup NTP time provider!");
       }
     }
     else {

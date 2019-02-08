@@ -44,6 +44,7 @@ import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.math.Transformation;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
+import com.kuka.roboticsAPI.sensorModel.ForceSensorData;
 
 /**
  * This class helps building iiwa_msgs ROS messages, it's a collection of methods to build the messages from
@@ -70,8 +71,8 @@ public class MessageGenerator {
                                                  // iiwa_link_0
 
     // e.g. if robotName == iiwa, the joints are iiwa_joint_1, iiwa_joint_2, ...
-    joint_names = new String[] { robotName + "_joint_1", robotName + "_joint_2", robotName + "_joint_3",
-        robotName + "_joint_4", robotName + "_joint_5", robotName + "_joint_6", robotName + "_joint_7" };
+    joint_names = new String[] { robotName + "_joint_1", robotName + "_joint_2", robotName + "_joint_3", robotName + "_joint_4", robotName + "_joint_5", robotName + "_joint_6",
+        robotName + "_joint_7" };
     time = timeProvider;
   }
 
@@ -102,10 +103,10 @@ public class MessageGenerator {
     Frame cartesianFrame = robot.getCurrentCartesianPosition(frame);
     Transformation transform = cartesianFrame.transformationFromWorld();
 
-    currentPose.getPose().getHeader().setFrameId(baseFrameID);
-    currentPose.getPose().getHeader().setStamp(time.getCurrentTime());
+    currentPose.getPoseStamped().getHeader().setFrameId(baseFrameID);
+    currentPose.getPoseStamped().getHeader().setStamp(time.getCurrentTime());
 
-    Conversions.kukaTransformationToRosPose(transform, currentPose.getPose().getPose());
+    Conversions.kukaTransformationToRosPose(transform, currentPose.getPoseStamped().getPose());
 
     LBRE1Redundancy redundancy = (LBRE1Redundancy) cartesianFrame.getRedundancyInformationForDevice(robot);
     currentPose.getRedundancy().setE1(redundancy.getE1());
@@ -122,7 +123,7 @@ public class MessageGenerator {
    * @param currentWrench : the WrenchStamped message that will be created.
    * @param robot : an iiwa Robot, its current state is used to set the values of the message.
    */
-  public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot) {
+  public void getCurrentCartesianWrench(iiwa_msgs.CartesianWrench currentWrench, LBR robot) {
     getCurrentCartesianWrench(currentWrench, robot, robot.getFlange());
   }
 
@@ -136,22 +137,27 @@ public class MessageGenerator {
    * @param robot : an iiwa Robot, its current state is used to set the values of the message.
    * @param frame : reference frame the wrench refers to.
    */
-  public void getCurrentCartesianWrench(geometry_msgs.WrenchStamped currentWrench, LBR robot, ObjectFrame frame) {
+  public void getCurrentCartesianWrench(iiwa_msgs.CartesianWrench currentWrench, LBR robot, ObjectFrame frame) {
     currentWrench.getHeader().setFrameId(frame.getName());
     currentWrench.getHeader().setStamp(time.getCurrentTime());
 
-    currentWrench.getWrench().getForce().setX(robot.getExternalForceTorque(frame).getForce().getX());
-    currentWrench.getWrench().getForce().setY(robot.getExternalForceTorque(frame).getForce().getY());
-    currentWrench.getWrench().getForce().setZ(robot.getExternalForceTorque(frame).getForce().getZ());
+    ForceSensorData forceData = robot.getExternalForceTorque(frame);
 
-    currentWrench.getWrench().getTorque().setX(robot.getExternalForceTorque(frame).getTorque().getX());
-    currentWrench.getWrench().getTorque().setY(robot.getExternalForceTorque(frame).getTorque().getY());
-    currentWrench.getWrench().getTorque().setZ(robot.getExternalForceTorque(frame).getTorque().getZ());
+    currentWrench.getWrench().getForce().setX(forceData.getForce().getX());
+    currentWrench.getWrench().getForce().setY(forceData.getForce().getY());
+    currentWrench.getWrench().getForce().setZ(forceData.getForce().getZ());
 
-    // TODO : should we also add these:
-    // robot.getExternalForceTorque(frame).getForceInaccuracy();
-    // robot.getExternalForceTorque(frame).getTorqueInaccuracy();
-    // to give an estimation of the accuracy of the force/torque?
+    currentWrench.getWrench().getTorque().setX(forceData.getTorque().getX());
+    currentWrench.getWrench().getTorque().setY(forceData.getTorque().getY());
+    currentWrench.getWrench().getTorque().setZ(forceData.getTorque().getZ());
+
+    currentWrench.getInaccuracy().getForce().setX(forceData.getForceInaccuracy().getX());
+    currentWrench.getInaccuracy().getForce().setY(forceData.getForceInaccuracy().getY());
+    currentWrench.getInaccuracy().getForce().setZ(forceData.getForceInaccuracy().getZ());
+
+    currentWrench.getInaccuracy().getTorque().setX(forceData.getTorqueInaccuracy().getX());
+    currentWrench.getInaccuracy().getTorque().setY(forceData.getTorqueInaccuracy().getY());
+    currentWrench.getInaccuracy().getTorque().setZ(forceData.getTorqueInaccuracy().getZ());
   }
 
   /**
@@ -203,8 +209,7 @@ public class MessageGenerator {
 
     if (last_position_time_ns != 0) {
       for (int i = 0; i < robot.getJointCount(); i++)
-        velocity[i] = (position[i] - last_position[i])
-            / ((double) (position_time_ns - last_position_time_ns) / 1000000000);
+        velocity[i] = (position[i] - last_position[i]) / ((double) (position_time_ns - last_position_time_ns) / 1000000000);
     }
     last_position = position;
     last_position_time_ns = position_time_ns;
@@ -230,7 +235,7 @@ public class MessageGenerator {
       stiffness = ((JointImpedanceControlMode) motion.getMode()).getStiffness();
     }
     catch (Exception e) {
-      System.out.println("ERROR: asking for joint stiffness while not in joint impedance mode!");
+      Logger.error("Asking for joint stiffness while not in joint impedance mode!");
       return;
     }
 
@@ -256,7 +261,7 @@ public class MessageGenerator {
       damping = ((JointImpedanceControlMode) motion.getMode()).getDamping();
     }
     catch (Exception e) {
-      System.out.println("ERROR: asking for joint damping while not in joint impedance mode!");
+      Logger.error("Asking for joint damping while not in joint impedance mode!");
       return;
     }
 
@@ -321,8 +326,7 @@ public class MessageGenerator {
    * @return
    */
   public boolean isCartesianQuantityGreaterThan(iiwa_msgs.CartesianQuantity quantity, int value) {
-    return (quantity.getX() > value && quantity.getY() > value && quantity.getZ() > value && quantity.getA() > value
-        && quantity.getB() > value && quantity.getC() > value);
+    return (quantity.getX() > value && quantity.getY() > value && quantity.getZ() > value && quantity.getA() > value && quantity.getB() > value && quantity.getC() > value);
   }
 
   /**
@@ -333,8 +337,7 @@ public class MessageGenerator {
    * @return
    */
   public boolean isCartesianQuantityGreaterEqualThan(iiwa_msgs.CartesianQuantity quantity, int value) {
-    return (quantity.getX() >= value && quantity.getY() >= value && quantity.getZ() >= value
-        && quantity.getA() >= value && quantity.getB() >= value && quantity.getC() >= value);
+    return (quantity.getX() >= value && quantity.getY() >= value && quantity.getZ() >= value && quantity.getA() >= value && quantity.getB() >= value && quantity.getC() >= value);
   }
 
   /**
@@ -344,8 +347,8 @@ public class MessageGenerator {
    * @return
    */
   public boolean isJointQuantityGreaterThan(iiwa_msgs.JointQuantity quantity, int value) {
-    return (quantity.getA1() > value && quantity.getA2() > value && quantity.getA3() > value
-        && quantity.getA4() > value && quantity.getA5() > value && quantity.getA6() > value && quantity.getA7() > value);
+    return (quantity.getA1() > value && quantity.getA2() > value && quantity.getA3() > value && quantity.getA4() > value && quantity.getA5() > value && quantity.getA6() > value && quantity
+        .getA7() > value);
   }
 
   /**
@@ -356,13 +359,12 @@ public class MessageGenerator {
    * @return
    */
   public boolean isJointQuantityGreaterEqualThan(iiwa_msgs.JointQuantity quantity, int value) {
-    return (quantity.getA1() >= value && quantity.getA2() >= value && quantity.getA3() >= value
-        && quantity.getA4() >= value && quantity.getA5() >= value && quantity.getA6() >= value && quantity.getA7() >= value);
+    return (quantity.getA1() >= value && quantity.getA2() >= value && quantity.getA3() >= value && quantity.getA4() >= value && quantity.getA5() >= value
+        && quantity.getA6() >= value && quantity.getA7() >= value);
   }
 
   public geometry_msgs.Pose getPose(Matrix4d mat) {
-    Matrix3d base = new Matrix3d(mat.getM00(), mat.getM01(), mat.getM02(), mat.getM10(), mat.getM11(), mat.getM12(),
-        mat.getM20(), mat.getM21(), mat.getM22());
+    Matrix3d base = new Matrix3d(mat.getM00(), mat.getM01(), mat.getM02(), mat.getM10(), mat.getM11(), mat.getM12(), mat.getM20(), mat.getM21(), mat.getM22());
     Quat4d q = new Quat4d();
     q.set(base);
 
@@ -377,13 +379,13 @@ public class MessageGenerator {
 
     return result;
   }
-  
+
   /**
    * Returns the current timestamp.
    * 
    * @return
    */
   public org.ros.message.Time getCurrentTime() {
-	  return time.getCurrentTime();
+    return time.getCurrentTime();
   }
 }

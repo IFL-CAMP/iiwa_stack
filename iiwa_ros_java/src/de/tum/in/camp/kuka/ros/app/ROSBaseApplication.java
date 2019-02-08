@@ -59,6 +59,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
 import de.tum.in.camp.kuka.ros.AddressGeneration;
+import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
@@ -68,7 +69,6 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-import de.tum.in.camp.kuka.ros.CommantTypes.CommandType;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -169,9 +169,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
     // ROS initialization.
     try {
-      configurationNodeConfiguration = configureNode("/iiwa_configuration", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
-      publisherNodeConfiguration = configureNode("/iiwa_publisher", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
-      actionServerNodeConfiguration = configureNode("/iiwa_action_server", AddressGeneration.getNewAddress(), AddressGeneration.getNewAddress());
+      configurationNodeConfiguration = configureNode("/iiwa_configuration", 30000, 30001);
+      publisherNodeConfiguration = configureNode("/iiwa_publisher", 30002, 30003);
+      actionServerNodeConfiguration = configureNode("/iiwa_action_server", 30004, 30005);
 
       // Additional configuration needed in subclasses.
       configureNodes();
@@ -393,10 +393,22 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     }
   }
 
+  /**
+   * Returns if the control loop of the application is currently active.
+   */
   public boolean isRunning() {
     return running;
   }
 
+  /**
+   * Utility function to create the configuration of a ROS node.
+   * 
+   * @param nodeName name of the ROS node.
+   * @param tcpPort port to use for the ROS TCP connection - cannot be the same as the XML one.
+   * @param xmlPort port to use for the ROS XML connection - cannot be the same as the TCP one.
+   * @return
+   * @throws URISyntaxException
+   */
   protected NodeConfiguration configureNode(String nodeName, int tcpPort, int xmlPort) throws URISyntaxException {
     NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(configuration.getRobotIp());
     nodeConfiguration.setTimeProvider(configuration.getTimeProvider());
@@ -407,11 +419,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     return nodeConfiguration;
   }
 
+  /**
+   * 
+   */
   private void fakeHandGuidanceMode() {
     if (handGuidanceEnabled) {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
-        getLogger().warn("Enabling Fake Hand Guiding Mode.");
+        Logger.warn("Enabling Fake Hand Guiding Mode.");
         handGuidanceControlMode.setStiffness(2, 2, 2, 2, 2, 0, 0);
         handGuidanceControlMode.setDampingForAllJoints(0.7);
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
@@ -425,7 +440,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     else {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
-        getLogger().warn("Disabling Fake Hand Guiding Mode.");
+        Logger.warn("Disabling Fake Hand Guiding Mode.");
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, new PositionControlMode(true));
         }
