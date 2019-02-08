@@ -74,6 +74,3 @@ Status API Training Shop Blog About
 /config
 *.kdev_include_paths
 *.orig
-
-# Ignore iiwa_stack config
-/iiwa_ros_java/src/de/tum/in/camp/kuka/ros/config.txt
