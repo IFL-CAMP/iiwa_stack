@@ -325,12 +325,12 @@ public class ROSSmartServo extends ROSBaseApplication {
         Goal<?> actionGoal = actionServer.getCurrentGoal();
         switch (actionGoal.goalType) {
           case POINT_TO_POINT: {
-            movePointToPoint(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPose(), ((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal()
-                .getCartesianPose().getRedundancy());
+            movePointToPoint(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
+                .getGoal().getCartesianPose().getRedundancy());
             break;
           }
           case POINT_TO_POINT_LIN: {
-            movePointToPointLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPose(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
+            movePointToPointLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
                 .getGoal().getCartesianPose().getRedundancy());
             break;
           }

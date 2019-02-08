@@ -59,6 +59,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
 import de.tum.in.camp.kuka.ros.AddressGeneration;
+import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;

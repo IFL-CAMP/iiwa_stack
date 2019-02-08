@@ -44,7 +44,7 @@ public class iiwaPublisher extends AbstractNodeMain {
   // ROSJava Publishers for iiwa_msgs
   // Cartesian Message Publishers
   private Publisher<iiwa_msgs.CartesianPose> cartesianPosePublisher;
-  private Publisher<geometry_msgs.WrenchStamped> cartesianWrenchPublisher;
+  private Publisher<iiwa_msgs.CartesianWrench> cartesianWrenchPublisher;
   // Joint Message Publishers
   private Publisher<iiwa_msgs.JointPosition> jointPositionPublisher;
   private Publisher<iiwa_msgs.JointPositionVelocity> jointPositionVelocityPublisher;
@@ -69,7 +69,7 @@ public class iiwaPublisher extends AbstractNodeMain {
 
   // Cache objects
   private iiwa_msgs.CartesianPose cp;
-  private geometry_msgs.WrenchStamped cw;
+  private iiwa_msgs.CartesianWrench cw;
   private iiwa_msgs.JointPosition jp;
   private iiwa_msgs.JointPositionVelocity jpv;
   private iiwa_msgs.JointTorque jt;
@@ -90,7 +90,7 @@ public class iiwaPublisher extends AbstractNodeMain {
     helper = new MessageGenerator(robotName, timeProvider);
 
     cp = helper.buildMessage(iiwa_msgs.CartesianPose._TYPE);
-    cw = helper.buildMessage(geometry_msgs.WrenchStamped._TYPE);
+    cw = helper.buildMessage(iiwa_msgs.CartesianWrench._TYPE);
     jp = helper.buildMessage(iiwa_msgs.JointPosition._TYPE);
     jpv = helper.buildMessage(iiwa_msgs.JointPositionVelocity._TYPE);
     jt = helper.buildMessage(iiwa_msgs.JointTorque._TYPE);
@@ -140,24 +140,18 @@ public class iiwaPublisher extends AbstractNodeMain {
   public void onStart(final ConnectedNode connectedNode) {
     node = connectedNode;
 
-    cartesianPosePublisher = connectedNode.newPublisher(robotName + "/state/CartesianPose",
-        iiwa_msgs.CartesianPose._TYPE);
-    cartesianWrenchPublisher = connectedNode.newPublisher(robotName + "/state/CartesianWrench",
-        geometry_msgs.WrenchStamped._TYPE);
+    cartesianPosePublisher = connectedNode.newPublisher(robotName + "/state/CartesianPose", iiwa_msgs.CartesianPose._TYPE);
+    cartesianWrenchPublisher = connectedNode.newPublisher(robotName + "/state/CartesianWrench", iiwa_msgs.CartesianWrench._TYPE);
 
-    jointPositionPublisher = connectedNode.newPublisher(robotName + "/state/JointPosition",
-        iiwa_msgs.JointPosition._TYPE);
-    jointPositionVelocityPublisher = connectedNode.newPublisher(robotName + "/state/JointPositionVelocity",
-        iiwa_msgs.JointPositionVelocity._TYPE);
+    jointPositionPublisher = connectedNode.newPublisher(robotName + "/state/JointPosition", iiwa_msgs.JointPosition._TYPE);
+    jointPositionVelocityPublisher = connectedNode.newPublisher(robotName + "/state/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
     jointTorquePublisher = connectedNode.newPublisher(robotName + "/state/JointTorque", iiwa_msgs.JointTorque._TYPE);
-    jointVelocityPublisher = connectedNode.newPublisher(robotName + "/state/JointVelocity",
-        iiwa_msgs.JointVelocity._TYPE);
+    jointVelocityPublisher = connectedNode.newPublisher(robotName + "/state/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
 
     iiwaButtonPublisher = connectedNode.newPublisher(robotName + "/state/buttonEvent", std_msgs.String._TYPE);
     jointStatesPublisher = connectedNode.newPublisher(robotName + "/joint_states", sensor_msgs.JointState._TYPE);
 
-    destinationReachedPublisher = connectedNode.newPublisher(robotName + "/state/DestinationReached",
-        std_msgs.Time._TYPE);
+    destinationReachedPublisher = connectedNode.newPublisher(robotName + "/state/DestinationReached", std_msgs.Time._TYPE);
   }
 
   /**
@@ -186,9 +180,8 @@ public class iiwaPublisher extends AbstractNodeMain {
    */
   public void publishCurrentState(ObjectFrame frame) throws InterruptedException {
     if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
-      // TODO: Publish redundancy data
       helper.getCurrentCartesianPose(cp, robot, frame);
-      helper.incrementSeqNumber(cp.getPose().getHeader());
+      helper.incrementSeqNumber(cp.getPoseStamped().getHeader());
       cartesianPosePublisher.publish(cp);
     }
     if (cartesianWrenchPublisher.getNumberOfSubscribers() > 0) {
@@ -216,19 +209,6 @@ public class iiwaPublisher extends AbstractNodeMain {
       helper.incrementSeqNumber(jt.getHeader());
       jointTorquePublisher.publish(jt);
     }
-
-//		if (motion != null) {
-//			if (jointStiffnessPublisher.getNumberOfSubscribers() > 0 && motion.getMode() instanceof JointImpedanceControlMode) {
-//				helper.getCurrentJointStiffness(jst, robot, motion);
-//				helper.incrementSeqNumber(jst.getHeader());
-//				jointStiffnessPublisher.publish(jst);
-//			}
-//			if (jointDampingPublisher.getNumberOfSubscribers() > 0  && motion.getMode() instanceof JointImpedanceControlMode) {
-//				helper.getCurrentJointDamping(jd, robot, motion);
-//				helper.incrementSeqNumber(jp.getHeader());
-//				jointDampingPublisher.publish(jd);
-//			}
-//		}
 
     if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0) {
       helper.getCurrentJointState(js, robot);
