@@ -65,8 +65,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
 
   // Service for reconfiguring control mode
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> configureSmartServoCallback = null;
+  private ServiceServer<iiwa_msgs.ConfigureControlModeRequest, iiwa_msgs.ConfigureControlModeResponse> configureControlModeServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.ConfigureControlModeRequest, iiwa_msgs.ConfigureControlModeResponse> configureControlModeCallback = null;
 
   @SuppressWarnings("unused")
   private ServiceServer<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationServer = null;
@@ -180,8 +180,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
   /**
    * Add a callback to the SmartServo service
    */
-  public void setConfigureSmartServoCallback(ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse> callback) {
-    configureSmartServoCallback = callback;
+  public void setConfigureControlModeCallback(ServiceResponseBuilder<iiwa_msgs.ConfigureControlModeRequest, iiwa_msgs.ConfigureControlModeResponse> callback) {
+    configureControlModeCallback = callback;
   }
 
   /**
@@ -527,8 +527,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
     });
 
     // Creating SmartServo service if a callback has been defined.
-    if (configureSmartServoCallback != null) {
-      configureSmartServoServer = node.newServiceServer(iiwaName + "/configuration/configureSmartServo", "iiwa_msgs/ConfigureSmartServo", configureSmartServoCallback);
+    if (configureControlModeCallback != null) {
+      configureControlModeServer = node.newServiceServer(iiwaName + "/configuration/ConfigureControlMode", "iiwa_msgs/ConfigureControlMode", configureControlModeCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.

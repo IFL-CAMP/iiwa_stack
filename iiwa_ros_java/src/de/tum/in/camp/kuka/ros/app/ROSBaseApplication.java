@@ -58,7 +58,6 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
-import de.tum.in.camp.kuka.ros.AddressGeneration;
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
@@ -414,8 +413,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     nodeConfiguration.setTimeProvider(configuration.getTimeProvider());
     nodeConfiguration.setNodeName(configuration.getRobotName() + nodeName);
     nodeConfiguration.setMasterUri(configuration.getMasterURI());
-    nodeConfiguration.setTcpRosBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
-    nodeConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(AddressGeneration.getNewAddress()));
+    nodeConfiguration.setTcpRosBindAddress(BindAddress.newPublic(tcpPort));
+    nodeConfiguration.setXmlRpcBindAddress(BindAddress.newPublic(xmlPort));
     return nodeConfiguration;
   }
 
