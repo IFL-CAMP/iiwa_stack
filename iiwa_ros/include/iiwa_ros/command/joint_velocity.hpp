@@ -10,14 +10,13 @@ namespace command {
 class JointVelocity : public GenericCommand {
 public:
   JointVelocity() = default;
-  //  JointVelocity(const std::string& ros_namespace) : GenericCommand{ros_namespace} {}
+  void init(const std::string& robot_namespace) override;
 
   void setVelocity(const iiwa_msgs::JointVelocity& velocity);
   void setVelocity(const iiwa_msgs::JointVelocity& velocity, const std::function<void()> callback);
-  void init(const std::string& robot_namespace) override;
 
 private:
-  iiwaCommandHolder<iiwa_msgs::JointVelocity> command_{};
+  Command<iiwa_msgs::JointVelocity> command_{};
 };
 
 }  // namespace command

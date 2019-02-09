@@ -36,13 +36,6 @@ using namespace std;
 namespace iiwa_ros {
 ros::Time last_update_time;
 
-Robot::Robot() { /*init(ros_namespace_);*/
-}
-
-// Robot::Robot(const string& ros_namespace) {
-
-//}
-
 bool Robot::isConnected() {
   ros::Duration diff = (ros::Time::now() - last_update_time);
   return (diff < ros::Duration(0.25));

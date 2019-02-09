@@ -9,12 +9,12 @@ namespace state {
 class JointVelocity : public Robot {
 public:
   JointVelocity() = default;
-
-  iiwa_msgs::JointVelocity getVelocity();
   virtual void init(const std::string& robot_namespace) override;
 
+  iiwa_msgs::JointVelocity getVelocity();
+
 private:
-  iiwaStateHolder<iiwa_msgs::JointVelocity> state_{};
+  State<iiwa_msgs::JointVelocity> state_{};
 };
 
 }  // namespace state

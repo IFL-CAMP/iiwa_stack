@@ -9,11 +9,7 @@ void JointTorque::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/JointTorque");
 }
 
-iiwa_msgs::JointTorque JointTorque::getTorque() {
-  iiwa_msgs::JointTorque jt;
-  state_.get(jt);
-  return jt;
-}
+iiwa_msgs::JointTorque JointTorque::getTorque() { return state_.get(); }
 
 }  // namespace state
 }  // namespace iiwa_ros

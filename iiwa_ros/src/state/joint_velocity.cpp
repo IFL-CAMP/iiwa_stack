@@ -9,11 +9,7 @@ void JointVelocity::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/JointVelocity");
 }
 
-iiwa_msgs::JointVelocity JointVelocity::getVelocity() {
-  iiwa_msgs::JointVelocity jv;
-  state_.get(jv);
-  return jv;
-}
+iiwa_msgs::JointVelocity JointVelocity::getVelocity() { return state_.get(); }
 
 }  // namespace state
 }  // namespace iiwa_ros

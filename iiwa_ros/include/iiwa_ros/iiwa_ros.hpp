@@ -38,174 +38,77 @@
 namespace iiwa_ros {
 extern ros::Time last_update_time;
 
-// template <typename ROSMSG>
-// class Holder {
-// public:
-//  Holder() = default;
-//  ~Holder() = default;
-
-//  Holder(Holder&& other) noexcept : data_{std::move(other.data_)} {}
-
-//  Holder& operator=(Holder&& rhs) noexcept {
-//    if (this != std::addressof(rhs)) {
-//      // std::lock(mutex_, rhs.mutex_);
-//      // std::lock_guard<std::mutex> lock{mutex_, std::adopt_lock};
-//      // std::lock_guard<std::mutex> other_lock{rhs.mutex_, std::adopt_lock};
-//      data_ = std::move(rhs.data_);
-//    }
-//    return *this;
-//  }
-
-//  void set(const ROSMSG& value) {
-//    // std::lock_guard<std::mutex> lock(mutex_);
-//    data_ = value;
-//  }
-
-//  ROSMSG get() {
-//    // std::lock_guard<std::mutex> lock(mutex_);
-//    return data_;
-//  }
-
-//  ROSMSG GetUnsynced() { return data_; }
-
-// private:
-//  ROSMSG data_;
-//  // std::mutex mutex_{};
-//};
-
-// template <typename ROSMSG>
-// class State {
-// public:
-//  void init(const std::string& topic) {
-//    ros::NodeHandle nh;
-//    subscriber_ = nh.subscribe<ROSMSG>(topic, 1, &State<ROSMSG>::set, this);
-//  }
-
-//  void set(ROSMSG value) {
-//    last_update_time = ros::Time::now();
-//    holder_.set(value);
-//  }
-
-//  ROSMSG get() { return holder_.get(); }
-
-// private:
-//  Holder<ROSMSG> holder_;
-//  ros::Subscriber subscriber_;
-//};
-
-// template <typename ROSMSG>
-// class Command {
-// public:
-//  void init(const std::string& topic) {
-//    ros::NodeHandle nh;
-//    publisher_ = nh.advertise<ROSMSG>(topic, 1);
-//  }
-
-//  void set(const ROSMSG& value) { holder_.set(value); }
-
-//  ROSMSG get() { return holder_.GetUnsynced(); }
-
-//  void publish() {
-//    if (publisher_.getNumSubscribers()) { publisher_.publish(holder_.get()); }
-//  }
-
-// private:
-//  ros::Publisher publisher_;
-//  Holder<ROSMSG> holder_;
-//};
-
 template <typename ROSMSG>
-class iiwaHolder {
+class Holder {
 public:
-  iiwaHolder() : is_new(false) {}
+  Holder() = default;
 
-  void set_value(const ROSMSG& value) {
-    mutex_.lock();
+  void set(const ROSMSG& value) {
+    std::lock_guard<std::mutex> lock{mutex_};
     data_ = value;
-    is_new = true;
-    mutex_.unlock();
   }
 
-  bool get_value(ROSMSG& value) {
-    bool was_new = false;
-
-    mutex_.lock();
-    value = data_;
-    was_new = is_new;
-    is_new = false;
-    mutex_.unlock();
-
-    return was_new;
+  ROSMSG get() {
+    std::lock_guard<std::mutex> lock{mutex_};
+    return data_;
   }
 
-  bool has_new_value() { return is_new; }
-
-  ROSMSG get_value_unsynchronized() { return data_; }
+  ROSMSG getUnsynced() { return data_; }
 
 private:
   ROSMSG data_;
-  bool is_new;
   std::mutex mutex_;
 };
 
 template <typename ROSMSG>
-class iiwaStateHolder {
+class State {
 public:
   void init(const std::string& topic) {
     ros::NodeHandle nh;
-    subscriber = nh.subscribe<ROSMSG>(topic, 1, &iiwaStateHolder<ROSMSG>::set, this);
+    subscriber_ = nh.subscribe<ROSMSG>(topic, 1, &State<ROSMSG>::set, this);
   }
-
-  bool has_new_value() { return holder.has_new_value(); }
 
   void set(ROSMSG value) {
     last_update_time = ros::Time::now();
-    holder.set_value(value);
+    holder_.set(value);
   }
 
-  bool get(ROSMSG& value) { return holder.get_value(value); }
+  ROSMSG get() { return holder_.get(); }
 
 private:
-  iiwaHolder<ROSMSG> holder;
-  ros::Subscriber subscriber;
+  Holder<ROSMSG> holder_;
+  ros::Subscriber subscriber_;
 };
 
 template <typename ROSMSG>
-class iiwaCommandHolder {
+class Command {
 public:
   void init(const std::string& topic) {
     ros::NodeHandle nh;
-    publisher = nh.advertise<ROSMSG>(topic, 1);
+    publisher_ = nh.advertise<ROSMSG>(topic, 1);
   }
 
-  void set(const ROSMSG& value) { holder.set_value(value); }
+  void set(const ROSMSG& value) { holder_.set(value); }
 
-  ROSMSG get() { return holder.get_value_unsynchronized(); }
+  ROSMSG get() { return holder_.getUnsynced(); }
 
-  void publishIfNew() {
+  void publish() {
     static ROSMSG msg;
-    if (publisher.getNumSubscribers() && holder.get_value(msg)) publisher.publish(msg);
+    if (publisher_.getNumSubscribers()) { publisher_.publish(msg); }
   }
 
 private:
-  ros::Publisher publisher;
-  iiwaHolder<ROSMSG> holder;
+  ros::Publisher publisher_;
+  Holder<ROSMSG> holder_;
 };
 
 class Robot {
 public:
-  /**
-   * @brief Constructor for class iiwaRos holding all the methods to command and get the state of the robot.
-   */
-  Robot();
-  //  Robot(const std::string& robot_namespace);
+  Robot() = default;
   virtual ~Robot() = default;
-
-  /**
-   * \brief Returns the current connection status of an IIWA robot.
-   */
-  bool isConnected();
   virtual void init(const std::string& robot_namespace) = 0;
+
+  bool isConnected();
 
 protected:
   void initROS(const std::string& ros_node_name);

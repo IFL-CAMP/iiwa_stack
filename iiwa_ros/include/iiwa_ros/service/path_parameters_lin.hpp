@@ -41,6 +41,8 @@ public:
   PathParametersLinService() = default;
   virtual ~PathParametersLinService() override = default;
 
+  virtual void init(const std::string& robot_namespace) override;
+
   /**
    * @brief ...
    *
@@ -63,7 +65,6 @@ public:
    * @return bool
    */
   bool setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity);
-  virtual void init(const std::string& robot_namespace) override;
 
 protected:
   virtual bool callService() override;

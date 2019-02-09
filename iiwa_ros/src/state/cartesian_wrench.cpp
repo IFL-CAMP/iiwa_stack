@@ -9,11 +9,7 @@ void CartesianWrench::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/CartesianWrench");
 }
 
-iiwa_msgs::CartesianWrench CartesianWrench::getWrench() {
-  iiwa_msgs::CartesianWrench cw;
-  state_.get(cw);
-  return cw;
-}
+iiwa_msgs::CartesianWrench CartesianWrench::getWrench() { return state_.get(); }
 
 }  // namespace state
 }  // namespace iiwa_ros

@@ -35,9 +35,6 @@
 namespace iiwa_ros {
 namespace service {
 
-// SmartServoService::SmartServoService(const std::string& robot_namespace, const bool verbose)
-//  : iiwaServices<iiwa_msgs::ConfigureControlMode>{robot_namespace, verbose} {}
-
 void SmartServoService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};

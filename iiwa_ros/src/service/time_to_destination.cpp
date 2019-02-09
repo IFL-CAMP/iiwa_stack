@@ -33,9 +33,6 @@
 namespace iiwa_ros {
 namespace service {
 
-// TimeToDestinationService::TimeToDestinationService(const std::string& robot_namespace, const bool verbose)
-//  : iiwaServices<iiwa_msgs::TimeToDestination>{robot_namespace, verbose} {}
-
 void TimeToDestinationService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};

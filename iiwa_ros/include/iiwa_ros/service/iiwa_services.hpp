@@ -44,9 +44,6 @@ public:
   iiwaServices() = default;
   virtual ~iiwaServices() = default;
 
-  //  iiwaServices(const std::string& ros_namespace, const bool verbose = true) : Robot{ros_namespace},
-  //  verbose_{verbose} {}
-
   /**
    * @brief Sets the verbosity level.
    * If true some ROS_INFO messages will be printed out during service calls.

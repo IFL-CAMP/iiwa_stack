@@ -9,13 +9,12 @@ namespace state {
 class CartesianPose : public Robot {
 public:
   CartesianPose() = default;
-  //  CartesianPose(const std::string& ros_namespace) : Robot{ros_namespace} {}
-
-  iiwa_msgs::CartesianPose getPose();
   virtual void init(const std::string& robot_namespace) override;
 
+  iiwa_msgs::CartesianPose getPose();
+
 private:
-  iiwaStateHolder<iiwa_msgs::CartesianPose> state_{};
+  State<iiwa_msgs::CartesianPose> state_{};
 };
 
 }  // namespace state

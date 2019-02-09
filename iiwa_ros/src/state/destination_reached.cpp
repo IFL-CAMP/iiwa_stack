@@ -9,11 +9,7 @@ void DestinationReached::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/DestinationReached");
 }
 
-std_msgs::Time DestinationReached::getTime() {
-  std_msgs::Time t;
-  state_.get(t);
-  return t;
-}
+std_msgs::Time DestinationReached::getTime() { return state_.get(); }
 
 }  // namespace state
 }  // namespace iiwa_ros
