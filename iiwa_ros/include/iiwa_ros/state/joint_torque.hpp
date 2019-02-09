@@ -40,6 +40,7 @@ class JointTorque : public Robot {
 public:
   JointTorque() = default;
   virtual void init(const std::string& robot_namespace) override;
+  void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::JointTorque&)> callback);
 
   iiwa_msgs::JointTorque getTorque();
 

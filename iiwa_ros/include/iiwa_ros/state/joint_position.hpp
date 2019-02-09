@@ -40,6 +40,7 @@ class JointPosition : public Robot {
 public:
   JointPosition() = default;
   virtual void init(const std::string& robot_namespace) override;
+  void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::JointPosition&)> callback);
 
   iiwa_msgs::JointPosition getPosition();
 

@@ -39,6 +39,13 @@ void JointPosition::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/JointPosition");
 }
 
+void JointPosition::init(const std::string& robot_namespace,
+                         const std::function<void(const iiwa_msgs::JointPosition&)> callback) {
+  setup(robot_namespace);
+  initROS("JointPositionState");
+  state_.init(ros_namespace_ + "state/JointPosition", callback);
+}
+
 iiwa_msgs::JointPosition JointPosition::getPosition() { return state_.get(); }
 
 }  // namespace state

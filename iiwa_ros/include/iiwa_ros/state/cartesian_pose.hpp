@@ -40,6 +40,7 @@ class CartesianPose : public Robot {
 public:
   CartesianPose() = default;
   virtual void init(const std::string& robot_namespace) override;
+  void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::CartesianPose&)> callback);
 
   iiwa_msgs::CartesianPose getPose();
 

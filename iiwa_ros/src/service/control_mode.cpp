@@ -38,8 +38,8 @@ namespace service {
 void ControlModeService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};
-  client_ =
-      node_handle.serviceClient<iiwa_msgs::ConfigureControlMode>(ros_namespace_ + "configuration/ConfigureControlMode");
+  service_name_ = ros_namespace_ + "configuration/ConfigureControlMode";
+  client_ = node_handle.serviceClient<iiwa_msgs::ConfigureControlMode>(service_name_);
   service_ready_ = true;
 }
 

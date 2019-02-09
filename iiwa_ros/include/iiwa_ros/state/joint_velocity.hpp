@@ -40,6 +40,7 @@ class JointVelocity : public Robot {
 public:
   JointVelocity() = default;
   virtual void init(const std::string& robot_namespace) override;
+  void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::JointVelocity&)> callback);
 
   iiwa_msgs::JointVelocity getVelocity();
 

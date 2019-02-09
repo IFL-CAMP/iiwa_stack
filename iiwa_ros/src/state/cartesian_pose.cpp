@@ -39,6 +39,13 @@ void CartesianPose::init(const std::string& robot_namespace) {
   state_.init(ros_namespace_ + "state/CartesianPose");
 }
 
+void CartesianPose::init(const std::string& robot_namespace,
+                         const std::function<void(const iiwa_msgs::CartesianPose&)> callback) {
+  setup(robot_namespace);
+  initROS("CartesianPoseState");
+  state_.init(ros_namespace_ + "state/CartesianPose", callback);
+}
+
 iiwa_msgs::CartesianPose CartesianPose::getPose() { return state_.get(); }
 
 }  // namespace state

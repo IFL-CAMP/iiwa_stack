@@ -36,7 +36,8 @@ namespace service {
 void PathParametersService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};
-  client_ = node_handle.serviceClient<iiwa_msgs::SetPathParameters>(ros_namespace_ + "configuration/pathParameters");
+  service_name_ = ros_namespace_ + "configuration/pathParameters";
+  client_ = node_handle.serviceClient<iiwa_msgs::SetPathParameters>(service_name_);
   service_ready_ = true;
 }
 

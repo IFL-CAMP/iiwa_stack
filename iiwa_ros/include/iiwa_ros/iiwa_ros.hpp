@@ -68,14 +68,21 @@ public:
     subscriber_ = nh.subscribe<ROSMSG>(topic, 1, &State<ROSMSG>::set, this);
   }
 
+  void init(const std::string& topic, const std::function<void(const ROSMSG&)> callback) {
+    callback_ = std::move(callback);
+    init(topic);
+  }
+
   void set(ROSMSG value) {
     last_update_time = ros::Time::now();
     holder_.set(value);
+    callback_(value);
   }
 
   ROSMSG get() { return holder_.get(); }
 
 private:
+  std::function<void(const ROSMSG&)> callback_;
   Holder<ROSMSG> holder_;
   ros::Subscriber subscriber_;
 };
