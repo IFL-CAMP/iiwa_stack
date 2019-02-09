@@ -42,38 +42,28 @@
 
 #include "iiwa_hw.h"
 
-IIWA_HW::IIWA_HW(ros::NodeHandle nh)
+namespace iiwa_hw {
+
+HardwareInterface::HardwareInterface(ros::NodeHandle nh)
   : last_joint_position_command_(7, 0)
   , timer_{ros::Time::now()}
   , nh_{nh}
-  , device_{std::make_shared<IIWA_HW::IIWA_device>()} {}
+  , device_{std::make_shared<HardwareInterface::Device>()} {}
 
-ros::Rate IIWA_HW::getRate() { return loop_rate_; }
-
-double IIWA_HW::getFrequency() { return control_frequency_; }
-
-void IIWA_HW::setFrequency(double frequency) {
+void HardwareInterface::setFrequency(double frequency) {
   control_frequency_ = frequency;
   loop_rate_ = ros::Rate{control_frequency_};
 }
 
-bool IIWA_HW::start() {
-  // TODO : make use of this
-  // get inteface param or give default values
+bool HardwareInterface::start() {
   nh_.param("hardware_interface", interface_, std::string("PositionJointInterface"));
   nh_.param("robot_name", robot_name_, std::string("iiwa"));
 
+  // Initialize Publishers and Subscribers from iiwa_ros.
   joint_position_state_.init(robot_name_);
   joint_torque_state_.init(robot_name_);
-
   joint_position_command_.init(robot_name_);
 
-  /* TODO
-   * nh_.param("move_group", movegroup_name_, "arm");
-   * group(movegroup_name_);
-   */
-
-  // TODO: use transmission configuration to get names directly from the URDF model
   if (ros::param::get("joints", device_->joint_names)) {
     if (!(device_->joint_names.size() == IIWA_JOINTS)) {
       ROS_ERROR("This robot has 7 joints, you must specify 7 names for each one");
@@ -89,15 +79,15 @@ bool IIWA_HW::start() {
     throw std::runtime_error("No URDF model available");
   }
 
-  // initialize and set to zero the state and command values
+  // Initialize and set to zero the state and command values.
   device_->init();
   device_->reset();
 
-  // create joint handles given the list
+  // Create joint handles given the list.
   for (size_t i = 0; i < IIWA_JOINTS; ++i) {
     ROS_INFO_STREAM("Handling joint: " << device_->joint_names[i]);
 
-    // get current joint configuration
+    // Get current joint configuration.
     auto joint = urdf_model_.getJoint(device_->joint_names[i]);
 
     if (!joint.get()) {
@@ -108,32 +98,28 @@ bool IIWA_HW::start() {
       throw std::runtime_error("Wrong joint name specification");
     }
 
-    // joint state handle
-
+    // Joint state handle.
     hardware_interface::JointStateHandle state_handle(device_->joint_names[i], &(device_->joint_position[i]),
                                                       &(device_->joint_velocity[i]), &(device_->joint_effort[i]));
-
     state_interface_.registerHandle(state_handle);
 
-    // position command handle
+    // Position command handle.
     hardware_interface::JointHandle position_joint_handle = hardware_interface::JointHandle(
         state_interface_.getHandle(device_->joint_names[i]), &device_->joint_position_command[i]);
-
     position_interface_.registerHandle(position_joint_handle);
 
-    // effort command handle
+    // Effort command handle.
     hardware_interface::JointHandle joint_handle = hardware_interface::JointHandle(
         state_interface_.getHandle(device_->joint_names[i]), &device_->joint_effort_command[i]);
-
     effort_interface_.registerHandle(joint_handle);
 
-    registerJointLimits(device_->joint_names[i], joint_handle, &urdf_model_, &device_->joint_lower_limits[i],
-                        &device_->joint_upper_limits[i], &device_->joint_effort_limits[i]);
+    registerJointLimits(device_->joint_names[i], joint_handle, &urdf_model_, device_->joint_lower_limits[i],
+                        device_->joint_upper_limits[i], device_->joint_effort_limits[i]);
   }
 
-  ROS_INFO("Register state and effort interfaces");
+  ROS_INFO("Registering state and effort interfaces");
 
-  // register ros-controls interfaces
+  // Register ros-controls interfaces.
   this->registerInterface(&state_interface_);
   this->registerInterface(&effort_interface_);
   this->registerInterface(&position_interface_);
@@ -141,12 +127,13 @@ bool IIWA_HW::start() {
   return true;
 }
 
-void IIWA_HW::registerJointLimits(const std::string& joint_name, const hardware_interface::JointHandle& joint_handle,
-                                  const urdf::Model* const urdf_model, double* const lower_limit,
-                                  double* const upper_limit, double* const effort_limit) {
-  *lower_limit = -std::numeric_limits<double>::max();
-  *upper_limit = std::numeric_limits<double>::max();
-  *effort_limit = std::numeric_limits<double>::max();
+void HardwareInterface::registerJointLimits(const std::string& joint_name,
+                                            const hardware_interface::JointHandle& joint_handle,
+                                            const urdf::Model* const urdf_model, double lower_limit, double upper_limit,
+                                            double effort_limit) {
+  lower_limit = -std::numeric_limits<double>::max();
+  upper_limit = std::numeric_limits<double>::max();
+  effort_limit = std::numeric_limits<double>::max();
 
   joint_limits_interface::JointLimits limits;
   bool has_limits = false;
@@ -158,20 +145,19 @@ void IIWA_HW::registerJointLimits(const std::string& joint_name, const hardware_
 
     if (urdf_joint != nullptr) {
       // Get limits from the URDF file.
-      if (joint_limits_interface::getJointLimits(urdf_joint, limits)) has_limits = true;
-
-      if (joint_limits_interface::getSoftJointLimits(urdf_joint, soft_limits)) has_soft_limits = true;
+      if (joint_limits_interface::getJointLimits(urdf_joint, limits)) { has_limits = true; }
+      if (joint_limits_interface::getSoftJointLimits(urdf_joint, soft_limits)) { has_soft_limits = true; }
     }
   }
 
-  if (!has_limits) return;
+  if (!has_limits) { return; }
 
   if (limits.has_position_limits) {
-    *lower_limit = limits.min_position;
-    *upper_limit = limits.max_position;
+    lower_limit = limits.min_position;
+    upper_limit = limits.max_position;
   }
 
-  if (limits.has_effort_limits) *effort_limit = limits.max_effort;
+  if (limits.has_effort_limits) { effort_limit = limits.max_effort; }
 
   if (has_soft_limits) {
     const joint_limits_interface::EffortJointSoftLimitsHandle limits_handle(joint_handle, limits, soft_limits);
@@ -182,7 +168,7 @@ void IIWA_HW::registerJointLimits(const std::string& joint_name, const hardware_
   }
 }
 
-bool IIWA_HW::read(ros::Duration period) {
+bool HardwareInterface::read(ros::Duration period) {
   ros::Duration delta = ros::Time::now() - timer_;
 
   static bool was_connected = false;
@@ -198,7 +184,6 @@ bool IIWA_HW::read(ros::Duration period) {
     // if there is no controller active the robot goes to zero position
     if (!was_connected) {
       for (size_t j = 0; j < IIWA_JOINTS; j++) { device_->joint_position_command[j] = device_->joint_position[j]; }
-
       was_connected = true;
     }
 
@@ -208,15 +193,15 @@ bool IIWA_HW::read(ros::Duration period) {
                                         device_->joint_velocity[j], 0.2);
     }
 
-    return 1;
+    return true;
   } else if (delta.toSec() >= 10) {
     ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before reading ...");
     timer_ = ros::Time::now();
   }
-  return 0;
+  return false;
 }
 
-bool IIWA_HW::write(ros::Duration period) {
+bool HardwareInterface::write(ros::Duration period) {
   ej_sat_interface_.enforceLimits(period);
   ej_limits_interface_.enforceLimits(period);
   pj_sat_interface_.enforceLimits(period);
@@ -254,3 +239,5 @@ bool IIWA_HW::write(ros::Duration period) {
 
   return 0;
 }
+
+}  // namespace iiwa_hw
