@@ -93,8 +93,7 @@ public:
   ROSMSG get() { return holder_.getUnsynced(); }
 
   void publish() {
-    static ROSMSG msg;
-    if (publisher_.getNumSubscribers()) { publisher_.publish(msg); }
+    if (publisher_.getNumSubscribers()) { publisher_.publish(get()); }
   }
 
 private:
