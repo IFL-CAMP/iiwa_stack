@@ -1,16 +1,5 @@
 /**
- * This class implements a bridge between ROS hardware interfaces and a KUKA LBR IIWA Robot,
- * using an IIWARos communication described in the iiwa_ros package.
- *
- * It is a porting of the work from the Centro E. Piaggio in Pisa : https://github.com/CentroEPiaggio/kuka-lwr
- * for the LBR IIWA. We acknowledge the good work of their main contributors :
- * Carlos J. Rosales - cjrosales@gmail.com
- * Enrico Corvaglia
- * Marco Esposito - marco.esposito@tum.de
- * Manuel Bonilla - josemanuelbonilla@gmail.com
- *
- * LICENSE :
- * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
