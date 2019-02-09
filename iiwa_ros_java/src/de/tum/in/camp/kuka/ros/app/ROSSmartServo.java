@@ -26,8 +26,8 @@
 package de.tum.in.camp.kuka.ros.app;
 
 import geometry_msgs.PoseStamped;
-import iiwa_msgs.ConfigureSmartServoRequest;
-import iiwa_msgs.ConfigureSmartServoResponse;
+import iiwa_msgs.ConfigureControlModeRequest;
+import iiwa_msgs.ConfigureControlModeResponse;
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToJointPositionActionGoal;
 import iiwa_msgs.RedundancyInformation;
@@ -93,9 +93,9 @@ public class ROSSmartServo extends ROSBaseApplication {
 
     // Configure the callback for the SmartServo service inside the subscriber
     // class.
-    subscriber.setConfigureSmartServoCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureSmartServoRequest, iiwa_msgs.ConfigureSmartServoResponse>() {
+    subscriber.setConfigureControlModeCallback(new ServiceResponseBuilder<iiwa_msgs.ConfigureControlModeRequest, iiwa_msgs.ConfigureControlModeResponse>() {
       @Override
-      public void build(ConfigureSmartServoRequest req, ConfigureSmartServoResponse res) throws ServiceException {
+      public void build(ConfigureControlModeRequest req, ConfigureControlModeResponse res) throws ServiceException {
         controlModeLock.lock();
         try {
           // TODO: reduce code duplication
@@ -181,7 +181,7 @@ public class ROSSmartServo extends ROSBaseApplication {
             SpeedLimits.overrideJointAcceleration = req.getOverrideJointAcceleration();
           }
           if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
-            iiwa_msgs.ConfigureSmartServoRequest request = null;
+            iiwa_msgs.ConfigureControlModeRequest request = null;
             motion = controlModeHandler.changeSmartServoControlMode(motion, request);
           }
 
@@ -212,7 +212,7 @@ public class ROSSmartServo extends ROSBaseApplication {
             SpeedLimits.maxTranslationlVelocity = maxLinearSpeed;
           }
           if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-            iiwa_msgs.ConfigureSmartServoRequest request = null;
+            iiwa_msgs.ConfigureControlModeRequest request = null;
             linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, request);
 
           }

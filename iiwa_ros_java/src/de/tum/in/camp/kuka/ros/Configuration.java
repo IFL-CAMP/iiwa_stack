@@ -261,7 +261,7 @@ public class Configuration extends AbstractNodeMain {
   public boolean getPublishJointStates() {
     Boolean publishStates = getBooleanParameter("publishJointStates");
     if (publishStates == null) {
-      publishStates = true;
+      publishStates = false;
     }
     return publishStates;
   }
