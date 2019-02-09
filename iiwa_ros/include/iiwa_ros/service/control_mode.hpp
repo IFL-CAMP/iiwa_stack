@@ -42,10 +42,10 @@ namespace service {
  * /iiwa/configuration/configureSmartServo),
  * it is possible to just call its functions to set the desired control mode on the robot.
  */
-class SmartServoService : public iiwaServices<iiwa_msgs::ConfigureControlMode> {
+class ControlModeService : public iiwaServices<iiwa_msgs::ConfigureControlMode> {
 public:
-  SmartServoService() = default;
-  virtual ~SmartServoService() override = default;
+  ControlModeService() = default;
+  virtual ~ControlModeService() override = default;
 
   virtual void init(const std::string& robot_namespace) override;
 
