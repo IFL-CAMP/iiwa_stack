@@ -47,6 +47,8 @@ public:
   SmartServoService() = default;
   virtual ~SmartServoService() override = default;
 
+  virtual void init(const std::string& robot_namespace) override;
+
   /**
    * @brief Creates a Service client given the name of the configureSmartServo service: e.g.
    * "/iiwa/configuration/configureSmartServo"
@@ -235,7 +237,6 @@ public:
                           const double stiffness, const iiwa_msgs::CartesianQuantity& max_path_deviation,
                           const iiwa_msgs::CartesianQuantity& max_cartesian_velocity,
                           const iiwa_msgs::CartesianQuantity& max_control_force, const bool max_control_force_stop);
-  virtual void init(const std::string& robot_namespace) override;
 
 protected:
   virtual bool callService() override;

@@ -50,6 +50,8 @@ public:
   TimeToDestinationService() = default;
   virtual ~TimeToDestinationService() override = default;
 
+  virtual void init(const std::string& robot_namespace) override;
+
   /**
    * @brief Creates a Service client given the name of the timeToDestination service: e.g.
    * "/iiwa/state/timeToDestination"
@@ -67,7 +69,6 @@ public:
    * @return double
    */
   double getTimeToDestination();
-  virtual void init(const std::string& robot_namespace) override;
 
 protected:
   virtual bool callService() override;

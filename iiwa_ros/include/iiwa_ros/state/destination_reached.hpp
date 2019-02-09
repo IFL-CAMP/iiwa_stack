@@ -9,12 +9,12 @@ namespace state {
 class DestinationReached : public Robot {
 public:
   DestinationReached() = default;
-
-  std_msgs::Time getTime();
   virtual void init(const std::string& robot_namespace) override;
 
+  std_msgs::Time getTime();
+
 private:
-  iiwaStateHolder<std_msgs::Time> state_{};
+  State<std_msgs::Time> state_{};
 };
 
 }  // namespace state

@@ -10,14 +10,13 @@ namespace command {
 class CartesianPose : public GenericCommand {
 public:
   CartesianPose() = default;
-  //  CartesianPose(const std::string& ros_namespace) : GenericCommand{ros_namespace} {}
+  void init(const std::string& robot_namespace) override;
 
   void setPose(const geometry_msgs::PoseStamped& pose);
   void setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback);
-  void init(const std::string& robot_namespace) override;
 
 private:
-  iiwaCommandHolder<geometry_msgs::PoseStamped> command_{};
+  Command<geometry_msgs::PoseStamped> command_{};
 };
 
 }  // namespace command

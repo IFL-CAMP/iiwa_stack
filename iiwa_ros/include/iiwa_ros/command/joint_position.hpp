@@ -10,14 +10,13 @@ namespace command {
 class JointPosition : public GenericCommand {
 public:
   JointPosition() = default;
-  //  JointPosition(const std::string& ros_namespace) : GenericCommand{ros_namespace} { init(); }
+  void init(const std::string& robot_namespace) override;
 
   void setPosition(const iiwa_msgs::JointPosition& position);
   void setPosition(const iiwa_msgs::JointPosition& position, const std::function<void()> callback);
-  void init(const std::string& robot_namespace) override;
 
 private:
-  iiwaCommandHolder<iiwa_msgs::JointPosition> command_{};
+  Command<iiwa_msgs::JointPosition> command_{};
 };
 
 }  // namespace command

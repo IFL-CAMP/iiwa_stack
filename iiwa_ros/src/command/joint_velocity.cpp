@@ -12,7 +12,7 @@ void JointVelocity::init(const std::string& robot_namespace) {
 
 void JointVelocity::setVelocity(const iiwa_msgs::JointVelocity& velocity) {
   command_.set(velocity);
-  command_.publishIfNew();
+  command_.publish();
 }
 
 void JointVelocity::setVelocity(const iiwa_msgs::JointVelocity& velocity, const std::function<void()> callback) {

@@ -41,6 +41,8 @@ public:
   PathParametersService() = default;
   virtual ~PathParametersService() override = default;
 
+  virtual void init(const std::string& robot_namespace) override;
+
   /**
    * @brief ...
    *
@@ -91,7 +93,6 @@ public:
    */
   bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration,
                          const double override_joint_acceleration);
-  virtual void init(const std::string& robot_namespace) override;
 
 protected:
   virtual bool callService() override;

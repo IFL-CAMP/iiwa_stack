@@ -9,12 +9,12 @@ namespace state {
 class JointTorque : public Robot {
 public:
   JointTorque() = default;
-
-  iiwa_msgs::JointTorque getTorque();
   virtual void init(const std::string& robot_namespace) override;
 
+  iiwa_msgs::JointTorque getTorque();
+
 private:
-  iiwaStateHolder<iiwa_msgs::JointTorque> state_{};
+  State<iiwa_msgs::JointTorque> state_{};
 };
 
 }  // namespace state

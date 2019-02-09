@@ -9,9 +9,6 @@ namespace command {
 class GenericCommand : public Robot {
 public:
   GenericCommand() = default;
-  //  GenericCommand(const std::string& robot_namespace) : Robot{robot_namespace}, time_to_destination_{robot_namespace}
-  //  {}
-  //  void init(const std::string& robot_namespace) override;
 
 protected:
   std::function<void()> callback_{};

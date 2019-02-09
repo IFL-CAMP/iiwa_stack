@@ -12,7 +12,7 @@ void CartesianPoseLinear::init(const std::string& robot_namespace) {
 
 void CartesianPoseLinear::setPose(const geometry_msgs::PoseStamped& pose) {
   command_.set(pose);
-  command_.publishIfNew();
+  command_.publish();
 }
 
 void CartesianPoseLinear::setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback) {

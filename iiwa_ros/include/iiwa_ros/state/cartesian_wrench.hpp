@@ -9,12 +9,12 @@ namespace state {
 class CartesianWrench : public Robot {
 public:
   CartesianWrench() = default;
-
-  iiwa_msgs::CartesianWrench getWrench();
   virtual void init(const std::string& robot_namespace) override;
 
+  iiwa_msgs::CartesianWrench getWrench();
+
 private:
-  iiwaStateHolder<iiwa_msgs::CartesianWrench> state_{};
+  State<iiwa_msgs::CartesianWrench> state_{};
 };
 
 }  // namespace state

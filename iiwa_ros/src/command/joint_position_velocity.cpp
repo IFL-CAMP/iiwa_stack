@@ -12,7 +12,7 @@ void JointPositionVelocity::init(const std::string& robot_namespace) {
 
 void JointPositionVelocity::setPosition(const iiwa_msgs::JointPositionVelocity& position) {
   command_.set(position);
-  command_.publishIfNew();
+  command_.publish();
 }
 
 void JointPositionVelocity::setPosition(const iiwa_msgs::JointPositionVelocity& position,

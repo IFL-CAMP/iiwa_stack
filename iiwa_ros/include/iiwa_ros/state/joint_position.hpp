@@ -9,12 +9,12 @@ namespace state {
 class JointPosition : public Robot {
 public:
   JointPosition() = default;
-
-  iiwa_msgs::JointPosition getPosition();
   virtual void init(const std::string& robot_namespace) override;
 
+  iiwa_msgs::JointPosition getPosition();
+
 private:
-  iiwaStateHolder<iiwa_msgs::JointPosition> state_{};
+  State<iiwa_msgs::JointPosition> state_{};
 };
 
 }  // namespace state
