@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(iiwa_tool_msgs)
 
 find_package(
@@ -6,15 +6,10 @@ find_package(
 		actionlib_msgs
 		message_generation
 		cmake_modules
-		# geometry_msgs
-		# std_msgs
 )
 
 # Declare the message files to be built
 add_message_files(DIRECTORY msg)
-
-# add_service_files(DIRECTORY srv)
-
 add_action_files(DIRECTORY action)
 
 # Actually generate the language-specific message and service files

@@ -40,15 +40,11 @@
 #include <signal.h>
 #include "iiwa_hw.h"
 
-bool g_quit = false;
+bool quit = false;
 
-void quitRequested(int sig)
-{
-  g_quit = true;
-}
+void quitRequested(int sig) { quit = true; }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   // initialize ROS
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
@@ -63,7 +59,7 @@ int main(int argc, char** argv)
 
   // construct the lbr iiwa
   ros::NodeHandle iiwa_nh;
-  IIWA_HW iiwa_robot(iiwa_nh);
+  iiwa_hw::HardwareInterface iiwa_robot(iiwa_nh);
 
   // configuration routines
   iiwa_robot.start();
@@ -76,8 +72,7 @@ int main(int argc, char** argv)
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
   // run as fast as possible
-  while (!g_quit)
-  {
+  while (!quit) {
     // get the time / period
     now = ros::Time::now();
     period = now - last;
@@ -93,13 +88,10 @@ int main(int argc, char** argv)
     iiwa_robot.write(period);
 
     // wait for some milliseconds defined in controlFrequency
-    iiwa_robot.getRate()->sleep();
+    iiwa_robot.getRate().sleep();
   }
 
-  std::cerr << "Stopping spinner..." << std::endl;
   spinner.stop();
-
-  std::cerr << "Bye!" << std::endl;
 
   return 0;
 }

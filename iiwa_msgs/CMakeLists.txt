@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(iiwa_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -11,9 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 # Declare the message files to be built
 add_message_files(DIRECTORY msg)
-
 add_service_files(DIRECTORY srv)
-
 add_action_files(DIRECTORY action)
 
 # Actually generate the language-specific message and service files

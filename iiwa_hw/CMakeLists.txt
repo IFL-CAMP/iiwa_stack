@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(iiwa_hw)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   control_toolbox
@@ -20,42 +21,21 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
-	CATKIN_DEPENDS  controller_interface
+  CATKIN_DEPENDS
+      controller_interface
 			hardware_interface
 			control_toolbox
 )
 
-## Specify additional locations of header files
-include_directories(include
-  ${Boost_INCLUDE_DIR}
-  ${catkin_INCLUDE_DIRS}
-)
+add_library(${PROJECT_NAME} src/iiwa_hw.cpp)
+add_executable(${PROJECT_NAME}-bin src/main.cpp)
 
-## Declare a cpp library
-add_library(${PROJECT_NAME}
-  include/iiwa_hw.h
-  src/iiwa_hw.cpp
-)
+target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}-bin PRIVATE include ${catkin_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}-bin ${PROJECT_NAME})
 
-## Declare a cpp executable
-add_executable(${PROJECT_NAME}-bin
-    src/main.cpp
-)
+add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}-bin iiwa_msgs_generate_messages_cpp)
 
-## Add dependence to the iiwa_msg module for the executable
-add_dependencies(${PROJECT_NAME}-bin
-				iiwa_msgs_generate_messages_cpp)
-				
-## Add dependence to the iiwa_msg module for the library
-add_dependencies(${PROJECT_NAME}
-				iiwa_msgs_generate_messages_cpp)
-
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}-bin
-    ${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-)

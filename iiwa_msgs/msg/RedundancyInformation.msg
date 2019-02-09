@@ -1,9 +1,9 @@
 # E1 parameter
-# Specifies Angle of axis 3
+# Specifies Angle of the elbow joint.
 float64 e1
 
 # Status parameter
-#   Bit 0: 1 - The working is working above its head
+#   Bit 0: 1 - The robot is working above its head
 #          0 - The robot is working in the ground area
 #   Bit 1: 1 - Angle A4 < 0°
 #          0 - Angle A4 >= 0°
@@ -12,5 +12,5 @@ float64 e1
 int32 status
 
 # Turn parameter
-# according to Sunrise handbook this is not used for iiwa
+# According to Sunrise handbook this is not used for the iiwa.
 int32 turn

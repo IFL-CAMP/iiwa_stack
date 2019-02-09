@@ -33,18 +33,15 @@
 #include <iiwa_msgs/CartesianQuantity.h>
 #include <iiwa_msgs/JointQuantity.h>
 
-namespace iiwa_ros
-{
-namespace conversions
-{
+namespace iiwa_ros {
+namespace conversions {
 /**
  * @brief Creates a JointQuantity with the same value in all its components.
  *
  * @param value the value to use for all the JointQuantity components.
  * @return iiwa_msgs::JointQuantity
  */
-iiwa_msgs::JointQuantity jointQuantityFromDouble(const double value)
-{
+iiwa_msgs::JointQuantity jointQuantityFromFloat(const float value) {
   iiwa_msgs::JointQuantity quantity;
   quantity.a1 = value;
   quantity.a2 = value;
@@ -68,9 +65,8 @@ iiwa_msgs::JointQuantity jointQuantityFromDouble(const double value)
  * @param a7
  * @return iiwa_msgs::JointQuantity
  */
-iiwa_msgs::JointQuantity jointQuantityFromDouble(const double a1, const double a2, const double a3, const double a4,
-                                                 const double a5, const double a6, const double a7)
-{
+iiwa_msgs::JointQuantity jointQuantityFromFloat(const float a1, const float a2, const float a3, const float a4,
+                                                const float a5, const float a6, const float a7) {
   iiwa_msgs::JointQuantity quantity;
   quantity.a1 = a1;
   quantity.a2 = a2;
@@ -88,14 +84,12 @@ iiwa_msgs::JointQuantity jointQuantityFromDouble(const double a1, const double a
  * @return  std::vector<T>
  */
 template <typename T>
-std::vector<T> jointQuantityToVector(const iiwa_msgs::JointQuantity& quantity)
-{
+std::vector<T> jointQuantityToVector(const iiwa_msgs::JointQuantity& quantity) {
   return std::vector<T>{quantity.a1, quantity.a2, quantity.a3, quantity.a4, quantity.a5, quantity.a6, quantity.a7};
 }
 
 template <typename T>
-iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v)
-{
+iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v) {
   iiwa_msgs::JointQuantity return_value;
   return_value.a1 = v[0];
   return_value.a2 = v[1];
@@ -113,8 +107,7 @@ iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v)
  * @param value the value to use for all the CartesianQuantity components.
  * @return iiwa_msgs::CartesianQuantity
  */
-iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double value)
-{
+iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float value) {
   iiwa_msgs::CartesianQuantity quantity;
   quantity.x = value;
   quantity.y = value;
@@ -136,9 +129,8 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double value)
  * @param c
  * @return iiwa_msgs::CartesianQuantity
  */
-iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double x, const double y, const double z, const double a,
-                                                         const double b, const double c)
-{
+iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float x, const float y, const float z, const float a,
+                                                        const float b, const float c) {
   iiwa_msgs::CartesianQuantity quantity;
   quantity.x = x;
   quantity.y = y;
@@ -156,8 +148,7 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double x, const d
  * @param rotation_value value to use for all the rotational components (a,b,c) of the CartesianQuantity
  * @return iiwa_msgs::CartesianQuantity
  */
-iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double translation_value, const double rotation_value)
-{
+iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float translation_value, const float rotation_value) {
   iiwa_msgs::CartesianQuantity quantity;
   quantity.x = translation_value;
   quantity.y = translation_value;
@@ -167,5 +158,5 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromDouble(const double translatio
   quantity.c = rotation_value;
   return quantity;
 }
-}
-}
+}  // namespace conversions
+}  // namespace iiwa_ros
