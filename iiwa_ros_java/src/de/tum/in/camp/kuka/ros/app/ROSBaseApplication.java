@@ -218,7 +218,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     // END of ROS initialization.
 
     handGuidanceControlMode = new JointImpedanceControlMode(robot.getJointCount());
-    handGuidanceKeybar = getApplicationUI().createUserKeyBar("Gravcomp");
+    handGuidanceKeybar = getApplicationUI().createUserKeyBar("Hand Guide");
     handGuidanceKeyList = new IUserKeyListener() {
       @Override
       public void onKeyEvent(IUserKey key, com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent event) {
