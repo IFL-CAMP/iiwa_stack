@@ -15,7 +15,7 @@ from rospy import Subscriber, Publisher, Service, ServiceProxy
 from rospy import ROSException
 from rospy import init_node, get_param, spin
 from tf.transformations import quaternion_from_matrix, quaternion_matrix
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Header
 from time import clock
 
 def linearlyMap(x, x1, x2, y1, y2):
@@ -74,15 +74,15 @@ class IiwaKinematics(object):
     self.v = 1.0
 
     hardware_interface = get_param('~hardware_interface', 'PositionJointInterface')
-    robot_name = get_param('~robot_name', 'iiwa')
+    self.robot_name = get_param('~robot_name', 'iiwa')
 
-    self.joint_names = ['{}_joint_1'.format(robot_name),
-                        '{}_joint_2'.format(robot_name),
-                        '{}_joint_3'.format(robot_name),
-                        '{}_joint_4'.format(robot_name),
-                        '{}_joint_5'.format(robot_name),
-                        '{}_joint_6'.format(robot_name),
-                        '{}_joint_7'.format(robot_name)]
+    self.joint_names = ['{}_joint_1'.format(self.robot_name),
+                        '{}_joint_2'.format(self.robot_name),
+                        '{}_joint_3'.format(self.robot_name),
+                        '{}_joint_4'.format(self.robot_name),
+                        '{}_joint_5'.format(self.robot_name),
+                        '{}_joint_6'.format(self.robot_name),
+                        '{}_joint_7'.format(self.robot_name)]
 
     joint_states_sub = Subscriber('joint_states', JointState, self.jointStatesCb, queue_size = 1)
     command_pose_sub = Subscriber('command/CartesianPoseLin', PoseStamped, self.commandPoseCb, queue_size = 1)
@@ -134,6 +134,8 @@ class IiwaKinematics(object):
 
     self.state_pose_pub.publish(
         PoseStamped(
+          header = Header(
+            frame_id = self.robot_name + '_link_0'),
           pose = Pose(
             position = Point(
               x = H0E[0,3], y = H0E[1,3], z = H0E[2,3]),
