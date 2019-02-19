@@ -58,14 +58,6 @@ public:
    */
   bool setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity);
 
-  /**
-   * @brief ...
-   *
-   * @param max_cartesian_velocity ...
-   * @return bool
-   */
-  bool setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity);
-
 protected:
   virtual bool callService() override;
 };

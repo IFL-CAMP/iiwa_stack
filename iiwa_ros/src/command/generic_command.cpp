@@ -36,11 +36,11 @@ namespace command {
 
 void GenericCommand::completedMotionWatcher() {
   bool flag{false};
-  ros::Duration(0.25).sleep();
+  ros::Duration(0.1).sleep();
   while (true) {
     auto missing_time = time_to_destination_.getTimeToDestination();
     if (missing_time < -998) {
-      ROS_ERROR_STREAM("IIWA_ROS - Error while asking for Time to Destination.");
+      ROS_ERROR_STREAM(ros::this_node::getName() << " - Error while calling the TimeToDestination.");
       continue;
     }
     if (missing_time > 0) {
