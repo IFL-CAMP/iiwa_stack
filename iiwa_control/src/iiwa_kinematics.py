@@ -183,7 +183,7 @@ class IiwaKinematics(object):
 
     R64 = Ryz(t[5], t[4])
     R60 = R40 * R64
-    RE6 = R60 * RE0
+    RE6 = R60.T * RE0
     t[6] = arctan2(RE6[1,0], RE6[0,0])
 
     self.publishJointPositionCommand(t)
