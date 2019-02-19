@@ -2,11 +2,13 @@
 <launch>
   <arg name="robot_name" default="iiwa" />
   <arg name="hardware_interface" default="PositionJointInterface"/>
+  <arg name="tool_length" default="0.0"/>
 
   <group ns="$(arg robot_name)">
     <node name="iiwa_kinematics" pkg="iiwa_control" type="iiwa_kinematics.py" output="screen">
       <param name="robot_name" value="$(arg robot_name)"/>
       <param name="hardware_interface" value="$(arg hardware_interface)"/>
+      <param name="tool_length" value="$(arg tool_length)"/>
     </node>
   </group>
 </launch>

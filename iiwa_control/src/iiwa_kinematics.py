@@ -65,10 +65,12 @@ class IiwaKinematics(object):
   def __init__(self):
     init_node('iiwa_kinematics', log_level = DEBUG)
 
+    tool_length = get_param('~tool_length', 0.0)
+
     self.l02 = 0.34
     self.l24 = 0.4
     self.l46 = 0.4
-    self.l6E = 0.126
+    self.l6E = 0.126 + tool_length
 
     self.tr = 0.0
     self.v = 1.0
