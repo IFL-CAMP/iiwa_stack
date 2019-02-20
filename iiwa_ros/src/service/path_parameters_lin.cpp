@@ -58,12 +58,8 @@ bool PathParametersLinService::callService() {
   ROS_ERROR_STREAM("The service client was not intialized yet.");
 }
 
-bool PathParametersLinService::setPathParametersLin(const geometry_msgs::Twist max_cartesian_velocity) {
-  setPathParametersLin(max_cartesian_velocity);
-}
-
 bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity) {
-  setPathParametersLin(max_cartesian_velocity);
+  config_.request.max_cartesian_velocity = max_cartesian_velocity;
 }
 
 }  // namespace service
