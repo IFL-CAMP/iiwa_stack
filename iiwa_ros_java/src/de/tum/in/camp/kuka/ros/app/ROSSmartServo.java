@@ -28,6 +28,7 @@ package de.tum.in.camp.kuka.ros.app;
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.ConfigureControlModeRequest;
 import iiwa_msgs.ConfigureControlModeResponse;
+import iiwa_msgs.MoveAlongSplineActionGoal;
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToJointPositionActionGoal;
 import iiwa_msgs.RedundancyInformation;
@@ -285,6 +286,8 @@ public class ROSSmartServo extends ROSBaseApplication {
 
         motions.setEnpointFrame(endpointFrame);
         controlModeHandler.setEndpointFrame(endpointFrame);
+        
+        // update motion
         if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.switchToSmartServoLIN(motion);
         }
@@ -334,6 +337,10 @@ public class ROSSmartServo extends ROSBaseApplication {
                 .getGoal().getCartesianPose().getRedundancy());
             break;
           }
+          case POINT_TO_POINT_SPLINE: {
+              movePointToPointSpline(((MoveAlongSplineActionGoal) actionGoal.goal).getGoal().getSpline());
+              break;
+            }
           case JOINT_POSITION: {
             moveToJointPosition(((MoveToJointPositionActionGoal) actionGoal.goal).getGoal().getJointPosition());
             break;

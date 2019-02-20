@@ -153,8 +153,11 @@ public class Motions {
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       // endPointFrame.moveAsync(lin(destinationFrame));
-      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
-          .setOrientationAcceleration(SpeedLimits.orientationAcceleration); // .setMode(mode);
+      IMotion linMotion = lin(destinationFrame)
+    		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
+    		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
+    		  .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
+              // .setMode(mode);
       IMotionContainer mc = endPointFrame.moveAsync(linMotion);
       // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
       goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
@@ -170,7 +173,9 @@ public class Motions {
    * @param subscriber: Required for TF lookups
    */
   public boolean pointToPointMotionSpline(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
-    if (splineMsg == null) { return false; }
+    if (splineMsg == null) {
+    	return false;
+    }
 
     boolean success = true;
     List<SplineMotionCP<?>> splineSegments = new ArrayList<SplineMotionCP<?>>();
@@ -179,9 +184,16 @@ public class Motions {
     for (SplineSegment segmentMsg : splineMsg.getSegments()) {
       SplineMotionCP<?> segment = null;
       switch (segmentMsg.getType()) {
+        case SplineSegment.SPL: {
+          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
+          if (p != null) {
+            segment = spl(p);
+          }
+          break;
+        }
         case SplineSegment.LIN: {
           Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          if (p == null) {
+          if (p != null) {
             segment = lin(p);
           }
           break;
@@ -191,13 +203,6 @@ public class Motions {
           Frame pAux = subscriber.cartesianPoseToRosFrame(segmentMsg.getPointAux(), robotBaseFrameId);
           if (p != null && pAux != null) {
             segment = circ(p, pAux);
-          }
-          break;
-        }
-        case SplineSegment.SPL: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          if (p != null) {
-            segment = spl(p);
           }
           break;
         }
@@ -218,11 +223,13 @@ public class Motions {
       i++;
     }
 
-    if (!success) {
-      Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
-      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setMode(motion));
-
-      goalReachedThread = new PTPCheckForGoalReachedThread(null, robot, publisher, actionServer);
+    if (success) {
+      Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]))
+		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
+		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
+	      .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
+      IMotionContainer mc = endPointFrame.moveAsync(spline);
+      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
       goalReachedThread.run();
     }
 
