@@ -62,6 +62,7 @@ import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
+import de.tum.in.camp.kuka.ros.MoveAsyncErrorHandler;
 import de.tum.in.camp.kuka.ros.PublisherThread;
 import de.tum.in.camp.kuka.ros.ActiveTool;
 import de.tum.in.camp.kuka.ros.SpeedLimits;
@@ -239,6 +240,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     handGuidanceKey.setText(UserKeyAlignment.TopMiddle, "ON");
     handGuidanceKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
     handGuidanceKeybar.publish();
+
+    // Register MoveAsyncErrorHandler
+    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
 
     // Additional initialization from subclasses.
     initializeApp();
