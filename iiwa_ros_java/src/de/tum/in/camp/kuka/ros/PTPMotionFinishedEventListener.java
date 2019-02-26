@@ -24,57 +24,45 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import com.kuka.common.ThreadUtil;
-import com.kuka.roboticsAPI.controllerModel.sunrise.SunriseExecutionService;
-import com.kuka.roboticsAPI.deviceModel.LBR;
+import com.kuka.roboticsAPI.executionModel.ExecutionState;
+import com.kuka.roboticsAPI.executionModel.IExecutionContainer;
+import com.kuka.roboticsAPI.motionModel.IMotion;
 import com.kuka.roboticsAPI.motionModel.IMotionContainer;
+import com.kuka.roboticsAPI.motionModel.IMotionContainerListener;
 
-public class PTPCheckForGoalReachedThread implements Runnable {
+public class PTPMotionFinishedEventListener implements IMotionContainerListener {
 
   protected iiwaPublisher publisher;
   protected iiwaActionServer actionServer;
-  protected LBR robot;
-  protected int rate = 1000 / 30; // 30hz
-  protected IMotionContainer motionContainer;
 
-  public PTPCheckForGoalReachedThread(IMotionContainer motion, LBR robot, iiwaPublisher publisher,
-      iiwaActionServer actionServer) {
-    this.motionContainer = motion;
-    this.robot = robot;
+  public PTPMotionFinishedEventListener(iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.publisher = publisher;
     this.actionServer = actionServer;
   }
 
   @Override
-  public void run() {
-    while (!((SunriseExecutionService) robot.getController().getExecutionService()).isPausedAndStopped()
-        || !robot.isReadyToMove()) {
-      // while (robot.hasActiveMotionCommand() ||
-      // ((SunriseExecutionService)robot.getController().getExecutionService()).isPaused())
-      // {
-      if (motionContainer.isFinished()) {
-        Logger.info("Motion finished");
+  public void onStateChanged(IExecutionContainer container, ExecutionState state) {
+    // not used
+  }
 
-        if (publisher != null) {
-          publisher.publishDestinationReached();
-        }
-        if (actionServer != null && actionServer.hasCurrentGoal()) {
-          actionServer.markCurrentGoalReached();
-        }
-        return;
-      }
-      else if (motionContainer.hasError()) {
-        Logger.error("Motion failed: " + motionContainer.getErrorMessage());
-
-        if (actionServer != null && actionServer.hasCurrentGoal()) {
-          actionServer.markCurrentGoalFailed(motionContainer.getErrorMessage());
-        }
-        return;
-      }
-
-      ThreadUtil.milliSleep(rate);
+  @Override
+  public void containerFinished(IMotionContainer container) {
+    Logger.info("Motion finished");
+    if (publisher != null) {
+      publisher.publishDestinationReached();
     }
+    if (actionServer != null && actionServer.hasCurrentGoal()) {
+      actionServer.markCurrentGoalReached();
+    }
+  }
 
-    Logger.info("Execution paused and stopped. Ending PTPcheckForGoalReachedThread.");
+  @Override
+  public void motionFinished(IMotion motion) {
+    // not used
+  }
+
+  @Override
+  public void motionStarted(IMotion motion) {
+    // not used
   }
 }

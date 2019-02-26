@@ -41,7 +41,6 @@ import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
 import com.kuka.roboticsAPI.motionModel.IMotion;
-import com.kuka.roboticsAPI.motionModel.IMotionContainer;
 import com.kuka.roboticsAPI.motionModel.Spline;
 import com.kuka.roboticsAPI.motionModel.SplineMotionCP;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -50,10 +49,8 @@ import static com.kuka.roboticsAPI.motionModel.BasicMotions.ptp;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.lin;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.circ;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.spl;
-import static com.kuka.roboticsAPI.motionModel.BasicMotions.spline;
 
 public class Motions {
-
   private LBR robot;
   private String robotBaseFrameId;
 
@@ -72,10 +69,6 @@ public class Motions {
   private long previousTime = System.nanoTime();
   private double loopPeriod = 0.0; // Loop period in s.
   private final double softJointLimit = 0.0174533; // in radians.
-
-  private PTPCheckForGoalReachedThread goalReachedThread;
-
-  int i = 0;
 
   public Motions(LBR robot, String robotBaseFrameId, SmartServo motion, ObjectFrame endPointFrame, iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.robot = robot;
@@ -138,9 +131,12 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      IMotionContainer mc = endPointFrame.moveAsync(ptp(destinationFrame).setMode(motion));
-      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
-      goalReachedThread.run();
+      
+      IMotion ptpMotion = ptp(destinationFrame);
+        //.setJointVelocityRel(SpeedLimits.jointVelocity)
+        //.setJointAccelerationRel(SpeedLimits.cartesianAcceleration));
+        //.setMode(motion);
+      endPointFrame.moveAsync(ptpMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
 
@@ -152,16 +148,13 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      // endPointFrame.moveAsync(lin(destinationFrame));
+
       IMotion linMotion = lin(destinationFrame)
-    		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
-    		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
-    		  .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
-              // .setMode(mode);
-      IMotionContainer mc = endPointFrame.moveAsync(linMotion);
-      // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
-      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
-      goalReachedThread.run();
+  		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
+  		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
+  		  .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
+        //.setMode(mode);
+      endPointFrame.moveAsync(linMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
 
@@ -225,12 +218,11 @@ public class Motions {
 
     if (success) {
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]))
-		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
-		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
+		    .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
+		    .setCartAcceleration(SpeedLimits.cartesianAcceleration)
 	      .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
-      IMotionContainer mc = endPointFrame.moveAsync(spline);
-      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
-      goalReachedThread.run();
+        //.setMode(mode);
+      endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
 
     return success;
