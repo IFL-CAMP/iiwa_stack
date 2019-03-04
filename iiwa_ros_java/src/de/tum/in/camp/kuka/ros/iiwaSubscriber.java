@@ -49,6 +49,7 @@ import org.ros.time.TimeProvider;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
@@ -355,25 +356,34 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * Creates a KUKA Sunrise frame from a CartesianPose message. Includes resolving TF transformation and
    * applying redundancy data.
    * 
+   * @param parent: parent frame of robot base coordinate system
    * @param cartesianPose: Pose to transform
    * @param robotBaseFrame: String id of robot base frame (usually iiwa_link_0)
    * @return
    **/
-  public Frame cartesianPoseToRosFrame(CartesianPose cartesianPose, String robotBaseFrame) {
-    PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(), robotBaseFrame);
-    if (poseStamped == null) { return null; }
+	public Frame cartesianPoseToRosFrame(AbstractFrame parent, CartesianPose cartesianPose, String robotBaseFrame) {
+		PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(),	robotBaseFrame);
+		
+		if (poseStamped == null) {
+			return null;
+		}
 
-    Frame frame = Conversions.rosPoseToKukaFrame(poseStamped.getPose());
-    RedundancyInformation redundancy = cartesianPose.getRedundancy();
+		Frame frame = Conversions.rosPoseToKukaFrame(parent, poseStamped.getPose());
+		RedundancyInformation redundancy = cartesianPose.getRedundancy();
 
-    if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-      // You can get this info from the robot SmartPad.
-      IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
-      frame.setRedundancyInformation(robot, redundantData);
-    }
+		if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+  		// You can get this info from the robot Cartesian Position (SmartPad)
+		  // or the /iiwa/state/CartesianPose topic
+			IRedundancyCollection redundantData = new LBRE1Redundancy(
+					redundancy.getE1(),
+					redundancy.getStatus(),
+					redundancy.getTurn()
+			);
+			frame.setRedundancyInformation(robot, redundantData);
+		}
 
-    return frame;
-  }
+		return frame;
+	}
 
   /**
    * Returns the last received Joint Velocity message. Returns null if no new message is available.

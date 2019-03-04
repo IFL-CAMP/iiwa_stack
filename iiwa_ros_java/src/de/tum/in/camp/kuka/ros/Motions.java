@@ -178,22 +178,22 @@ public class Motions {
       SplineMotionCP<?> segment = null;
       switch (segmentMsg.getType()) {
         case SplineSegment.SPL: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
           if (p != null) {
             segment = spl(p);
           }
           break;
         }
         case SplineSegment.LIN: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
           if (p != null) {
             segment = lin(p);
           }
           break;
         }
         case SplineSegment.CIRC: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          Frame pAux = subscriber.cartesianPoseToRosFrame(segmentMsg.getPointAux(), robotBaseFrameId);
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
+          Frame pAux = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPointAux(), robotBaseFrameId);
           if (p != null && pAux != null) {
             segment = circ(p, pAux);
           }
@@ -221,7 +221,7 @@ public class Motions {
 		    .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
 		    .setCartAcceleration(SpeedLimits.cartesianAcceleration)
 	      .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
-        //.setMode(mode);
+        //.setMode(new PositionControlMode());
       endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
 
@@ -244,6 +244,7 @@ public class Motions {
       destinationFrame.setBetaRad(commandVelocity.getTwist().getAngular().getY() * loopPeriod + destinationFrame.getBetaRad());
       destinationFrame.setGammaRad(commandVelocity.getTwist().getAngular().getZ() * loopPeriod + destinationFrame.getGammaRad());
       previousTime = currentTime;
+      
       if (robot.isReadyToMove()) {
         motion.getRuntime().setDestination(destinationFrame);
       }
