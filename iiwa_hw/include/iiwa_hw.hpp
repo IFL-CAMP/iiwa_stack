@@ -191,25 +191,3 @@ private:
   std::vector<std::string> interface_type_{"PositionJointInterface", "EffortJointInterface", "VelocityJointInterface"};
 };
 }  // namespace iiwa_hw
-
-template <typename T>
-void iiwaMsgsJointToVector(const iiwa_msgs::JointQuantity& ax, std::vector<T>& v) {
-  v[0] = ax.a1;
-  v[1] = ax.a2;
-  v[2] = ax.a3;
-  v[3] = ax.a4;
-  v[4] = ax.a5;
-  v[5] = ax.a6;
-  v[6] = ax.a7;
-}
-
-template <typename T>
-void vectorToIiwaMsgsJoint(const std::vector<T>& v, iiwa_msgs::JointQuantity& ax) {
-  ax.a1 = v[0];
-  ax.a2 = v[1];
-  ax.a3 = v[2];
-  ax.a4 = v[3];
-  ax.a5 = v[4];
-  ax.a6 = v[5];
-  ax.a7 = v[6];
-}
