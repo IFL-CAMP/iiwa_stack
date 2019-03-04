@@ -413,7 +413,17 @@ public class ROSSmartServo extends ROSBaseApplication {
    * @param commandType
    */
   protected void activateMotionMode(CommandType commandType) {
-    if (commandType == lastCommandType) { return; }
+    if (commandType == lastCommandType) {
+      if (commandType == commandType.POINT_TO_POINT_SPLINE) {
+        // For some reason the application gets stuck when executing two spline motions
+        // in a row. Switching the control mode to SmartServo and back in between 
+        // resolves the issue.
+        // TODO: Find a cleaner way of solving this issue 
+        activateMotionMode(commandType.CARTESIAN_POSE_LIN);
+        activateMotionMode(commandType.POINT_TO_POINT_SPLINE);
+      }
+      return;
+    }
 
     Logger.debug("Switching control mode from " + lastCommandType + " to " + commandType);
 
@@ -441,6 +451,14 @@ public class ROSSmartServo extends ROSBaseApplication {
       }
       else if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
         controlModeHandler.disableSmartServo(linearMotion);
+      }
+      else if (lastCommandType == null) {
+        // For some reason the application gets stuck when executing two spline motions
+        // in a row. Switching the control mode to SmartServo and back in between 
+        // resolves the issue.
+        // TODO: Find a cleaner way of solving this issue 
+        activateMotionMode(commandType.CARTESIAN_POSE_LIN);
+        activateMotionMode(commandType.POINT_TO_POINT_SPLINE);
       }
     }
     else {
