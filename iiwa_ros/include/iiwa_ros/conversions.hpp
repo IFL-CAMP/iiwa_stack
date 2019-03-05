@@ -33,6 +33,8 @@
 #include <iiwa_msgs/CartesianQuantity.h>
 #include <iiwa_msgs/JointQuantity.h>
 
+#include <ros/ros.h>
+
 namespace iiwa_ros {
 namespace conversions {
 /**
@@ -85,7 +87,7 @@ iiwa_msgs::JointQuantity jointQuantityFromFloat(const float a1, const float a2, 
  */
 template <typename T>
 std::vector<T> jointQuantityToVector(const iiwa_msgs::JointQuantity& quantity) {
-  return std::vector<T>{quantity.a1, quantity.a2, quantity.a3, quantity.a4, quantity.a5, quantity.a6, quantity.a7};
+  return {quantity.a1, quantity.a2, quantity.a3, quantity.a4, quantity.a5, quantity.a6, quantity.a7};
 }
 
 template <typename T>
