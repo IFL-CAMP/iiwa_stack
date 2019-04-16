@@ -30,13 +30,13 @@
 
 #pragma once
 
-#include <iiwa_msgs/SetPathParametersLin.h>
+#include <iiwa_msgs/SetSmartServoLinSpeedLimits.h>
 #include <iiwa_ros/service/iiwa_services.hpp>
 
 namespace iiwa_ros {
 namespace service {
 
-class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin> {
+class PathParametersLinService : public iiwaServices<iiwa_msgs::SetSmartServoLinSpeedLimits> {
 public:
   PathParametersLinService() = default;
   virtual ~PathParametersLinService() override = default;

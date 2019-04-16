@@ -30,13 +30,13 @@
 
 #pragma once
 
-#include <iiwa_msgs/SetPathParameters.h>
+#include <iiwa_msgs/SetSmartServoJointSpeedLimits.h>
 #include <iiwa_ros/service/iiwa_services.hpp>
 
 namespace iiwa_ros {
 namespace service {
 
-class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters> {
+class PathParametersService : public iiwaServices<iiwa_msgs::SetSmartServoJointSpeedLimits> {
 public:
   PathParametersService() = default;
   virtual ~PathParametersService() override = default;
@@ -81,7 +81,7 @@ public:
    * @param joint_relative_acceleration ...
    * @return bool
    */
-  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration);
+  bool setSmartServoJoinSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration);
 
   /**
    * @brief ...
@@ -91,7 +91,7 @@ public:
    * @param override_joint_acceleration ...
    * @return bool
    */
-  bool setPathParameters(const double joint_relative_velocity, const double joint_relative_acceleration,
+  bool setSmartServoJoinSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration,
                          const double override_joint_acceleration);
 
 protected:

@@ -1,0 +1,7 @@
+# Override the velocity factor for all motions (relative between 0.0 and 1.0)
+float64 override_reduction
+
+---
+
+bool success
+string error
