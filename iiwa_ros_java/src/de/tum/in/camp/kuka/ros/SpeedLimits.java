@@ -24,27 +24,171 @@
 
 package de.tum.in.camp.kuka.ros;
 
+import com.kuka.connectivity.motionModel.smartServo.SmartServo;
+import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
+import com.kuka.roboticsAPI.motionModel.SplineMotionCP;
+import com.kuka.roboticsAPI.motionModel.SplineMotionJP;
+
+import iiwa_msgs.SetPTPCartesianSpeedLimitsRequest;
+import iiwa_msgs.SetPTPJointSpeedLimitsRequest;
+import iiwa_msgs.SetSmartServoJointSpeedLimitsRequest;
+import iiwa_msgs.SetSmartServoLinSpeedLimitsRequest;
+
 public class SpeedLimits {
-  public static double jointVelocity;
-  public static double jointAcceleration;
-  public static double overrideJointAcceleration;
-
-  public static double[] maxTranslationlVelocity = { 1000.0, 1000.0, 1000.0 };
-  public static double[] maxOrientationVelocity = { 0.5, 0.5, 0.5 };
-
-  public static double cartesianAcceleration = 200.0;
-  public static double orientationAcceleration = 0.05;
-  public static double cartesianJerk = 50;
-
+  // overall override factor
+  private static double overrideReduction = 1.0; // relative
+  
+  // Joint motion limits
+  private static double ss_relativeJointVelocity;             // relative
+  private static double ss_relativeJointAcceleration;         // relative
+  private static double ss_override_joint_acceleration = 1.0; // relative, between 0.0 and 10.0
+  
+  // PTP Joint motion limits
+  private static double ptp_relativeJointVelocity =      1.0; // relative
+  private static double ptp_relativeJointAcceleration =  1.0; // relative
+  
+  // Cartesian PTP motion limits
+  private static double ptp_maxCartesianVelocity =       1.0; // m/s
+  private static double ptp_maxOrientationVelocity =     0.5; // rad/s
+  private static double ptp_maxCartesianAcceleration =   0.2; // m/s^2
+  private static double ptp_maxOrientationAcceleration = 0.1; // rad/s^2
+  private static double ptp_maxCartesianJerk =          -1.0; // m/s^3
+  private static double ptp_maxOrientationJerk =        -1.0; // rad/s^3
+  
+  // Cartesian SmartServo limits
+  private static double[] ss_maxTranslationalVelocity = {1.0, 1.0, 1.0}; // m/s
+  private static double[] ss_maxRotationalVelocity =    {0.5, 0.5, 0.5}; // rad/s
+  // TODO:
+  // public static double ss_maxNullSpaceVelocity = ???;
+  // public static double ss_maxNullSpaceAcceleration = ???;
+  
   public static void init(Configuration configuration) {
-    jointVelocity = configuration.getDefaultRelativeJointVelocity();
-    jointAcceleration = configuration.getDefaultRelativeJointAcceleration();
-    overrideJointAcceleration = 1.0;
+    ss_relativeJointVelocity = configuration.getDefaultRelativeJointVelocity();
+    ss_relativeJointAcceleration = configuration.getDefaultRelativeJointAcceleration();
   }
 
-  public static void setPathParamters(double jointVelocity, double jointAcceleration, double overrideJointAcceleration) {
-    SpeedLimits.jointVelocity = jointVelocity;
-    SpeedLimits.jointAcceleration = jointAcceleration;
-    SpeedLimits.overrideJointAcceleration = overrideJointAcceleration;
+  public static void setOverrideRecution(double overrideReduction) {
+    SpeedLimits.overrideReduction = overrideReduction;
+  }
+  
+  public double getOverrideReduction() {
+    return overrideReduction;
+  }
+  
+  /**
+   * Set PTP joint speed limits based on ROS service request
+   * @param srvReq
+   */
+  public static void setPTPJointSpeedLimits(SetPTPJointSpeedLimitsRequest srvReq) {
+    ptp_relativeJointVelocity = srvReq.getJointRelativeVelocity();
+    ptp_relativeJointAcceleration = srvReq.getJointRelativeAcceleration();
+  }
+
+  /**
+   * Set Cartesian PTP speed values based on ROS service request
+   * @param srvReq
+   */
+  public static void setPTPCartesianSpeedLimits(SetPTPCartesianSpeedLimitsRequest srvReq) {
+    ptp_maxCartesianVelocity = srvReq.getMaxCartesianVelocity();
+    ptp_maxOrientationVelocity = srvReq.getMaxOrientationVelocity();
+    ptp_maxCartesianAcceleration = srvReq.getMaxCartesianAcceleration();
+    ptp_maxOrientationAcceleration = srvReq.getMaxOrientationAcceleration();
+    ptp_maxCartesianJerk = srvReq.getMaxCartesianJerk();
+    ptp_maxOrientationJerk = srvReq.getMaxOrientationJerk();
+  }
+
+  /**
+   * Set SmartServo joint speed values based on ROS service request
+   * @param srvReq
+   */
+  public static void setSmartServoJointSpeedLimits(SetSmartServoJointSpeedLimitsRequest srvReq) {
+    ss_relativeJointVelocity = srvReq.getJointRelativeVelocity();
+    ss_relativeJointAcceleration = srvReq.getJointRelativeAcceleration();
+    ss_override_joint_acceleration = srvReq.getOverrideJointAcceleration();
+  }
+  
+  /**
+   * Set SmartServo lin speed values based on ROS service request
+   * @param srvReq
+   */
+  public static void setSmartServoLinSpeedLimits(SetSmartServoLinSpeedLimitsRequest srvReq) {
+    ss_maxTranslationalVelocity = Conversions.rosVectorToArray(srvReq.getMaxCartesianVelocity().getLinear());
+    ss_maxRotationalVelocity = Conversions.rosVectorToArray(srvReq.getMaxCartesianVelocity().getAngular());
+  }
+  
+  /**
+   * Applies the configured speed limits on a given SmartServo motion container
+   * @param motion
+   */
+  public static void applySpeedLimits(SmartServo motion) {
+    if (ss_relativeJointVelocity > 0) {
+      motion.setJointVelocityRel(ss_relativeJointVelocity);
+    }
+    if (ss_relativeJointAcceleration > 0) {
+      motion.setJointAccelerationRel(ss_relativeJointAcceleration);
+    }
+    if (ss_override_joint_acceleration > 0) {
+      motion.overrideJointAcceleration(ss_override_joint_acceleration); 
+    }
+  }
+  
+  public static void applySpeedLimits(SplineMotionJP<?> motion) {
+    if (ptp_relativeJointVelocity > 0) {
+      motion.setJointVelocityRel(ptp_relativeJointVelocity);
+    }
+    if (ptp_relativeJointAcceleration > 0) {
+      motion.setJointAccelerationRel(ptp_relativeJointAcceleration);
+    }
+  }
+  
+  /**
+   * Applies the configured speed limits on a given Cartesian PTP motion container
+   * @param cartesianMotion
+   */
+  public static void applySpeedLimits(SplineMotionCP<?> cartesianMotion) {
+    if (ptp_maxCartesianVelocity > 0) {
+      cartesianMotion.setCartVelocity(Conversions.rosTranslationToKuka(ptp_maxCartesianVelocity));
+    }
+    if (ptp_maxOrientationVelocity > 0) {
+      cartesianMotion.setOrientationVelocity(ptp_maxOrientationVelocity);
+    }
+    if (ptp_maxCartesianAcceleration > 0) {
+      cartesianMotion.setCartAcceleration(Conversions.rosTranslationToKuka(ptp_maxCartesianAcceleration));
+    }
+    if (ptp_maxOrientationAcceleration > 0) {
+      cartesianMotion.setOrientationAcceleration(ptp_maxOrientationAcceleration);
+    }
+    if (ptp_maxCartesianJerk > 0) {
+      cartesianMotion.setCartJerk(Conversions.rosTranslationToKuka(ptp_maxCartesianJerk));
+    }
+    if (ptp_maxOrientationJerk > 0) {
+      cartesianMotion.setOrientationJerk(ptp_maxOrientationJerk);
+    }
+  }
+  
+  /**
+   * Applies the configured speed limits on a given SmartServoLIN motion container
+   * @param linMotion
+   */
+  public static void applySpeedLimits(SmartServoLIN linMotion) {
+    if (ss_maxTranslationalVelocity[0] > 0 || ss_maxTranslationalVelocity[1] > 0 || ss_maxTranslationalVelocity[2] > 0) {
+      linMotion.setMaxTranslationVelocity(new double[]{
+          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[0]),
+          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[1]),
+          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[2])
+      });
+    }
+    if (ss_maxRotationalVelocity[0] > 0 || ss_maxRotationalVelocity[1] > 0 || ss_maxRotationalVelocity[2] > 0) {
+      linMotion.setMaxTranslationVelocity(new double[]{
+          ss_maxRotationalVelocity[0],
+          ss_maxRotationalVelocity[1],
+          ss_maxRotationalVelocity[2]
+      });
+    }
+
+    // linMotion.setMaxTranslationAcceleration(value);
+    // linMotion.setMaxNullSpaceAcceleration(value);
+    // linMotion.setMaxNullSpaceVelocity(value);
+    // linMotion.setMaxOrientationAcceleration(value);
   }
 }

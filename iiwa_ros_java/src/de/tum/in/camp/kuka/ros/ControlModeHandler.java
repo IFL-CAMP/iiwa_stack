@@ -236,9 +236,7 @@ public class ControlModeHandler {
     SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
     motion.setMinimumTrajectoryExecutionTime(0.1); // TODO : parametrize
     motion.setTimeoutAfterGoalReach(3600); // TODO : parametrize
-    motion.setJointVelocityRel(SpeedLimits.jointVelocity);
-    motion.setJointAccelerationRel(SpeedLimits.jointAcceleration);
-    motion.overrideJointAcceleration(SpeedLimits.overrideJointAcceleration);
+    SpeedLimits.applySpeedLimits(motion);
     return motion;
   }
 
@@ -247,13 +245,7 @@ public class ControlModeHandler {
     linearMotion.setReferenceFrame(World.Current.getRootFrame());
     linearMotion.setMinimumTrajectoryExecutionTime(0.1); // TODO : parametrize
     linearMotion.setTimeoutAfterGoalReach(3600); // TODO : parametrize
-    linearMotion.setMaxTranslationVelocity(SpeedLimits.maxTranslationlVelocity);
-    linearMotion.setMaxOrientationVelocity(SpeedLimits.maxOrientationVelocity);
-    // linearMotion.setMaxTranslationAcceleration(value);
-    // linearMotion.setMaxNullSpaceAcceleration(value);
-    // linearMotion.setMaxNullSpaceVelocity(value);
-    // linearMotion.setMaxOrientationAcceleration(value);
-
+    SpeedLimits.applySpeedLimits(linearMotion);
     return linearMotion;
   }
 

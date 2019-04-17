@@ -149,11 +149,9 @@ public class Motions {
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
 
-      IMotion linMotion = lin(destinationFrame)
-  		  .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
-  		  .setCartAcceleration(SpeedLimits.cartesianAcceleration)
-  		  .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
-        //.setMode(mode);
+      SplineMotionCP<?> linMotion = lin(destinationFrame);
+      //.setMode(mode);
+      SpeedLimits.applySpeedLimits(linMotion);
       endPointFrame.moveAsync(linMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
@@ -217,11 +215,9 @@ public class Motions {
     }
 
     if (success) {
-      Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]))
-		    .setCartVelocity(SpeedLimits.maxTranslationlVelocity[0])
-		    .setCartAcceleration(SpeedLimits.cartesianAcceleration)
-	      .setOrientationAcceleration(SpeedLimits.orientationAcceleration);
+      Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
         //.setMode(new PositionControlMode());
+      SpeedLimits.applySpeedLimits(spline);
       endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
 

@@ -32,8 +32,8 @@ import iiwa_msgs.MoveAlongSplineActionGoal;
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToJointPositionActionGoal;
 import iiwa_msgs.RedundancyInformation;
-import iiwa_msgs.SetPathParametersLinRequest;
-import iiwa_msgs.SetPathParametersLinResponse;
+import iiwa_msgs.SetSmartServoLinSpeedLimitsRequest;
+import iiwa_msgs.SetSmartServoLinSpeedLimitsResponse;
 import iiwa_msgs.SetWorkpieceRequest;
 import iiwa_msgs.SetWorkpieceResponse;
 import iiwa_msgs.SetEndpointFrameRequest;
@@ -167,67 +167,99 @@ public class ROSSmartServo extends ROSBaseApplication {
     });
 
     // TODO: doc
-    subscriber.setPathParametersCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse>() {
-      @Override
-      public void build(iiwa_msgs.SetPathParametersRequest req, iiwa_msgs.SetPathParametersResponse res) throws ServiceException {
-        controlModeLock.lock();
-        try {
-          if (req.getJointRelativeVelocity() >= 0) {
-            SpeedLimits.jointVelocity = req.getJointRelativeVelocity();
+    subscriber
+        .setPTPCartesianSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse>() {
+          @Override
+          public void build(iiwa_msgs.SetPTPCartesianSpeedLimitsRequest req, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse res)
+              throws ServiceException {
+            controlModeLock.lock();
+            try {
+              SpeedLimits.setPTPCartesianSpeedLimits(req);
+              res.setSuccess(true);
+            }
+            catch (Exception e) {
+              res.setError(e.getClass().getName() + ": " + e.getMessage());
+              res.setSuccess(false);
+            }
+            finally {
+              controlModeLock.unlock();
+            }
           }
-          if (req.getJointRelativeAcceleration() >= 0) {
-            SpeedLimits.jointAcceleration = req.getJointRelativeAcceleration();
-          }
-          if (req.getOverrideJointAcceleration() >= 0) {
-            SpeedLimits.overrideJointAcceleration = req.getOverrideJointAcceleration();
-          }
-          if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
-            iiwa_msgs.ConfigureControlModeRequest request = null;
-            motion = controlModeHandler.changeSmartServoControlMode(motion, request);
-          }
-
-          res.setSuccess(true);
-        }
-        catch (Exception e) {
-          res.setError(e.getClass().getName() + ": " + e.getMessage());
-          res.setSuccess(false);
-        }
-        finally {
-          controlModeLock.unlock();
-        }
-      }
-    });
+        });
 
     // TODO: doc
-    subscriber.setPathParametersLinCallback(new ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse>() {
-      @Override
-      public void build(SetPathParametersLinRequest req, SetPathParametersLinResponse res) throws ServiceException {
-        controlModeLock.lock();
-        try {
-          // TODO: this just works for linear velocity atm
-          if (Utility.isVector3GreaterThan(req.getMaxCartesianVelocity().getLinear(), 0)) {
-            double[] maxLinearSpeed = Conversions.rosVectorToArray(req.getMaxCartesianVelocity().getLinear());
-            for (int i = 0; i < maxLinearSpeed.length; i++) {
-              maxLinearSpeed[i] = Conversions.rosTranslationToKuka(maxLinearSpeed[i]);
+    subscriber
+        .setPTPJointSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse>() {
+          @Override
+          public void build(iiwa_msgs.SetPTPJointSpeedLimitsRequest req, iiwa_msgs.SetPTPJointSpeedLimitsResponse res)
+              throws ServiceException {
+            controlModeLock.lock();
+            try {
+              SpeedLimits.setPTPJointSpeedLimits(req);
+              res.setSuccess(true);
             }
-            SpeedLimits.maxTranslationlVelocity = maxLinearSpeed;
+            catch (Exception e) {
+              res.setError(e.getClass().getName() + ": " + e.getMessage());
+              res.setSuccess(false);
+            }
+            finally {
+              controlModeLock.unlock();
+            }
           }
-          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
-            iiwa_msgs.ConfigureControlModeRequest request = null;
-            linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, request);
+        });
+    
+    // TODO: doc
+    subscriber
+        .setSmartServoJointSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse>() {
+          @Override
+          public void build(iiwa_msgs.SetSmartServoJointSpeedLimitsRequest req, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse res)
+              throws ServiceException {
+            controlModeLock.lock();
+            try {
+              SpeedLimits.setSmartServoJointSpeedLimits(req);
 
+              if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
+                iiwa_msgs.ConfigureControlModeRequest request = null;
+                motion = controlModeHandler.changeSmartServoControlMode(motion, request);
+              }
+
+              res.setSuccess(true);
+            }
+            catch (Exception e) {
+              res.setError(e.getClass().getName() + ": " + e.getMessage());
+              res.setSuccess(false);
+            }
+            finally {
+              controlModeLock.unlock();
+            }
           }
-          res.setSuccess(true);
-        }
-        catch (Exception e) {
-          res.setError(e.getClass().getName() + ": " + e.getMessage());
-          res.setSuccess(false);
-        }
-        finally {
-          controlModeLock.unlock();
-        }
-      }
-    });
+        });
+
+    // TODO: doc
+    subscriber
+        .setSmartServoLinSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse>() {
+          @Override
+          public void build(SetSmartServoLinSpeedLimitsRequest req, SetSmartServoLinSpeedLimitsResponse res) throws ServiceException {
+            controlModeLock.lock();
+            try {
+              SpeedLimits.setSmartServoLinSpeedLimits(req);
+              
+              if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+                iiwa_msgs.ConfigureControlModeRequest request = null;
+                linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, request);
+
+              }
+              res.setSuccess(true);
+            }
+            catch (Exception e) {
+              res.setError(e.getClass().getName() + ": " + e.getMessage());
+              res.setSuccess(false);
+            }
+            finally {
+              controlModeLock.unlock();
+            }
+          }
+        });
 
     // TODO: doc
     subscriber.setWorkpieceCallback(new ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse>() {
