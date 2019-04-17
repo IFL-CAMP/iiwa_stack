@@ -29,6 +29,7 @@
  */
 
 #include "iiwa_hw.hpp"
+#include <iiwa_ros/conversions.hpp>
 
 namespace iiwa_hw {
 
@@ -166,8 +167,12 @@ bool HardwareInterface::read(ros::Duration period) {
     joint_torque_ = joint_torque_state_.getTorque();
 
     device_->joint_position_prev = device_->joint_position;
-    iiwaMsgsJointToVector(joint_position_.position, device_->joint_position);
-    iiwaMsgsJointToVector(joint_torque_.torque, device_->joint_effort);
+
+    auto current_joint_position = iiwa_ros::conversions::jointQuantityToVector<double>(joint_position_.position);
+    device_->joint_position = current_joint_position;
+
+    auto current_joint_torque = iiwa_ros::conversions::jointQuantityToVector<double>(joint_torque_.torque);
+    device_->joint_effort = current_joint_torque;
 
     // if there is no controller active the robot goes to zero position
     if (!was_connected) {
@@ -207,7 +212,8 @@ bool HardwareInterface::write(ros::Duration period) {
       last_joint_position_command_ = device_->joint_position_command;
 
       // Building the message
-      vectorToIiwaMsgsJoint(device_->joint_position_command, command_joint_position_.position);
+      auto command = iiwa_ros::conversions::jointQuantityFromVector<double>(device_->joint_position_command);
+      command_joint_position_.position = command;
       command_joint_position_.header.stamp = ros::Time::now();
 
       joint_position_command_.setPosition(command_joint_position_);
