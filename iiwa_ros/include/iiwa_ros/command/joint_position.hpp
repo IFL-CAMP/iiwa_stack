@@ -32,17 +32,34 @@
 
 #include <iiwa_msgs/JointPosition.h>
 #include <iiwa_ros/command/generic_command.hpp>
-#include <iiwa_ros/iiwa_ros.hpp>
 
 namespace iiwa_ros {
 namespace command {
 
+/**
+ * @brief Sends joint motion commmands to the connected robot.
+ */
 class JointPosition : public GenericCommand {
 public:
   JointPosition() = default;
+
+  /**
+   * @brief Initialize the object with a given robot namespace.
+   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
+   */
   void init(const std::string& robot_namespace) override;
 
+  /**
+   * @brief Command the robot to move to the given joint configuration.
+   * @param [in] position - the commanded joint configuration.
+   */
   void setPosition(const iiwa_msgs::JointPosition& position);
+
+  /**
+   * @brief Command the robot to move to the given joint configuration.
+   * @param [in] position - the commanded joint configuration.
+   * @param [in] callback - a callback function to call when the motion terminates.
+   */
   void setPosition(const iiwa_msgs::JointPosition& position, const std::function<void()> callback);
 
 private:

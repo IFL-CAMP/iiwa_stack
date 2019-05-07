@@ -32,17 +32,34 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <iiwa_ros/command/generic_command.hpp>
-#include <iiwa_ros/iiwa_ros.hpp>
 
 namespace iiwa_ros {
 namespace command {
 
+/**
+ * @brief Sends Cartesian linear motion commmands to the connected robot.
+ */
 class CartesianPoseLinear : public GenericCommand {
 public:
   CartesianPoseLinear() = default;
+
+  /**
+   * @brief Initialize the object with a given robot namespace.
+   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
+   */
   void init(const std::string& robot_namespace) override;
 
+  /**
+   * @brief Command the robot end-effector to move to the given Cartesian pose using a linear movement.
+   * @param [in] pose - the commanded Cartesian pose.
+   */
   void setPose(const geometry_msgs::PoseStamped& pose);
+
+  /**
+   * @brief Command the robot end-effector to move to the given Cartesian pose using a linear movement.
+   * @param [in] pose - the commanded Cartesian pose.
+   * @param [in] callback - a callback function to call when the motion terminates.
+   */
   void setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback);
 
 private:

@@ -31,17 +31,34 @@
 #pragma once
 
 #include "iiwa_msgs/CartesianWrench.h"
-#include "iiwa_ros/iiwa_ros.hpp"
+#include "iiwa_ros/state/generic_state.hpp"
 
 namespace iiwa_ros {
 namespace state {
 
-class CartesianWrench : public Robot {
+/**
+ * @brief Receives the current Cartesian wrench applied onto the robot end-effector.
+ */
+class CartesianWrench : public GenericState {
 public:
   CartesianWrench() = default;
+
+  /**
+   * @brief Initialize the object with a given robot namespace.
+   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
+   */
   virtual void init(const std::string& robot_namespace) override;
+
+  /**
+   * @brief Initialize the object with the given robot namespace and callback function.
+   * @param [in] robot_namespace - the namespace under which the state topics for the desired robot exist.
+   * @param [in] callback - a callback function to call when a new state is received.
+   */
   void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::CartesianWrench&)> callback);
 
+  /**
+   * @brief Returns the current Cartesian wrench applied onto the robot end-effector.
+   */
   iiwa_msgs::CartesianWrench getWrench();
 
 private:
