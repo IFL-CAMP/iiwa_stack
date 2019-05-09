@@ -37,11 +37,11 @@
 
 namespace iiwa_ros {
 namespace conversions {
+
 /**
  * @brief Creates a JointQuantity with the same value in all its components.
  *
- * @param value the value to use for all the JointQuantity components.
- * @return iiwa_msgs::JointQuantity
+ * @param [in] value - the value to use for all the JointQuantity components.
  */
 iiwa_msgs::JointQuantity jointQuantityFromFloat(const float value) {
   iiwa_msgs::JointQuantity quantity;
@@ -56,16 +56,7 @@ iiwa_msgs::JointQuantity jointQuantityFromFloat(const float value) {
 }
 
 /**
- * @brief Creates a JointQuantity with the given values for as components.
- *
- * @param a1
- * @param a2
- * @param a3
- * @param a4
- * @param a5
- * @param a6
- * @param a7
- * @return iiwa_msgs::JointQuantity
+ * @brief Creates a JointQuantity with the given the values of its components.
  */
 iiwa_msgs::JointQuantity jointQuantityFromFloat(const float a1, const float a2, const float a3, const float a4,
                                                 const float a5, const float a6, const float a7) {
@@ -80,17 +71,19 @@ iiwa_msgs::JointQuantity jointQuantityFromFloat(const float a1, const float a2, 
   return quantity;
 }
 
+
+template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 /**
- * @brief Converts a JointQuantity message to a std::vector of type T
- * @param quantity: the JointQuantity to convert
- * @return  std::vector<T>
+ * @brief Converts a JointQuantity message to a std::vector<T>. T must be a numberic type.
  */
-template <typename T>
 std::vector<T> jointQuantityToVector(const iiwa_msgs::JointQuantity& quantity) {
   return {quantity.a1, quantity.a2, quantity.a3, quantity.a4, quantity.a5, quantity.a6, quantity.a7};
 }
 
-template <typename T>
+template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+/**
+ * @brief Convers an std::vector<T> to a JointQuantity message. T must be a numberic type.
+ */
 iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v) {
   iiwa_msgs::JointQuantity return_value;
   return_value.a1 = v[0];
@@ -106,8 +99,7 @@ iiwa_msgs::JointQuantity jointQuantityFromVector(const std::vector<T>& v) {
 /**
  * @brief Creates a CartesianQuantity with the same value in all its components.
  *
- * @param value the value to use for all the CartesianQuantity components.
- * @return iiwa_msgs::CartesianQuantity
+ * @param [in] value - the value to use for all the CartesianQuantity components.
  */
 iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float value) {
   iiwa_msgs::CartesianQuantity quantity;
@@ -121,15 +113,7 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float value) {
 }
 
 /**
- * @brief Creates a CartesianQuantity with the given values for as components.
- *
- * @param x
- * @param y
- * @param z
- * @param a
- * @param b
- * @param c
- * @return iiwa_msgs::CartesianQuantity
+ * @brief Creates a CartesianQuantity with the given values of its components.
  */
 iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float x, const float y, const float z, const float a,
                                                         const float b, const float c) {
@@ -146,9 +130,8 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float x, const flo
 /**
  * @brief Creates a CartesianQuantity with the given values for its translational and rotational component respectively.
  *
- * @param translation_value value to use for all the transflational components (x,y,z) of the CartesianQuantity
- * @param rotation_value value to use for all the rotational components (a,b,c) of the CartesianQuantity
- * @return iiwa_msgs::CartesianQuantity
+ * @param [in] translation_value - value to use for all the transflational components (x,y,z) of the CartesianQuantity.
+ * @param [in] rotation_value - value to use for all the rotational components (a,b,c) of the CartesianQuantity.
  */
 iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float translation_value, const float rotation_value) {
   iiwa_msgs::CartesianQuantity quantity;
@@ -160,5 +143,6 @@ iiwa_msgs::CartesianQuantity CartesianQuantityFromFloat(const float translation_
   quantity.c = rotation_value;
   return quantity;
 }
+
 }  // namespace conversions
 }  // namespace iiwa_ros

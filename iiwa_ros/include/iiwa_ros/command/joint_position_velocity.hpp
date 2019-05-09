@@ -32,17 +32,35 @@
 
 #include <iiwa_msgs/JointPositionVelocity.h>
 #include <iiwa_ros/command/generic_command.hpp>
-#include <iiwa_ros/iiwa_ros.hpp>
 
 namespace iiwa_ros {
 namespace command {
 
+/**
+ * @brief Sends joint motion commmands to the connected robot,
+ * also including the velocity with which the robot has to reach the target configuration.
+ */
 class JointPositionVelocity : public GenericCommand {
 public:
   JointPositionVelocity() = default;
+
+  /**
+   * @brief Initialize the object with a given robot namespace.
+   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
+   */
   void init(const std::string& robot_namespace) override;
 
+  /**
+   * @brief Command the robot to move to the given joint configuration and reach it with the given velocity.
+   * @param [in] position - the commanded joint position and velocity.
+   */
   void setPosition(const iiwa_msgs::JointPositionVelocity& position);
+
+  /**
+   * @brief Command the robot to move to the given joint configuration and reach it with the given velocity.
+   * @param [in] position - the commanded joint position and velocity.
+   * @param [in] callback - a callback function to call when the motion terminates.
+   */
   void setPosition(const iiwa_msgs::JointPositionVelocity& position, const std::function<void()> callback);
 
 private:

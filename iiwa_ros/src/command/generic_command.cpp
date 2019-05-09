@@ -35,6 +35,7 @@ namespace iiwa_ros {
 namespace command {
 
 void GenericCommand::completedMotionWatcher() {
+  if (callback_ == nullptr) { return; }
   bool flag{false};
   ros::Duration(0.1).sleep();
   while (true) {

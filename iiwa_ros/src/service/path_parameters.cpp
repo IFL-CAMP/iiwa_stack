@@ -55,33 +55,33 @@ bool PathParametersService::callService() {
     }
     return config_.response.success;
   }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
-bool PathParametersService::setPathParameters(const double joint_relative_velocity,
-                                              const double joint_relative_acceleration,
+bool PathParametersService::setPathParameters(const double joint_velocity,
+                                              const double joint_acceleration,
                                               const double override_joint_acceleration) {
-  config_.request.joint_relative_velocity = joint_relative_velocity;
-  config_.request.joint_relative_acceleration = joint_relative_acceleration;
+  config_.request.joint_relative_velocity = joint_velocity;
+  config_.request.joint_relative_velocity = joint_acceleration;
   config_.request.override_joint_acceleration = override_joint_acceleration;
   return callService();
 }
 
-bool PathParametersService::setPathParameters(const double joint_relative_velocity,
-                                              const double joint_relative_acceleration) {
-  setPathParameters(joint_relative_velocity, joint_relative_acceleration, -1);
+bool PathParametersService::setPathParameters(const double joint_velocity,
+                                              const double joint_acceleration) {
+  setPathParameters(joint_velocity, joint_acceleration, -1);
 }
 
-bool PathParametersService::setJointRelativeVelocity(const double joint_relative_velocity) {
-  setPathParameters(joint_relative_velocity, -1, -1);
+bool PathParametersService::setJointVelocity(const double joint_velocity) {
+  setPathParameters(joint_velocity, -1, -1);
 }
 
-bool PathParametersService::setJointRelativeAcceleration(const double joint_relative_acceleration) {
-  setPathParameters(-1, joint_relative_acceleration, -1);
+bool PathParametersService::setJointAcceleration(const double joint_acceleration) {
+  setPathParameters(-1, joint_acceleration, -1);
 }
 
-bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration) {
-  setPathParameters(-1, -1, override_joint_acceleration);
+bool PathParametersService::setOverrideJointAcceleration(const double override_acceleration) {
+  setPathParameters(-1, -1, override_acceleration);
 }
 
 }  // namespace service
