@@ -59,16 +59,16 @@ constexpr int IIWA_JOINTS = 7;
 namespace iiwa_hw {
 class HardwareInterface : public hardware_interface::RobotHW {
 public:
-  HardwareInterface(ros::NodeHandle nh);
-  virtual ~HardwareInterface() = default;
+  HardwareInterface();
 
   /**
-   * \brief Initializes the IIWA device struct and all the hardware and joint limits interfaces needed.
+   * \brief Initializes the Device struct and all the hardware and joint limits interfaces needed.
    *
    * A joint state handle is created and linked to the current joint state of the IIWA robot.
    * A joint position handle is created and linked  to the command joint position to send to the robot.
    */
-  bool start();
+
+  bool init(ros::NodeHandle& root_nh, ros::NodeHandle &robot_hw_nh) override;
 
   /**
    * \brief Registers the limits of the joint specified by joint_name and joint_handle.
@@ -81,14 +81,14 @@ public:
                            double effort_limit);
 
   /**
-   * \brief Reads the current robot state via the IIWARos interfae and sends the values to the IIWA device struct.
+   * \brief Reads the current robot state via the interfae provided by iiwa_ros and sends the values to the Device struct.
    */
-  bool read(ros::Duration period);
+  void read(const ros::Time& time, const ros::Duration& period) override;
 
   /**
-   * \brief Sends the command joint position to the robot via IIWARos interface
+   * \brief Sends the command joint position to the robot via the interface provided by iiwa_ros.
    */
-  bool write(ros::Duration period);
+  void write(const ros::Time& time, const ros::Duration& period) override;
 
   /**
    * \brief Retuns the ros::Rate object to control the receiving/sending rate.

@@ -11,18 +11,22 @@ find_package(catkin REQUIRED COMPONENTS
   hardware_interface
   realtime_tools
   joint_limits_interface
-  tf
   urdf
   cmake_modules
   iiwa_msgs
   iiwa_ros
+  pluginlib
 )
 
 catkin_package(
 	INCLUDE_DIRS include
 	LIBRARIES	 ${PROJECT_NAME}
   CATKIN_DEPENDS
+      iiwa_ros
+      iiwa_msgs
+      pluginlib
       controller_interface
+      controller_manager
 			hardware_interface
 			control_toolbox
 )

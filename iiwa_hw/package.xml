@@ -10,6 +10,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
+  <depend>pluginlib</depend>
+  <depend>controller_manager</depend>
   <depend>controller_interface</depend>
   <depend>joint_limits_interface</depend>
   <depend>hardware_interface</depend>
@@ -18,4 +20,8 @@
   <depend>roscpp</depend>
   <depend>iiwa_msgs</depend>
   <depend>iiwa_ros</depend>
+
+  <export>
+    <hardware_interface plugin="${prefix}/iiwa_hw_plugin.xml"/>
+  </export>
 </package>

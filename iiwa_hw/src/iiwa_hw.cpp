@@ -28,25 +28,27 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <pluginlib/class_list_macros.hpp>
+
 #include "iiwa_hw.hpp"
 #include <iiwa_ros/conversions.hpp>
 
 namespace iiwa_hw {
 
-HardwareInterface::HardwareInterface(ros::NodeHandle nh)
-  : last_joint_position_command_(7, 0)
+HardwareInterface::HardwareInterface() :
+  device_{std::make_shared<HardwareInterface::Device>()}
   , timer_{ros::Time::now()}
-  , nh_{nh}
-  , device_{std::make_shared<HardwareInterface::Device>()} {}
+  , last_joint_position_command_(7, 0) {}
 
 void HardwareInterface::setFrequency(double frequency) {
   control_frequency_ = frequency;
   loop_rate_ = ros::Rate{control_frequency_};
 }
 
-bool HardwareInterface::start() {
-  nh_.param("hardware_interface", interface_, std::string("PositionJointInterface"));
-  nh_.param("robot_name", robot_name_, std::string("iiwa"));
+bool HardwareInterface::init(ros::NodeHandle& /*unused*/, ros::NodeHandle &robot_hw_nh) {
+
+  robot_hw_nh.param("hardware_interface", interface_, std::string("PositionJointInterface"));
+  robot_hw_nh.param("robot_name", robot_name_, std::string("iiwa"));
 
   // Initialize Publishers and Subscribers from iiwa_ros.
   joint_position_state_.init(robot_name_);
@@ -157,7 +159,7 @@ void HardwareInterface::registerJointLimits(const std::string& joint_name,
   }
 }
 
-bool HardwareInterface::read(ros::Duration period) {
+void HardwareInterface::read(const ros::Time& time, const ros::Duration& period) {
   ros::Duration delta = ros::Time::now() - timer_;
 
   static bool was_connected = false;
@@ -185,16 +187,13 @@ bool HardwareInterface::read(ros::Duration period) {
           filters::exponentialSmoothing((device_->joint_position[j] - device_->joint_position_prev[j]) / period.toSec(),
                                         device_->joint_velocity[j], 0.2);
     }
-
-    return true;
   } else if (delta.toSec() >= 10) {
     ROS_INFO("No LBR IIWA is connected. Waiting for the robot to connect before reading ...");
     timer_ = ros::Time::now();
   }
-  return false;
 }
 
-bool HardwareInterface::write(ros::Duration period) {
+void HardwareInterface::write(const ros::Time &time, const ros::Duration &period) {
   ej_sat_interface_.enforceLimits(period);
   ej_limits_interface_.enforceLimits(period);
   pj_sat_interface_.enforceLimits(period);
@@ -202,12 +201,12 @@ bool HardwareInterface::write(ros::Duration period) {
 
   ros::Duration delta = ros::Time::now() - timer_;
 
-  // reading the force/torque values
+  // Reading the joint values.
   if (joint_position_state_.isConnected()) {
-    // Joint Position Control
+    // Joint Position Control.
     if (interface_ == interface_type_.at(0)) {
-      // avoid sending the same joint command over and over
-      if (device_->joint_position_command == last_joint_position_command_) { return 0; }
+      // Avoid sending the same joint command over and over.
+      if (device_->joint_position_command == last_joint_position_command_) { return; }
 
       last_joint_position_command_ = device_->joint_position_command;
 
@@ -218,11 +217,11 @@ bool HardwareInterface::write(ros::Duration period) {
 
       joint_position_command_.setPosition(command_joint_position_);
     }
-    // Joint Impedance Control
+    // Joint Impedance Control.
     else if (interface_ == interface_type_.at(1)) {
       // TODO
     }
-    // Joint Velocity Control
+    // Joint Velocity Control.
     else if (interface_ == interface_type_.at(2)) {
       // TODO
     }
@@ -230,8 +229,9 @@ bool HardwareInterface::write(ros::Duration period) {
     ROS_INFO_STREAM("No LBR IIWA is connected. Waiting for the robot to connect before writing ...");
     timer_ = ros::Time::now();
   }
-
-  return 0;
 }
+
+PLUGINLIB_EXPORT_CLASS(iiwa_hw::HardwareInterface, hardware_interface::RobotHW)
+
 
 }  // namespace iiwa_hw

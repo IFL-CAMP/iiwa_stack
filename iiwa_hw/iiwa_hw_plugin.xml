@@ -1,0 +1,7 @@
+<library path="lib/libiiwa_hw">
+    <class name="iiwa_hw/HardwareInterface" type="iiwa_hw::HardwareInterface" base_class_type="hardware_interface::RobotHW"/>
+        <description>
+            Interface for an KUKA LBR iiwa arm.
+        </description>
+    <class/>
+</library>

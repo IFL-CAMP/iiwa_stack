@@ -29,55 +29,57 @@
  */
 
 #include <ros/ros.h>
-#include <signal.h>
+#include <csignal>
+
 #include "iiwa_hw.hpp"
 
-bool quit = false;
+static bool quit{false};
 
-void quitRequested(int sig) { quit = true; }
+void signalHandler(int /*unused*/) { quit = true; }
 
 int main(int argc, char** argv) {
-  // initialize ROS
+  // Initialize ROS.
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
-  // ros spinner
+  // ROS spinner.
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // custom signal handlers
-  signal(SIGTERM, quitRequested);
-  signal(SIGINT, quitRequested);
-  signal(SIGHUP, quitRequested);
+  // Signal handlers.
+  signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGHUP, signalHandler);
 
-  // construct the lbr iiwa
+  // Construct the LBR iiwa.
   ros::NodeHandle iiwa_nh;
-  iiwa_hw::HardwareInterface iiwa_robot(iiwa_nh);
+  iiwa_hw::HardwareInterface iiwa_robot;
 
-  // configuration routines
-  iiwa_robot.start();
+  // Configuration routines.
+  iiwa_robot.init(iiwa_nh, iiwa_nh);
 
   ros::Time last(ros::Time::now());
   ros::Time now;
   ros::Duration period(1.0);
 
-  // the controller manager
+  // Controller manager.
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
-  // run as fast as possible
+  // Run as fast as possible.
   while (!quit) {
-    // get the time / period
+
+    // Get the time / period.
     now = ros::Time::now();
     period = now - last;
     last = now;
 
-    // read current robot position
-    iiwa_robot.read(period);
+    // Read current robot position.
+    iiwa_robot.read(now, period);
 
-    // update the controllers
+    // Update the controllers.
     manager.update(now, period);
 
     // send command position to the robot
-    iiwa_robot.write(period);
+    iiwa_robot.write(now, period);
 
     // wait for some milliseconds defined in controlFrequency
     iiwa_robot.getRate().sleep();
