@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
-import javax.inject.Inject;
+// import javax.inject.Inject; // MEDIAFLANGEIO
 
 import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
@@ -45,7 +45,7 @@ import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
-import com.kuka.generated.ioAccess.MediaFlangeIOGroup;
+// import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -103,9 +103,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // ROS Nodes.
   protected Configuration configuration = null;
   
-  
-  @Inject
-  protected MediaFlangeIOGroup mediaFlange;
+  //MEDIAFLANGEIO
+  //  @Inject
+  //  protected MediaFlangeIOGroup mediaFlange;
 
   protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
