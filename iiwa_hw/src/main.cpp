@@ -1,13 +1,5 @@
 /**
- * This code is a porting of the work from the Centro E. Piaggio in Pisa : https://github.com/CentroEPiaggio/kuka-lwr
- * for the LBR IIWA. We acknowledge the good work of their main contributors :
- * Carlos J. Rosales - cjrosales@gmail.com
- * Enrico Corvaglia
- * Marco Esposito - marco.esposito@tum.de
- * Manuel Bonilla - josemanuelbonilla@gmail.com
- *
- * LICENSE :
- * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -37,10 +29,15 @@
  */
 
 #include <ros/ros.h>
-#include "iiwa_hw.h"
+#include <csignal>
 
-int main(int argc, char** argv)
-{
+#include "iiwa_hw.hpp"
+
+static bool quit{false};
+
+void signalHandler(int /*unused*/) { quit = true; }
+
+int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
@@ -48,38 +45,43 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // Construct the iiwa object.
+  // Signal handlers.
+  signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGHUP, signalHandler);
+
+  // Construct the LBR iiwa.
   ros::NodeHandle iiwa_nh;
-  IIWA_HW iiwa_robot(iiwa_nh);
+  iiwa_hw::HardwareInterface iiwa_robot;
 
   // Configuration routines.
-  iiwa_robot.start();
+  iiwa_robot.init(iiwa_nh, iiwa_nh);
 
   ros::Time last(ros::Time::now());
   ros::Time now;
   ros::Duration period(1.0);
 
-  // The controller manager.
+  // Controller manager.
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
   // Run as fast as possible.
-  while (ros::ok())
-  {
+  while (!quit) {
+
     // Get the time / period.
     now = ros::Time::now();
     period = now - last;
     last = now;
 
     // Read current robot position.
-    iiwa_robot.read(period);
+    iiwa_robot.read(now, period);
 
-    // Update the controllers
+    // Update the controllers.
     manager.update(now, period);
 
-    // Send command position to the robot.
-    iiwa_robot.write(period);
+    // send command position to the robot
+    iiwa_robot.write(now, period);
 
-    // Wait for some milliseconds defined in controlFrequency.
+    // wait for some milliseconds defined in controlFrequency
     iiwa_robot.getRate().sleep();
   }
 
