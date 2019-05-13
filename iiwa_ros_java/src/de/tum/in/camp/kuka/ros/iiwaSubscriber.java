@@ -43,6 +43,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.service.ServiceResponseBuilder;
 import org.ros.node.service.ServiceServer;
 import org.ros.node.topic.Subscriber;
+import org.ros.node.topic.TransportHints;
 import org.ros.rosjava.tf.Transform;
 import org.ros.rosjava.tf.pubsub.TransformListener;
 import org.ros.time.TimeProvider;
@@ -417,14 +418,16 @@ public class iiwaSubscriber extends AbstractNodeMain {
   public void onStart(ConnectedNode connectedNode) {
 
     node = connectedNode;
+    
+    TransportHints hint = new TransportHints(false);
 
     // Creating the subscribers
-    cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE);
-    cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin", geometry_msgs.PoseStamped._TYPE);
-    cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", geometry_msgs.TwistStamped._TYPE);
-    jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE);
-    jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE);
-    jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE);
+    cartesianPoseSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPose", geometry_msgs.PoseStamped._TYPE, hint);
+    cartesianPoseLinSubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianPoseLin", geometry_msgs.PoseStamped._TYPE, hint);
+    cartesianVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/CartesianVelocity", geometry_msgs.TwistStamped._TYPE, hint);
+    jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE, hint);
+    jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE, hint);
+    jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE, hint);
     tfListener = new TransformListener(connectedNode);
 
     // Subscribers' callbacks
