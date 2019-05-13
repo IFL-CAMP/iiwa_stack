@@ -61,13 +61,13 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 public class Configuration extends AbstractNodeMain {
 
   // Name to use to build the name of the ROS topics
-  private static String robotName;
-  private static String masterIp;
-  private static String masterPort;
-  private static String masterUri; // < IP address of ROS core to talk to.
-  private static String robotIp;
-  private static boolean staticConfigurationSuccessful;
-  private static boolean ntpWithHost;
+  private String robotName;
+  private String masterIp;
+  private String masterPort;
+  private String masterUri; // < IP address of ROS core to talk to.
+  private String robotIp;
+  private boolean configurationSuccessful = false;
+  private boolean ntpWithHost;
 
   private TimeProvider timeProvider;
   private ScheduledExecutorService ntpExecutorService = null;
@@ -79,7 +79,7 @@ public class Configuration extends AbstractNodeMain {
   // are available.
   private Semaphore initSemaphore = new Semaphore(0);
 
-  private static IApplicationData applicationData;
+  private IApplicationData applicationData;
 
   public Configuration(IApplicationData data) {
     applicationData = data;
@@ -87,9 +87,9 @@ public class Configuration extends AbstractNodeMain {
   }
 
   public void checkConfiguration() {
-    if (!staticConfigurationSuccessful) {
+    if (!configurationSuccessful) {
       configure();
-      if (!staticConfigurationSuccessful) { throw new RuntimeException("Static configuration was not successful"); }
+      if (!configurationSuccessful) { throw new RuntimeException("Configuration was not successful"); }
     }
   }
 
@@ -105,7 +105,7 @@ public class Configuration extends AbstractNodeMain {
     masterPort = applicationData.getProcessData("master_port").getValue();
     masterUri = "http://" + masterIp + ":" + masterPort;
 
-    staticConfigurationSuccessful = true;
+    configurationSuccessful = true;
   }
 
   /**
