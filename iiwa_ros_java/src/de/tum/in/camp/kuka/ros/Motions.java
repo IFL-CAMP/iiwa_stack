@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakultï¿½t
+ * fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany http://campar.in.tum.de All
  * rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
@@ -153,7 +153,7 @@ public class Motions {
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       // endPointFrame.moveAsync(lin(destinationFrame));
-      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
+      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
           .setOrientationAcceleration(SpeedLimits.orientationAcceleration); // .setMode(mode);
       IMotionContainer mc = endPointFrame.moveAsync(linMotion);
       // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
@@ -220,7 +220,7 @@ public class Motions {
 
     if (!success) {
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
-      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setMode(motion));
+      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setMode(motion));
 
       goalReachedThread = new PTPCheckForGoalReachedThread(null, robot, publisher, actionServer);
       goalReachedThread.run();
