@@ -209,7 +209,7 @@ public class ROSSmartServo extends ROSBaseApplication {
             for (int i = 0; i < maxLinearSpeed.length; i++) {
               maxLinearSpeed[i] = Conversions.rosTranslationToKuka(maxLinearSpeed[i]);
             }
-            SpeedLimits.maxTranslationlVelocity = maxLinearSpeed;
+            SpeedLimits.maxTranslationVelocity = maxLinearSpeed;
           }
           if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
             iiwa_msgs.ConfigureControlModeRequest request = null;
