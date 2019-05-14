@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>iiwa_gazebo</name>
   <version>1.4.0</version>
   <description>This package allows to load a KUKA LBR IIWA robot onto Gazebo</description>
@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>iiwa_description</run_depend>
-  <run_depend>gazebo_ros</run_depend> 
+  <depend>iiwa_description</depend>
+  <depend>gazebo_ros</depend>
 
 </package>
