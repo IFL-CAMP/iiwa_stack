@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakult�t
- * f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany http://campar.in.tum.de All
- * rights reserved.
+ * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakult�t f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany
+ * http://campar.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -31,7 +31,7 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.time.TimeProvider;
 
- // import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
+// import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 
@@ -62,7 +62,6 @@ public class iiwaPublisher extends AbstractNodeMain {
   // private Publisher<std_msgs.Bool> mediaFlangeButtonPublisher; // MEDIAFLANGEIO
   // Name to use to build the name of the ROS topics
   private String robotName = "iiwa";
-  
 
   private LBR robot;
 
@@ -80,6 +79,7 @@ public class iiwaPublisher extends AbstractNodeMain {
   private sensor_msgs.JointState js;
   private iiwa_msgs.JointVelocity jv;
   private std_msgs.Time t;
+
   // private std_msgs.Bool flangeButton; // MEDIAFLANGEIO
 
   /**
@@ -158,8 +158,9 @@ public class iiwaPublisher extends AbstractNodeMain {
     jointStatesPublisher = connectedNode.newPublisher(robotName + "/joint_states", sensor_msgs.JointState._TYPE);
 
     destinationReachedPublisher = connectedNode.newPublisher(robotName + "/state/DestinationReached", std_msgs.Time._TYPE);
-    
-    // mediaFlangeButtonPublisher = connectedNode.newPublisher(robotName + "/state/MFButtonState", std_msgs.Bool._TYPE); // MEDIAFLANGEIO
+
+    // mediaFlangeButtonPublisher = connectedNode.newPublisher(robotName + "/state/MFButtonState",
+    // std_msgs.Bool._TYPE); // MEDIAFLANGEIO
   }
 
   /**
@@ -173,7 +174,7 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @throws InterruptedException
    */
   public void publishCurrentState() throws InterruptedException {
-    publishCurrentState(robot.getFlange() /*, null*/);
+    publishCurrentState(robot.getFlange() /* , null */);
   }
 
   /**
@@ -186,7 +187,7 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @param frame : the Cartesian information published will be relative to this frame
    * @throws InterruptedException
    */
-  public void publishCurrentState(ObjectFrame frame/*, MediaFlangeIOGroup mediaFlange*/) throws InterruptedException { // MEDIAFLANGEIO
+  public void publishCurrentState(ObjectFrame frame/* , MediaFlangeIOGroup mediaFlange */) throws InterruptedException { // MEDIAFLANGEIO
     if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
       helper.getCurrentCartesianPose(cp, robot, frame);
       helper.incrementSeqNumber(cp.getPoseStamped().getHeader());
@@ -223,12 +224,12 @@ public class iiwaPublisher extends AbstractNodeMain {
       helper.incrementSeqNumber(js.getHeader());
       jointStatesPublisher.publish(js);
     }
-    
+
     // Uncomment if using a Media Flange IO. // MEDIAFLANGEIO
-    //    if (mediaFlange != null && mediaFlangeButtonPublisher.getNumberOfSubscribers() > 0) {
-    //			flangeButton.setData(mediaFlange.getUserButton());
-    //			mediaFlangeButtonPublisher.publish(flangeButton);
-    //    }
+    // if (mediaFlange != null && mediaFlangeButtonPublisher.getNumberOfSubscribers() > 0) {
+    // flangeButton.setData(mediaFlange.getUserButton());
+    // mediaFlangeButtonPublisher.publish(flangeButton);
+    // }
   }
 
   /**

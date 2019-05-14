@@ -37,8 +37,7 @@ public class PTPCheckForGoalReachedThread implements Runnable {
   protected int rate = 1000 / 30; // 30hz
   protected IMotionContainer motionContainer;
 
-  public PTPCheckForGoalReachedThread(IMotionContainer motion, LBR robot, iiwaPublisher publisher,
-      iiwaActionServer actionServer) {
+  public PTPCheckForGoalReachedThread(IMotionContainer motion, LBR robot, iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.motionContainer = motion;
     this.robot = robot;
     this.publisher = publisher;
@@ -47,8 +46,7 @@ public class PTPCheckForGoalReachedThread implements Runnable {
 
   @Override
   public void run() {
-    while (!((SunriseExecutionService) robot.getController().getExecutionService()).isPausedAndStopped()
-        || !robot.isReadyToMove()) {
+    while (!((SunriseExecutionService) robot.getController().getExecutionService()).isPausedAndStopped() || !robot.isReadyToMove()) {
       // while (robot.hasActiveMotionCommand() ||
       // ((SunriseExecutionService)robot.getController().getExecutionService()).isPaused())
       // {

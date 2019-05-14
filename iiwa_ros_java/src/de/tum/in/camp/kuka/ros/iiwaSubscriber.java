@@ -418,7 +418,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   public void onStart(ConnectedNode connectedNode) {
 
     node = connectedNode;
-    
+
     TransportHints hint = new TransportHints(false);
 
     // Creating the subscribers
