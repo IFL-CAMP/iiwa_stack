@@ -50,6 +50,7 @@ public class ControlModeHandler {
   private ObjectFrame endpointFrame = null;
   private ITaskLogger logger = null;
   private iiwaPublisher publisher = null;
+  private Configuration configuration = null;
 
   private iiwa_msgs.ConfigureControlModeRequest lastSmartServoRequest = null;
 
@@ -65,6 +66,7 @@ public class ControlModeHandler {
     this.tool = tool;
     this.endpointFrame = endpointFrame;
     this.publisher = publisher;
+    this.configuration = configuration;
     helper = new MessageGenerator(configuration.getRobotName(), configuration.getTimeProvider());
     handler = new GoalReachedEventListener(this.publisher, actionServer);
   }
@@ -234,8 +236,8 @@ public class ControlModeHandler {
    */
   public SmartServo createSmartServoMotion() {
     SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
-    motion.setMinimumTrajectoryExecutionTime(0.1); // TODO : parametrize
-    motion.setTimeoutAfterGoalReach(3600); // TODO : parametrize
+    motion.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
+    motion.setTimeoutAfterGoalReach(configuration.getTimeoutAfterGoalReach());
     motion.setJointVelocityRel(SpeedLimits.jointVelocity);
     motion.setJointAccelerationRel(SpeedLimits.jointAcceleration);
     motion.overrideJointAcceleration(SpeedLimits.overrideJointAcceleration);
@@ -245,9 +247,9 @@ public class ControlModeHandler {
   public SmartServoLIN createSmartServoLinMotion() {
     SmartServoLIN linearMotion = new SmartServoLIN(robot.getCurrentCartesianPosition(endpointFrame));
     linearMotion.setReferenceFrame(World.Current.getRootFrame());
-    linearMotion.setMinimumTrajectoryExecutionTime(0.1); // TODO : parametrize
-    linearMotion.setTimeoutAfterGoalReach(3600); // TODO : parametrize
-    linearMotion.setMaxTranslationVelocity(SpeedLimits.maxTranslationlVelocity);
+    linearMotion.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
+    linearMotion.setTimeoutAfterGoalReach(configuration.getTimeoutAfterGoalReach());
+    linearMotion.setMaxTranslationVelocity(SpeedLimits.maxTranslationVelocity);
     linearMotion.setMaxOrientationVelocity(SpeedLimits.maxOrientationVelocity);
     // linearMotion.setMaxTranslationAcceleration(value);
     // linearMotion.setMaxNullSpaceAcceleration(value);

@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,7 +113,7 @@ public class Configuration extends AbstractNodeMain {
    * Get the ROS Master URI, obtained from the configuration file. Format : http://IP:port
    * 
    * @return ROS Master URI
-   * @throws URISyntaxException 
+   * @throws URISyntaxException
    */
   public URI getMasterURI() throws URISyntaxException {
     checkConfiguration();
@@ -199,8 +200,8 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
+   * Get the default relative joint speed for the robot, reading <b>defaultRelativeJointSpeed</b> from the ROS
+   * parameter server.
    * 
    * @return the default relative joint speed
    */
@@ -213,10 +214,10 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
+   * Get the default relative joint acceleration for the robot, reading <b>defaultRelativeJointSpeed</b> from
+   * the ROS parameter server.
    * 
-   * @return the default relative joint speed
+   * @return the default relative joint acceleration
    */
   public Double getDefaultRelativeJointAcceleration() {
     Double defaultRelativeJointAcceleration = getDoubleParameter("defaultRelativeJointAcceleration");
@@ -227,7 +228,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the name of the tool to use from param <b>toolName</b> in ROS param server.
+   * Get the name of the tool to use, reading <b>toolName</b> from the ROS parameter server..
    * 
    * @return name of the tool
    */
@@ -240,7 +241,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the id of the endpoint frame to use from param <b>endpointFrame</b> in ROS param server.
+   * Get the id of the endpoint frame to use, reading <b>endpointFrame</b> from the ROS parameter server.
    * 
    * @return id of the frame
    */
@@ -253,7 +254,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get if <i>joint_state</i> shoud be published, reading param <b>publishJointStates</b> from ROS param
+   * Get if <i>joint_state</i> shoud be published, reading <b>publishJointStates</b> from the ROS parameter
    * server.
    * 
    * @return true if <i>joint_state</i>
@@ -267,8 +268,8 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
+   * Get the default relative joint speed for the robot, reading <b>defaultRelativeJointSpeed</b> from the ROS
+   * parameter server.
    * 
    * @return the default relative joint speed
    */
@@ -278,6 +279,146 @@ public class Configuration extends AbstractNodeMain {
       enforceMessageSequence = false;
     }
     return enforceMessageSequence;
+  }
+
+  /**
+   * Get the minimum trajectory execute time for SmartServo object, reading <b>minTrajExecTime</b> from the
+   * ROS parameter server.
+   * 
+   * @return the min trajectory exectute time
+   */
+  public Double getMinTrajExecTime() {
+    Double minTrajExecTime = getDoubleParameter("minTrajExecTime");
+    if (minTrajExecTime == null) {
+      minTrajExecTime = 0.1;
+    }
+    return minTrajExecTime;
+  }
+
+  /**
+   * Get the timeout after goal reached for SmartServo, reading <b>timeoutAfterGoalReach</b> from the ROS
+   * parameter server.
+   * 
+   * @return the timeout after goal reached
+   */
+  public Double getTimeoutAfterGoalReach() {
+    Double timeoutAfterGoalReach = getDoubleParameter("timeoutAfterGoalReach");
+    if (timeoutAfterGoalReach == null) {
+      timeoutAfterGoalReach = 3600.0;
+    }
+    return timeoutAfterGoalReach;
+  }
+
+  /**
+   * Get the maximum translational velocity the robot should have, reading <b>maxTranslationVelocity</b> from
+   * the ROS parameter server.
+   * 
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public double[] getMaxTranslationVelocity() {
+    // Attempt to fill a List with the values from the parameters server, if something goes wrong we generate an empty list
+    List<Double> maxTranslationVelocityList = null;
+    try {
+      maxTranslationVelocityList = (List<Double>) getListParameter("maxTranslationVelocityList");
+    }
+    catch (ClassCastException e) {
+      maxTranslationVelocityList = new ArrayList<Double>();
+    }
+    
+    double[] maxTranslationVelocity = new double[3];
+
+    if (maxTranslationVelocityList == null) {
+      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+    }
+    else if (maxTranslationVelocityList.size() != 3) {
+      Logger.warn("The ROS parameter 'maxTranslationalVelocity' has to have 3 components, using its default values.");
+      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+    }
+    // At this point the List is not null and has 3 elements.
+    else {
+      for (int i = 0; i < maxTranslationVelocityList.size(); i++) {
+        maxTranslationVelocity[i] = maxTranslationVelocityList.get(i);
+      }
+    }
+    return maxTranslationVelocity;
+  }
+
+  /**
+   * Get the maximum orientation velocity the robot should have, reading <b>maxOrientationVelocity</b> from
+   * the ROS parameter server.
+   * 
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public double[] getmaxOrientationVelocity() {
+    
+    // Attempt to fill a List with the values from the parameters server, if something goes wrong we generate an empty list
+    List<Double> maxOrientationVelocityList = null;
+    try {
+      maxOrientationVelocityList = (List<Double>) getListParameter("maxOrientationVelocity");
+    }
+    catch (ClassCastException e) {
+      maxOrientationVelocityList = new ArrayList<Double>();
+    }
+    
+    double[] maxOrientationVelocity = new double[3];
+
+    if (maxOrientationVelocityList == null) {
+      Arrays.fill(maxOrientationVelocity, 0.5); // Setting the default value.
+    }
+    else if (maxOrientationVelocityList.size() != 3) {
+      Logger.warn("The ROS parameter 'maxOrientationVelocity' has to have 3 components of type double, using its default values.");
+      Arrays.fill(maxOrientationVelocity, 0.5); // Setting the default value.
+    }
+    // At this point the List is not null and has 3 elements.
+    else {
+      for (int i = 0; i < maxOrientationVelocityList.size(); i++) {
+        maxOrientationVelocity[i] = maxOrientationVelocityList.get(i);
+      }
+    }
+    return maxOrientationVelocity;
+  }
+
+  /**
+   * Get the Cartesian acceleration the robot should have, reading <b>cartesianAcceleration</b> from the ROS
+   * parameter server.
+   * 
+   * @return
+   */
+  public Double getCartesianAcceleration() {
+    Double cartesianAcceleration = getDoubleParameter("cartesianAcceleration");
+    if (cartesianAcceleration == null) {
+      cartesianAcceleration = 200.0;
+    }
+    return cartesianAcceleration;
+  }
+
+  /**
+   * Get the orientation acceleration the robot should have, reading <b>orientationAcceleration</b> from the
+   * ROS parameter server.
+   * 
+   * @return
+   */
+  public Double getOrientationAcceleration() {
+    Double orientationAcceleration = getDoubleParameter("orientationAcceleration");
+    if (orientationAcceleration == null) {
+      orientationAcceleration = 0.05;
+    }
+    return orientationAcceleration;
+  }
+
+  /**
+   * Get the Cartesian jerk the robot should have, reading <b>cartesianJerk</b> from the ROS parameter server.
+   * 
+   * @return
+   */
+  public Double getCartesianJerk() {
+    Double cartesianJerk = getDoubleParameter("cartesianJerk");
+    if (cartesianJerk == null) {
+      cartesianJerk = 50.0;
+    }
+    return cartesianJerk;
   }
 
   /**
@@ -333,8 +474,8 @@ public class Configuration extends AbstractNodeMain {
    * @param generalKeyLists
    * @param generalKeyBars
    */
-  public void setupToolbars(IApplicationUI appUI, final iiwaPublisher publisher, List<IUserKey> generalKeys,
-      List<IUserKeyListener> generalKeyLists, List<IUserKeyBar> generalKeyBars) {
+  public void setupToolbars(IApplicationUI appUI, final iiwaPublisher publisher, List<IUserKey> generalKeys, List<IUserKeyListener> generalKeyLists,
+      List<IUserKeyBar> generalKeyBars) {
     List<ToolbarSpecification> ts = getToolbarSpecifications();
     if (ts != null) {
       for (final ToolbarSpecification t : ts) {

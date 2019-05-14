@@ -153,7 +153,7 @@ public class Motions {
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
       // endPointFrame.moveAsync(lin(destinationFrame));
-      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
+      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
           .setOrientationAcceleration(SpeedLimits.orientationAcceleration); // .setMode(mode);
       IMotionContainer mc = endPointFrame.moveAsync(linMotion);
       // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
@@ -220,7 +220,7 @@ public class Motions {
 
     if (!success) {
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
-      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setMode(motion));
+      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setMode(motion));
 
       goalReachedThread = new PTPCheckForGoalReachedThread(null, robot, publisher, actionServer);
       goalReachedThread.run();
