@@ -54,7 +54,7 @@ public:
    * @param [in] joint_velocity - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum speed.
    * @return bool - success status.
    */
-  bool setJointVelocity(const double joint_velocity);
+  bool setJointVelocity(const double joint_relative_velocity);
 
   /**
    * @brief Set the robot joint acceleration.
@@ -62,7 +62,7 @@ public:
    * @param [in] joint_acceleration - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
    * @return bool - success status.
    */
-  bool setJointAcceleration(const double joint_acceleration);
+  bool setJointAcceleration(const double joint_relative_acceleration);
 
   /**
    * @brief Set the override joint acceleration.
