@@ -36,15 +36,24 @@
 
 namespace iiwa_ros {
 namespace command {
+
+/**
+ * @brief A class that represents a general command to send to the robot.
+ *
+ */
 class GenericCommand : public Robot {
-public:
-  GenericCommand() = default;
 
 protected:
-  std::function<void()> callback_{};
+  GenericCommand() = default;
+
+  std::function<void()> callback_{nullptr};
   iiwa_ros::service::TimeToDestinationService time_to_destination_{};
 
+  /**
+   * @brief An internal observer, it will wait until the commanded motion is completed and call a given callback function.
+   */
   void completedMotionWatcher();
 };
+
 }  // namespace command
 }  // namespace iiwa_ros

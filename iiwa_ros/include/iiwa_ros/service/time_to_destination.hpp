@@ -37,9 +37,9 @@ namespace iiwa_ros {
 namespace service {
 
 /**
- * @brief This class provides a wrapper for service call of the TimeToDestination service.
- * Once an object of this class is created using the appropriate service name (e.g. /iiwa/state/timeToDestination),
- * it is possible to just call its functions to get the time left - in <b>seconds</b> - to reach the last given
+ * @brief This class provides a wrapper for the TimeToDestination service.
+ * Once an object of this class is initialized using the appropriate robot namespace,
+ * it is possible to call its functions to get the time left - in <b>seconds</b> - to reach the last given
  * destination.
  * If the robot already reached its last commanded destination, a negative number will be returned. That is the time -
  * in <b>seconds</b> - since the robot reached that destination.
@@ -51,15 +51,6 @@ public:
   virtual ~TimeToDestinationService() override = default;
 
   virtual void init(const std::string& robot_namespace) override;
-
-  /**
-   * @brief Creates a Service client given the name of the timeToDestination service: e.g.
-   * "/iiwa/state/timeToDestination"
-   *
-   * @param service_name Name of the ROS Service server to connect to.
-   * @param verbose If true some ROS_INFO messages will be printed out during service calls.
-   */
-  //  TimeToDestinationService(const std::string& robot_namespace, const bool verbose = true);
 
   /**
    * @brief Returns the time left to reach the last commanded destination in <b>seconds</b>.

@@ -30,37 +30,23 @@
 
 #pragma once
 
-#include "iiwa_msgs/JointTorque.h"
-#include "iiwa_ros/state/generic_state.hpp"
+#include "iiwa_ros/iiwa_ros.hpp"
 
 namespace iiwa_ros {
 namespace state {
 
-class JointTorque : public GenericState {
+class GenericState : public Robot {
 public:
-  JointTorque() = default;
+  bool isConnected() {
+    ros::Duration diff = (ros::Time::now() - last_update_time);
+    return (diff < ros::Duration(0.25));
+  }
 
-  /**
-   * @brief Initialize the object with a given robot namespace.
-   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
-   */
-  virtual void init(const std::string& robot_namespace) override;
+protected:
+  GenericState() = default;
 
-  /**
-   * @brief Initialize the object with the given robot namespace and callback function.
-   * @param [in] robot_namespace - the namespace under which the state topics for the desired robot exist.
-   * @param [in] callback - a callback function to call when a new state is received.
-   */
-  void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::JointTorque&)> callback);
-
-  /**
-   * @brief Returns the current robot joint torque.
-   */
-  iiwa_msgs::JointTorque getTorque();
-
-private:
-  State<iiwa_msgs::JointTorque> state_{};
 };
 
 }  // namespace state
 }  // namespace iiwa_ros
+

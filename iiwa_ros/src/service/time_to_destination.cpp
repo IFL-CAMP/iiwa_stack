@@ -49,8 +49,7 @@ double TimeToDestinationService::getTimeToDestination() {
       return -999;  // It cannot return -1 since it might be a meaningfull result.
     }
   }
-
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
 bool TimeToDestinationService::callService() {

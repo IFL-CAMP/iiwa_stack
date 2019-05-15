@@ -57,7 +57,7 @@ bool ControlModeService::callService() {
     }
     return config_.response.success;
   }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
 void ControlModeService::initCartesianLimits(const iiwa_msgs::CartesianQuantity& max_path_deviation,

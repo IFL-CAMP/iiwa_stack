@@ -55,14 +55,14 @@ bool PathParametersService::callService() {
     }
     return config_.response.success;
   }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
 bool PathParametersService::setSmartServoJoinSpeedLimits(const double joint_relative_velocity,
                                               const double joint_relative_acceleration,
                                               const double override_joint_acceleration) {
-  config_.request.joint_relative_velocity = joint_relative_velocity;
-  config_.request.joint_relative_acceleration = joint_relative_acceleration;
+  config_.request.joint_relative_velocity = joint_velocity;
+  config_.request.joint_relative_velocity = joint_acceleration;
   config_.request.override_joint_acceleration = override_joint_acceleration;
   return callService();
 }

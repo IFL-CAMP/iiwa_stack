@@ -28,16 +28,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <iostream>
+#include <csignal>
+
 #include <ros/ros.h>
 #include <iiwa_ros/state/joint_position.hpp>
 #include <iiwa_ros/state/joint_torque.hpp>
-#include <iostream>
 
-#include <signal.h>
+static bool quit{false};
 
-bool g_quit = false;
-
-void quitRequested(int sig) { g_quit = true; }
+void signalHandler(int /*unused*/) { quit = true; }
 
 int main() {
   iiwa_ros::state::JointPosition jp_state;
@@ -45,16 +45,20 @@ int main() {
 
   jp_state.init("iiwa");
   jt_state.init("iiwa");
-  // ros spinner
+
+  // ROS spinner.
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // custom signal handlers
-  signal(SIGTERM, quitRequested);
-  signal(SIGINT, quitRequested);
-  signal(SIGHUP, quitRequested);
+  // Signal handlers.
+  signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGHUP, signalHandler);
 
-  while (!g_quit) {
+  // Wait a bit, so that you can be sure the subscribers are connected.
+  ros::Duration(0.5).sleep();
+
+  while (!quit) {
     auto joint_position_ = jp_state.getPosition();
 
     auto joint_torque = jt_state.getTorque();

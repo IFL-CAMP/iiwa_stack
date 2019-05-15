@@ -31,17 +31,31 @@
 #pragma once
 
 #include <std_msgs/Time.h>
-#include "iiwa_ros/iiwa_ros.hpp"
+#include "iiwa_ros/state/generic_state.hpp"
 
 namespace iiwa_ros {
 namespace state {
 
-class DestinationReached : public Robot {
+class DestinationReached : public GenericState {
 public:
   DestinationReached() = default;
+
+  /**
+   * @brief Initialize the object with a given robot namespace.
+   * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
+   */
   virtual void init(const std::string& robot_namespace) override;
+
+  /**
+   * @brief Initialize the object with the given robot namespace and callback function.
+   * @param [in] robot_namespace - the namespace under which the state topics for the desired robot exist.
+   * @param [in] callback - a callback function to call when a new state is received.
+   */
   void init(const std::string& robot_namespace, const std::function<void(const std_msgs::Time&)> callback);
 
+  /**
+   * @brief Returns the time at which the robot reached its last commended destination.
+   */
   std_msgs::Time getTime();
 
 private:
