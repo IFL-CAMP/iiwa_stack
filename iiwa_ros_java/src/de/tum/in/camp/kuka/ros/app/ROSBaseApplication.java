@@ -34,6 +34,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
@@ -43,6 +44,7 @@ import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
+import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -69,6 +71,7 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
+import de.tum.in.robotics.zimmer.r840.ROSZimmerR840;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -77,6 +80,9 @@ import de.tum.in.camp.kuka.ros.Logger;
  */
 public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
+  @Inject
+  IApplicationControl appControl;
+  
   protected LBR robot = null;
   protected Tool tool = null;
   protected String toolFrameID = "";
@@ -115,7 +121,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   Timer activeToolTimer = null;
 
   // Example available at https://github.com/exo-core/iiwa_stack_tools
-  // @Inject protected SchunkEGN100 rosTool;
+  //@Inject protected ROSZimmerR840 rosTool;
 
   // ROS Configuration and Node execution objects.
   protected NodeConfiguration configurationNodeConfiguration = null;
@@ -216,6 +222,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       return;
     }
 
+    // Register MoveAsyncErrorHandler
+    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
+
     // END of ROS initialization.
 
     handGuidanceControlMode = new JointImpedanceControlMode(robot.getJointCount());
@@ -240,9 +249,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     handGuidanceKey.setText(UserKeyAlignment.TopMiddle, "ON");
     handGuidanceKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
     handGuidanceKeybar.publish();
-
-    // Register MoveAsyncErrorHandler
-    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
 
     // Additional initialization from subclasses.
     initializeApp();
@@ -296,7 +302,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     }
 
     // Load speed limits from configuration.
-    SpeedLimits.init(configuration);
+    SpeedLimits.init(configuration, appControl);
 
     // TODO: check this.
     controlModeHandler = new ControlModeHandler(robot, tool, endpointFrame, publisher, actionServer, configuration);

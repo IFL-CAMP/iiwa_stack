@@ -69,7 +69,7 @@ import de.tum.in.camp.kuka.ros.iiwaSubscriber;
  */
 public class ROSSmartServo extends ROSBaseApplication {
 
-  private iiwaSubscriber subscriber; // IIWARos Subscriber.
+  private iiwaSubscriber subscriber; // IIWA ROS Subscriber.
   private NodeConfiguration subscriberNodeConfiguration; // Configuration of the
   // subscriber ROS node.
 
@@ -165,6 +165,27 @@ public class ROSSmartServo extends ROSBaseApplication {
         }
       }
     });
+    
+    // TODO: doc
+    subscriber
+        .setSpeedOverrideCallback(new ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse>() {
+          @Override
+          public void build(iiwa_msgs.SetSpeedOverrideRequest req, iiwa_msgs.SetSpeedOverrideResponse res)
+              throws ServiceException {
+            controlModeLock.lock();
+            try {
+              SpeedLimits.setOverrideRecution(req.getOverrideReduction(), true);
+              res.setSuccess(true);
+            }
+            catch (Exception e) {
+              res.setError(e.getClass().getName() + ": " + e.getMessage());
+              res.setSuccess(false);
+            }
+            finally {
+              controlModeLock.unlock();
+            }
+          }
+        });
 
     // TODO: doc
     subscriber

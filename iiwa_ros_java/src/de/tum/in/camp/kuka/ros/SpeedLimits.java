@@ -26,6 +26,7 @@ package de.tum.in.camp.kuka.ros;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
+import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
 import com.kuka.roboticsAPI.motionModel.SplineMotionCP;
 import com.kuka.roboticsAPI.motionModel.SplineMotionJP;
 
@@ -35,12 +36,113 @@ import iiwa_msgs.SetSmartServoJointSpeedLimitsRequest;
 import iiwa_msgs.SetSmartServoLinSpeedLimitsRequest;
 
 public class SpeedLimits {
+  /**
+   * Changes the robot's override velocity by 'slowly' adjusting the speed until the target override value has been reached 
+   */
+  protected static class OverrideRampThread extends Thread {
+    private long timeLength;
+    private int steps;
+    private boolean running = false;
+    private double targetOverride;
+    
+    public OverrideRampThread(double targetOverride, long timeLength, int steps) {
+      this.targetOverride = targetOverride;
+      this.timeLength = timeLength;
+      this.steps = steps;
+    }
+    
+    /**
+     * Request thread to end
+     * @param asynchronous: If true the method will block until the thread has terminated
+     */
+    public void requestStop(boolean asynchronous) {
+      synchronized (this) {
+        running = false; 
+      }
+      
+      if (asynchronous) {
+        return;
+      }
+      
+      while (running) {
+        waitUntil(1);
+      }
+    }
+    
+    /**
+     * True if thread has not yet finieshed execution
+     * @return
+     */
+    public boolean isRunning() {
+      return running;
+    }
+    
+    /**
+     * 
+     */
+    @Override
+    public void run() {
+      synchronized (this) {
+        running = true;
+      }
+      
+      double currentOverride = appControl.getApplicationOverride();
+      double overrideStep = (targetOverride - currentOverride) / steps;
+      
+      while (Math.abs(targetOverride - currentOverride) < 1.e-3 && running) {
+        double nextOverrride = currentOverride + overrideStep;
+        
+        if (overrideStep < 0 && nextOverrride < targetOverride) {
+          // we are reducing the speed and the nextOverride is smaller than the target override
+          nextOverrride = targetOverride;
+        }
+        else if (overrideStep > 0 && targetOverride > nextOverrride) {
+          // we are increasing the speed and the nextOverride is greate than the target override
+          nextOverrride = targetOverride;
+        }
+        
+        appControl.setApplicationOverride(nextOverrride);
+        currentOverride = appControl.getApplicationOverride();
+        waitUntil(timeLength / steps);
+      }
+      
+      synchronized (this) {
+        running = false;
+      }
+    }
+
+    /**
+     * Sleeps until a specific number of Milliseconds have passed
+     * @param ms
+     */
+    private void waitUntil(long ms) {
+      long _before = System.currentTimeMillis();
+      long _now = 0;
+      
+      do {
+        _now = System.currentTimeMillis();
+        try {
+          Thread.sleep(1);
+        }
+        catch (InterruptedException e) {
+          // ignore - we simply loop until the requested duration is over...
+        }
+      }
+      while ((_now - _before) < ms && running);
+    }
+  }
+
+  protected static final long OVERRIDE_RAMP_TIME_LENGTH_MS = 200;
+  protected static final int OVERRIDE_RAMP_NUM_STEPS = 10;
+  private static IApplicationControl appControl;
+  protected static OverrideRampThread rampThread = null;
+  
   // overall override factor
-  private static double overrideReduction = 1.0; // relative
+  private static double overrideReduction =              1.0; // relative
   
   // Joint motion limits
-  private static double ss_relativeJointVelocity;             // relative
-  private static double ss_relativeJointAcceleration;         // relative
+  private static double ss_relativeJointVelocity =       1.0; // relative
+  private static double ss_relativeJointAcceleration =   1.0; // relative
   private static double ss_override_joint_acceleration = 1.0; // relative, between 0.0 and 10.0
   
   // PTP Joint motion limits
@@ -62,13 +164,35 @@ public class SpeedLimits {
   // public static double ss_maxNullSpaceVelocity = ???;
   // public static double ss_maxNullSpaceAcceleration = ???;
   
-  public static void init(Configuration configuration) {
+  public static void init(Configuration configuration, IApplicationControl appControl) {
+    SpeedLimits.appControl = appControl;
+    overrideReduction = appControl.getApplicationOverride();
+    
     ss_relativeJointVelocity = configuration.getDefaultRelativeJointVelocity();
     ss_relativeJointAcceleration = configuration.getDefaultRelativeJointAcceleration();
   }
 
-  public static void setOverrideRecution(double overrideReduction) {
-    SpeedLimits.overrideReduction = overrideReduction;
+  public static void setOverrideRecution(double override, boolean ramp) {
+    if (override < 0.0) {
+      SpeedLimits.overrideReduction = 0.0;
+    }
+    else if (override > 1.0) {
+      SpeedLimits.overrideReduction = 1.0;
+    }
+    else {
+      SpeedLimits.overrideReduction = override;
+    }
+    
+    if (rampThread != null && rampThread.isRunning()) {
+      rampThread.requestStop(true);
+    }
+    
+    if (ramp) {
+      rampThread = new OverrideRampThread(overrideReduction, OVERRIDE_RAMP_TIME_LENGTH_MS, OVERRIDE_RAMP_NUM_STEPS);
+    }
+    else {
+      appControl.setApplicationOverride(overrideReduction);
+    }
   }
   
   public double getOverrideReduction() {
