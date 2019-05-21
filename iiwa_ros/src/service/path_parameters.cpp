@@ -55,33 +55,33 @@ bool PathParametersService::callService() {
     }
     return config_.response.success;
   }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
-bool PathParametersService::setSmartServoJoinSpeedLimits(const double joint_relative_velocity,
+bool PathParametersService::setSmartServoJointSpeedLimits(const double joint_relative_velocity,
                                               const double joint_relative_acceleration,
                                               const double override_joint_acceleration) {
   config_.request.joint_relative_velocity = joint_relative_velocity;
-  config_.request.joint_relative_acceleration = joint_relative_acceleration;
+  config_.request.joint_relative_velocity = joint_relative_acceleration;
   config_.request.override_joint_acceleration = override_joint_acceleration;
   return callService();
 }
 
-bool PathParametersService::setSmartServoJoinSpeedLimits(const double joint_relative_velocity,
+bool PathParametersService::setSmartServoJointSpeedLimits(const double joint_relative_velocity,
                                               const double joint_relative_acceleration) {
-  setSmartServoJoinSpeedLimits(joint_relative_velocity, joint_relative_acceleration, -1);
+  setSmartServoJointSpeedLimits(joint_relative_velocity, joint_relative_acceleration, -1);
 }
 
-bool PathParametersService::setJointRelativeVelocity(const double joint_relative_velocity) {
-  setSmartServoJoinSpeedLimits(joint_relative_velocity, -1, -1);
+bool PathParametersService::setJointVelocity(const double joint_relative_velocity) {
+  setSmartServoJointSpeedLimits(joint_relative_velocity, -1, -1);
 }
 
-bool PathParametersService::setJointRelativeAcceleration(const double joint_relative_acceleration) {
-  setSmartServoJoinSpeedLimits(-1, joint_relative_acceleration, -1);
+bool PathParametersService::setJointAcceleration(const double joint_relative_acceleration) {
+  setSmartServoJointSpeedLimits(-1, joint_relative_acceleration, -1);
 }
 
 bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration) {
-  setSmartServoJoinSpeedLimits(-1, -1, override_joint_acceleration);
+  setSmartServoJointSpeedLimits(-1, -1, override_joint_acceleration);
 }
 
 }  // namespace service

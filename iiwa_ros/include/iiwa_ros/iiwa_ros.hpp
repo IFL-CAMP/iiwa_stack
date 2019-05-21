@@ -63,6 +63,8 @@ private:
 template <typename ROSMSG>
 class State {
 public:
+  State() = default;
+
   void init(const std::string& topic) {
     ros::NodeHandle nh;
     subscriber_ = nh.subscribe<ROSMSG>(topic, 1, &State<ROSMSG>::set, this);
@@ -90,6 +92,8 @@ private:
 template <typename ROSMSG>
 class Command {
 public:
+  Command() = default;
+
   void init(const std::string& topic) {
     ros::NodeHandle nh;
     publisher_ = nh.advertise<ROSMSG>(topic, 1);
@@ -110,13 +114,11 @@ private:
 
 class Robot {
 public:
-  Robot() = default;
   virtual ~Robot() = default;
   virtual void init(const std::string& robot_namespace) = 0;
 
-  bool isConnected();
-
 protected:
+  Robot() = default;
   void initROS(const std::string& ros_node_name);
   void setup(const std::string& robot_namespace) {
     // Build the correct ROS namespace if one was given, else use the root namespace.
@@ -126,4 +128,5 @@ protected:
 protected:
   std::string ros_namespace_{"/"};
 };
+
 }  // namespace iiwa_ros

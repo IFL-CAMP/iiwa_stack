@@ -55,7 +55,7 @@ bool PathParametersLinService::callService() {
     }
     return config_.response.success;
   }
-  ROS_ERROR_STREAM("The service client was not intialized yet.");
+  ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
 bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity) {

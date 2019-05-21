@@ -36,13 +36,9 @@ using namespace std;
 namespace iiwa_ros {
 ros::Time last_update_time;
 
-bool Robot::isConnected() {
-  ros::Duration diff = (ros::Time::now() - last_update_time);
-  return (diff < ros::Duration(0.25));
-}
-
 void Robot::initROS(const std::string& ros_node_name) {
   std::map<std::string, std::string> emptyArgs;
   if (!ros::isInitialized()) { ros::init(emptyArgs, ros_node_name, ros::init_options::AnonymousName); }
 }
+
 }  // namespace iiwa_ros

@@ -36,6 +36,11 @@
 namespace iiwa_ros {
 namespace service {
 
+/**
+ * @brief This class provides a wrapper for the PathParametersLinService service.
+ * Once an object of this class is initialized using the appropriate robot namespace name,
+ * it is possible to call its functions to set the desired max cartesian velocity to be applied during linear motions.
+ */
 class PathParametersLinService : public iiwaServices<iiwa_msgs::SetSmartServoLinSpeedLimits> {
 public:
   PathParametersLinService() = default;
@@ -44,17 +49,10 @@ public:
   virtual void init(const std::string& robot_namespace) override;
 
   /**
-   * @brief ...
+   * @brief Set the maximum cartesian velocity to be applied during SmartServoLin motions.
    *
-   * @param service_name ...
-   * @param verbose ...
-   */
-  //  PathParametersLinService(const std::string& robot_namespace, const bool verbose = true);
-  /**
-   * @brief ...
-   *
-   * @param max_cartesian_velocity ...
-   * @return bool
+   * @param [in] max_cartesian_velocity - Maximum velocity in its Cartesian components.
+   * @return bool - success status.
    */
   bool setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity);
 

@@ -36,6 +36,11 @@
 namespace iiwa_ros {
 namespace service {
 
+/**
+ * @brief This class provides a wrapper for the PathParametersService service.
+ * Once an object of this class is initialized using the appropriate robot namespace name,
+ * it is possible to call its functions to set the desired robot velocity and acceleration.
+ */
 class PathParametersService : public iiwaServices<iiwa_msgs::SetSmartServoJointSpeedLimits> {
 public:
   PathParametersService() = default;
@@ -44,54 +49,47 @@ public:
   virtual void init(const std::string& robot_namespace) override;
 
   /**
-   * @brief ...
+   * @brief Set the robot joint velocity.
    *
-   * @param service_name ...
-   * @param verbose ...
+   * @param [in] joint_velocity - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum speed.
+   * @return bool - success status.
    */
-  //  PathParametersService(const std::string& robot_namespace, const bool verbose = true);
-  /**
-   * @brief ...
-   *
-   * @param joint_relative_velocity ...
-   * @return bool
-   */
-  bool setJointRelativeVelocity(const double joint_relative_velocity);
+  bool setJointVelocity(const double joint_relative_velocity);
 
   /**
-   * @brief ...
+   * @brief Set the robot joint acceleration.
    *
-   * @param joint_relative_acceleration ...
-   * @return bool
+   * @param [in] joint_acceleration - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
+   * @return bool - success status.
    */
-  bool setJointRelativeAcceleration(const double joint_relative_acceleration);
+  bool setJointAcceleration(const double joint_relative_acceleration);
 
   /**
-   * @brief ...
+   * @brief Set the override joint acceleration.
    *
-   * @param override_joint_acceleration ...
-   * @return bool
+   * @param [in] override_acceleration - TODO
+   * @return bool - success status.
    */
-  bool setOverrideJointAcceleration(const double override_joint_acceleration);
+  bool setOverrideJointAcceleration(const double override_acceleration);
 
   /**
-   * @brief ...
+   * @brief Set both joint velocity and acceleration.
    *
-   * @param joint_relative_velocity ...
-   * @param joint_relative_acceleration ...
-   * @return bool
+   * @param [in] joint_velocity - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum speed.
+   * @param [in] joint_acceleration - alues in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
+   * @return bool - success status.
    */
-  bool setSmartServoJoinSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration);
+  bool setSmartServoJointSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration);
 
   /**
-   * @brief ...
+   * @brief Set joint velocity, acceleration and override acceleration at once.
    *
-   * @param joint_relative_velocity ...
-   * @param joint_relative_acceleration ...
-   * @param override_joint_acceleration ...
-   * @return bool
+   * @param [in] joint_velocity - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum speed.
+   * @param [in] joint_acceleration - alues in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
+   * @param override_acceleration - TODO.
+   * @return bool - success status.
    */
-  bool setSmartServoJoinSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration,
+  bool setSmartServoJointSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration,
                          const double override_joint_acceleration);
 
 protected:

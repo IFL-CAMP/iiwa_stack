@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
- * rights reserved.
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
+ * http://campar.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,25 +62,25 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 public class Configuration extends AbstractNodeMain {
 
   // Name to use to build the name of the ROS topics
-  private static String robotName;
-  private static String masterIp;
-  private static String masterPort;
-  private static String masterUri; // < IP address of ROS core to talk to.
-  private static String robotIp;
-  private static boolean staticConfigurationSuccessful;
-  private static boolean ntpWithHost;
+  private String robotName;
+  private String masterIp;
+  private String masterPort;
+  private String masterUri; // < IP address of ROS core to talk to.
+  private String robotIp;
+  private boolean configurationSuccessful = false;
+  private boolean ntpWithHost;
 
   private TimeProvider timeProvider;
   private ScheduledExecutorService ntpExecutorService = null;
 
   private ConnectedNode node;
-  private ParameterTree params;
+  private ParameterTree parameters;
 
   // It is used to wait until we are connected to the ROS master and parameters
   // are available.
   private Semaphore initSemaphore = new Semaphore(0);
 
-  private static IApplicationData applicationData;
+  private IApplicationData applicationData;
 
   public Configuration(IApplicationData data) {
     applicationData = data;
@@ -87,9 +88,9 @@ public class Configuration extends AbstractNodeMain {
   }
 
   public void checkConfiguration() {
-    if (!staticConfigurationSuccessful) {
+    if (!configurationSuccessful) {
       configure();
-      if (!staticConfigurationSuccessful) { throw new RuntimeException("Static configuration was not successful"); }
+      if (!configurationSuccessful) { throw new RuntimeException("Configuration was not successful"); }
     }
   }
 
@@ -105,14 +106,53 @@ public class Configuration extends AbstractNodeMain {
     masterPort = applicationData.getProcessData("master_port").getValue();
     masterUri = "http://" + masterIp + ":" + masterPort;
 
-    staticConfigurationSuccessful = true;
+    configurationSuccessful = true;
+  }
+
+  /**
+   * @see org.ros.node.NodeMain#getDefaultNodeName()
+   */
+  @Override
+  public GraphName getDefaultNodeName() {
+    return GraphName.of(robotName + "/configuration");
+  }
+
+  /**
+   * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
+   * Do <b>NOT</b> manually call this.
+   * <p>
+   * 
+   * @see org.ros.node.AbstractNodeMain#onStart(org.ros.node.ConnectedNode)
+   */
+  @Override
+  public void onStart(final ConnectedNode connectedNode) {
+    node = connectedNode;
+    Logger.setRosLogger(node.getLog());
+    initSemaphore.release();
+  }
+
+  /**
+   * Wait for ROS Master to connect.
+   * 
+   * @throws InterruptedException
+   */
+  public void waitForInitialization() throws InterruptedException {
+    initSemaphore.acquire();
+  }
+
+  private ParameterTree getParameterTree() {
+    if (initSemaphore.availablePermits() > 0) {
+      Logger.warn("waitForInitialization not called before using parameters!");
+    }
+    if (node == null) { return null; }
+    return node.getParameterTree();
   }
 
   /**
    * Get the ROS Master URI, obtained from the configuration file. Format : http://IP:port
    * 
    * @return ROS Master URI
-   * @throws URISyntaxException 
+   * @throws URISyntaxException
    */
   public URI getMasterURI() throws URISyntaxException {
     checkConfiguration();
@@ -160,124 +200,200 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * @see org.ros.node.NodeMain#getDefaultNodeName()
-   */
-  @Override
-  public GraphName getDefaultNodeName() {
-    return GraphName.of(robotName + "/configuration");
-  }
-
-  /**
-   * This method is called when the <i>execute</i> method from a <i>nodeMainExecutor</i> is called.<br>
-   * Do <b>NOT</b> manually call this.
-   * <p>
-   * 
-   * @see org.ros.node.AbstractNodeMain#onStart(org.ros.node.ConnectedNode)
-   */
-  @Override
-  public void onStart(final ConnectedNode connectedNode) {
-    node = connectedNode;
-    Logger.setRosLogger(node.getLog());
-    initSemaphore.release();
-  }
-
-  /**
-   * Wait for ROS Master to connect.
-   * 
-   * @throws InterruptedException
-   */
-  public void waitForInitialization() throws InterruptedException {
-    initSemaphore.acquire();
-  }
-
-  private ParameterTree getParameterTree() {
-    if (initSemaphore.availablePermits() > 0) {
-      Logger.warn("waitForInitialization not called before using parameters!");
-    }
-    if (node == null) { return null; }
-    return node.getParameterTree();
-  }
-
-  /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
-   * 
-   * @return the default relative joint speed
-   */
-  public Double getDefaultRelativeJointVelocity() {
-    Double defaultRelativeJointVelocity = getDoubleParameter("defaultRelativeJointSpeed");
-    if (defaultRelativeJointVelocity == null) {
-      defaultRelativeJointVelocity = 0.5;
-    }
-    return defaultRelativeJointVelocity;
-  }
-
-  /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
-   * 
-   * @return the default relative joint speed
-   */
-  public Double getDefaultRelativeJointAcceleration() {
-    Double defaultRelativeJointAcceleration = getDoubleParameter("defaultRelativeJointAcceleration");
-    if (defaultRelativeJointAcceleration == null) {
-      defaultRelativeJointAcceleration = 1.0;
-    }
-    return defaultRelativeJointAcceleration;
-  }
-
-  /**
-   * Get the name of the tool to use from param <b>toolName</b> in ROS param server.
+   * Get the name of the tool to use, reading <b>toolName</b> from the ROS parameter server..
    * 
    * @return name of the tool
    */
   public String getToolName() {
-    String toolName = getStringParameter("toolName");
-    if (toolName == null) {
-      toolName = "";
-    }
-    return toolName;
+    return new String(getStringParameter(robotName, "toolName", ""));
   }
 
   /**
-   * Get the id of the endpoint frame to use from param <b>endpointFrame</b> in ROS param server.
+   * Get the id of the endpoint frame to use, reading <b>endpointFrame</b> from the ROS parameter server.
    * 
    * @return id of the frame
    */
   public String getEndpointFrame() {
-    String endpointFrame = getStringParameter("endpointFrame");
-    if (endpointFrame == null) {
-      endpointFrame = "";
-    }
-    return endpointFrame;
+    return new String(getStringParameter(robotName, "endpointFrame", ""));
   }
 
   /**
-   * Get if <i>joint_state</i> shoud be published, reading param <b>publishJointStates</b> from ROS param
+   * Get the default relative joint speed for the robot, reading <b>defaultRelativeJointSpeed</b> from the ROS
+   * parameter server.
+   * 
+   * @return the default relative joint speed
+   */
+  public Boolean getEnforceMessageSequence() {
+    return getBooleanParameter(robotName, "enforceMessageSequence", false);
+  }
+
+  /**
+   * Get if <i>joint_state</i> shoud be published, reading <b>publishJointStates</b> from the ROS parameter
    * server.
    * 
    * @return true if <i>joint_state</i>
    */
   public boolean getPublishJointStates() {
-    Boolean publishStates = getBooleanParameter("publishJointStates");
-    if (publishStates == null) {
-      publishStates = false;
-    }
-    return publishStates;
+    return getBooleanParameter(robotName, "publishJointStates", false);
   }
 
   /**
-   * Get the default relative joint speed for the robot from param <b>defaultRelativeJointSpeed</b> in ROS
-   * param server.
+   * Get the minimum trajectory execute time for SmartServo object, reading <b>minTrajExecTime</b> from the
+   * ROS parameter server.
+   * 
+   * @return the mininum trajectory execute time
+   */
+  public Double getMinTrajExecTime() {
+    return getDoubleParameter(robotName + "/SmartServo", "minTrajExecTime", 0.1);
+  }
+
+  /**
+   * Get the timeout after goal reached for SmartServo, reading <b>timeoutAfterGoalReach</b> from the ROS
+   * parameter server.
+   * 
+   * @return the timeout after goal reached
+   */
+  public Double getTimeoutAfterGoalReach() {
+    return getDoubleParameter(robotName + "/SmartServo", "timeoutAfterGoalReach", 3600.0);
+  }
+
+  /**
+   * Get the default relative joint speed for the robot, reading <b>defaultRelativeJointSpeed</b> from the ROS
+   * parameter server.
    * 
    * @return the default relative joint speed
    */
-  public Boolean getEnforceMessageSequence() {
-    Boolean enforceMessageSequence = getBooleanParameter("enforceMessageSequence");
-    if (enforceMessageSequence == null) {
-      enforceMessageSequence = false;
+  public Double getSSRelativeJointVelocity() {
+    return getDoubleParameter(robotName + "/SmartServo", "relativeJointSpeed", 0.5);
+  }
+
+  /**
+   * Get the default relative joint acceleration for the robot, reading <b>defaultRelativeJointSpeed</b> from
+   * the ROS parameter server.
+   * 
+   * @return the default relative joint acceleration
+   */
+  public Double getSSRelativeJointAcceleration() {
+    return getDoubleParameter(robotName + "/SmartServo", "relativeJointAcceleration", 1.0);
+  }
+
+  /**
+   * Get the maximum translational velocity the robot should have, reading <b>maxTranslationVelocity</b> from
+   * the ROS parameter server.
+   * 
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public double[] getSSMaxTranslationVelocity() {
+    // Attempt to fill a List with the values from the parameters server, if something goes wrong we generate
+    // an empty list
+    List<Double> maxTranslationVelocityList = null;
+    try {
+      maxTranslationVelocityList = (List<Double>) getListParameter(robotName + "/SmartServoLin", "maxTranslationalVelocity");
     }
-    return enforceMessageSequence;
+    catch (ClassCastException e) {
+      maxTranslationVelocityList = new ArrayList<Double>();
+    }
+
+    double[] maxTranslationVelocity = new double[3];
+
+    if (maxTranslationVelocityList == null) {
+      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+    }
+    else if (maxTranslationVelocityList.size() != 3) {
+      Logger.warn("The ROS parameter 'maxTranslationalVelocity' has to have 3 components, using its default values.");
+      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+    }
+    // At this point the List is not null and has 3 elements.
+    else {
+      for (int i = 0; i < maxTranslationVelocityList.size(); i++) {
+        maxTranslationVelocity[i] = maxTranslationVelocityList.get(i);
+      }
+    }
+    return maxTranslationVelocity;
+  }
+
+  /**
+   * Get the maximum orientation velocity the robot should have, reading <b>maxOrientationVelocity</b> from
+   * the ROS parameter server.
+   * 
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public double[] getSSmaxOrientationVelocity() {
+
+    // Attempt to fill a List with the values from the parameters server, if something goes wrong we generate
+    // an empty list
+    List<Double> maxOrientationVelocityList = null;
+    try {
+      maxOrientationVelocityList = (List<Double>) getListParameter(robotName + "/SmartServoLin", "maxOrientationVelocity");
+    }
+    catch (ClassCastException e) {
+      maxOrientationVelocityList = new ArrayList<Double>();
+    }
+
+    double[] maxOrientationVelocity = new double[3];
+
+    if (maxOrientationVelocityList == null) {
+      Arrays.fill(maxOrientationVelocity, 0.5); // Setting the default value.
+    }
+    else if (maxOrientationVelocityList.size() != 3) {
+      Logger.warn("The ROS parameter 'maxOrientationVelocity' has to have 3 components of type double, using its default values.");
+      Arrays.fill(maxOrientationVelocity, 0.5); // Setting the default value.
+    }
+    // At this point the List is not null and has 3 elements.
+    else {
+      for (int i = 0; i < maxOrientationVelocityList.size(); i++) {
+        maxOrientationVelocity[i] = maxOrientationVelocityList.get(i);
+      }
+    }
+    return maxOrientationVelocity;
+  }
+
+  /**
+   * TODO Get the Cartesian acceleration the robot should have, reading <b>cartesianAcceleration</b> from the
+   * ROS parameter server.
+   * 
+   * @return
+   */
+  public Double getPTPRelativeJointVelocity() {
+    return getDoubleParameter(robotName + "/PTP", "relativeJointVelocity", 1.0);
+  }
+
+  /**
+   * TODO Get the Cartesian acceleration the robot should have, reading <b>cartesianAcceleration</b> from the
+   * ROS parameter server.
+   * 
+   * @return
+   */
+  public Double getPTPJointAcceleration() {
+    return getDoubleParameter(robotName + "/PTP", "relativeJointAcceleration", 1.0);
+  }
+
+  // // PTP
+
+  public Double getPTPMaxCartesianVelocity() {
+    return getDoubleParameter(robotName + "/PTP", "maxCartesianVelocity", 1.0);
+  }
+
+  public Double getPTPMaxOrientationVelocity() {
+    return getDoubleParameter(robotName + "/PTP", "maxOrientationVelocity", 0.5);
+  }
+
+  public Double getPTPMaxCartesianAcceleration() {
+    return getDoubleParameter(robotName + "/PTP", "maxCartesianAcceleration", 0.2);
+  }
+
+  public Double getPTPMaxOrientationAccelration() {
+    return getDoubleParameter(robotName + "/PTP", "maxOrientationAcceleration", 0.1);
+  }
+
+  public Double getPTPMaxCartesianJerk() {
+    return getDoubleParameter(robotName + "/PTP", "maxCartesianJerk", -1.0);
+  }
+
+  public Double getPTPMaxOrientationJerk() {
+    return getDoubleParameter(robotName + "/PTP", "maxOrientationJerk", -1.0);
   }
 
   /**
@@ -333,8 +449,8 @@ public class Configuration extends AbstractNodeMain {
    * @param generalKeyLists
    * @param generalKeyBars
    */
-  public void setupToolbars(IApplicationUI appUI, final iiwaPublisher publisher, List<IUserKey> generalKeys,
-      List<IUserKeyListener> generalKeyLists, List<IUserKeyBar> generalKeyBars) {
+  public void setupToolbars(IApplicationUI appUI, final iiwaPublisher publisher, List<IUserKey> generalKeys, List<IUserKeyListener> generalKeyLists,
+      List<IUserKeyBar> generalKeyBars) {
     List<ToolbarSpecification> ts = getToolbarSpecifications();
     if (ts != null) {
       for (final ToolbarSpecification t : ts) {
@@ -407,7 +523,7 @@ public class Configuration extends AbstractNodeMain {
    */
   public List<ToolbarSpecification> getToolbarSpecifications() {
     List<ToolbarSpecification> ret = new ArrayList<ToolbarSpecification>();
-    List<?> rawParam = getListParameter("toolbarSpecifications");
+    List<?> rawParam = getListParameter(robotName, "toolbarSpecifications");
 
     if (rawParam == null) { return null; }
 
@@ -436,70 +552,77 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Read a double param from the ROS param server given its name
+   * Read a double parameters from the ROS parameter server given its name and namespace.
    * 
-   * @param argname rosparam name to get
+   * @param namespace - ROS namespace under which the parameter lives.
+   * @param argname - Name of the ROS parameter to get.
    * @return a double
    */
-  public Double getDoubleParameter(String argname) {
-    params = getParameterTree();
+  public Double getDoubleParameter(String namespace, String argname, double defaultValue) {
+    parameters = getParameterTree();
     Double ret = null;
-    if (params == null) { return null; }
+    if (parameters == null) { return defaultValue; }
     try {
-      ret = params.getDouble(robotName + "/" + argname);
+      ret = parameters.getDouble(namespace + "/" + argname);
     }
-    catch (ParameterNotFoundException e) {}
-
+    catch (ParameterNotFoundException e) {
+      ret = defaultValue;
+    }
     return ret;
   }
 
   /**
-   * Read a boolean param from the ROS param server given its name
+   * Read a boolean parameters from the ROS parameter server given its name and namespace.
    * 
-   * @param argname rosparam name to get
+   * @param namespace - ROS namespace under which the parameter lives.
+   * @param argname - Name of the ROS parameter to get.
    * @return a boolean
    */
-  public Boolean getBooleanParameter(String argname) {
-    params = getParameterTree();
+  public Boolean getBooleanParameter(String namespace, String argname, boolean defaultValue) {
+    parameters = getParameterTree();
     Boolean ret = null;
-    if (params == null) { return null; }
+    if (parameters == null) { return defaultValue; }
     try {
-      ret = params.getBoolean(robotName + "/" + argname);
+      ret = parameters.getBoolean(namespace + "/" + argname);
     }
-    catch (ParameterNotFoundException e) {}
-
+    catch (ParameterNotFoundException e) {
+      ret = defaultValue;
+    }
     return ret;
   }
 
   /**
-   * Read a string param from the ROS param server given its name
+   * Read a string parameters from the ROS parameter server given its name and namespace.
    * 
-   * @param argname
+   * @param namespace - ROS namespace under which the parameter lives.
+   * @param argname - Name of the ROS parameter to get.
    * @return a string
    */
-  public String getStringParameter(String argname) {
-    params = getParameterTree();
+  public String getStringParameter(String namespace, String argname, String defaultValue) {
+    parameters = getParameterTree();
     String ret = null;
-    if (params == null) { return null; }
+    if (parameters == null) { return defaultValue; }
     try {
-      ret = params.getString(robotName + "/" + argname);
+      ret = parameters.getString(namespace + "/" + argname);
     }
-    catch (ParameterNotFoundException e) {}
-
+    catch (ParameterNotFoundException e) {
+      ret = defaultValue;
+    }
     return ret;
   }
 
   /**
-   * Read a list param from the ROS param server given its name
+   * Read a list parameters from the ROS parameter server given its name and namespace.
    * 
-   * @param argname
+   * @param namespace - ROS namespace under which the parameter lives.
+   * @param argname - Name of the ROS parameter to get.
    * @return a list
    */
-  public List<?> getListParameter(String argname) {
+  public List<?> getListParameter(String namespace, String argname) {
     List<?> args = new LinkedList<String>(); // supports remove
-    params = getParameterTree();
+    parameters = getParameterTree();
     try {
-      args = params.getList(robotName + "/" + argname);
+      args = parameters.getList(namespace + "/" + argname);
       if (args == null) { return null; }
     }
     catch (ParameterNotFoundException e) {

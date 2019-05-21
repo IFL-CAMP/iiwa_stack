@@ -17,7 +17,7 @@
     
     <!-- Loads the controllers -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-          output="screen" args="$(arg controllers) --shutdown-timeout 2" />
+          output="screen" args="$(arg controllers)" />
     
     <!-- Converts joint states to TF transforms for rviz, etc -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"

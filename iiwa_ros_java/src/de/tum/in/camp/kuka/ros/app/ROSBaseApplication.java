@@ -1,8 +1,8 @@
-/**
+ï»¿/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
- * rights reserved.
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
+ * http://campar.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -45,6 +45,7 @@ import org.ros.time.NtpTimeProvider;
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
 import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
+// import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
@@ -71,7 +72,6 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-import de.tum.in.robotics.zimmer.r840.ROSZimmerR840;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -107,6 +107,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // ROS Nodes.
   protected Configuration configuration = null;
 
+  // MEDIAFLANGEIO
+  // @Inject
+  // protected MediaFlangeIOGroup mediaFlange;
+
   protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
   Timer publisherTimer = null;
@@ -121,7 +125,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   Timer activeToolTimer = null;
 
   // Example available at https://github.com/exo-core/iiwa_stack_tools
-  //@Inject protected ROSZimmerR840 rosTool;
+  // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
   protected NodeConfiguration configurationNodeConfiguration = null;
@@ -222,9 +226,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       return;
     }
 
-    // Register MoveAsyncErrorHandler
-    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
-
     // END of ROS initialization.
 
     handGuidanceControlMode = new JointImpedanceControlMode(robot.getJointCount());
@@ -249,6 +250,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     handGuidanceKey.setText(UserKeyAlignment.TopMiddle, "ON");
     handGuidanceKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
     handGuidanceKeybar.publish();
+
+    // Register MoveAsyncErrorHandler
+    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
 
     // Additional initialization from subclasses.
     initializeApp();

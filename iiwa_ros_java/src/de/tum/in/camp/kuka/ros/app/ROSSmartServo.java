@@ -55,12 +55,10 @@ import com.kuka.roboticsAPI.geometricModel.Workpiece;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
-import de.tum.in.camp.kuka.ros.Conversions;
 import de.tum.in.camp.kuka.ros.Logger;
 import de.tum.in.camp.kuka.ros.Motions;
 import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.UnsupportedControlModeException;
-import de.tum.in.camp.kuka.ros.Utility;
 import de.tum.in.camp.kuka.ros.iiwaActionServer.Goal;
 import de.tum.in.camp.kuka.ros.iiwaSubscriber;
 
@@ -189,7 +187,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
     // TODO: doc
     subscriber
-        .setPTPCartesianSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse>() {
+        .setPTPCartesianLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse>() {
           @Override
           public void build(iiwa_msgs.SetPTPCartesianSpeedLimitsRequest req, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse res)
               throws ServiceException {
@@ -210,7 +208,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
     // TODO: doc
     subscriber
-        .setPTPJointSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse>() {
+        .setPTPJointLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse>() {
           @Override
           public void build(iiwa_msgs.SetPTPJointSpeedLimitsRequest req, iiwa_msgs.SetPTPJointSpeedLimitsResponse res)
               throws ServiceException {
@@ -231,7 +229,7 @@ public class ROSSmartServo extends ROSBaseApplication {
     
     // TODO: doc
     subscriber
-        .setSmartServoJointSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse>() {
+        .setSmartServoLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse>() {
           @Override
           public void build(iiwa_msgs.SetSmartServoJointSpeedLimitsRequest req, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse res)
               throws ServiceException {
@@ -258,7 +256,7 @@ public class ROSSmartServo extends ROSBaseApplication {
 
     // TODO: doc
     subscriber
-        .setSmartServoLinSpeedLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse>() {
+        .setSmartServoLinLimitsCallback(new ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse>() {
           @Override
           public void build(SetSmartServoLinSpeedLimitsRequest req, SetSmartServoLinSpeedLimitsResponse res) throws ServiceException {
             controlModeLock.lock();
@@ -467,13 +465,13 @@ public class ROSSmartServo extends ROSBaseApplication {
    */
   protected void activateMotionMode(CommandType commandType) {
     if (commandType == lastCommandType) {
-      if (commandType == commandType.POINT_TO_POINT_SPLINE) {
+      if (commandType == CommandType.POINT_TO_POINT_SPLINE) {
         // For some reason the application gets stuck when executing two spline motions
         // in a row. Switching the control mode to SmartServo and back in between 
         // resolves the issue.
         // TODO: Find a cleaner way of solving this issue 
-        activateMotionMode(commandType.CARTESIAN_POSE_LIN);
-        activateMotionMode(commandType.POINT_TO_POINT_SPLINE);
+        activateMotionMode(CommandType.CARTESIAN_POSE_LIN);
+        activateMotionMode(CommandType.POINT_TO_POINT_SPLINE);
       }
       return;
     }
@@ -510,8 +508,8 @@ public class ROSSmartServo extends ROSBaseApplication {
         // in a row. Switching the control mode to SmartServo and back in between 
         // resolves the issue.
         // TODO: Find a cleaner way of solving this issue 
-        activateMotionMode(commandType.CARTESIAN_POSE_LIN);
-        activateMotionMode(commandType.POINT_TO_POINT_SPLINE);
+        activateMotionMode(CommandType.CARTESIAN_POSE_LIN);
+        activateMotionMode(CommandType.POINT_TO_POINT_SPLINE);
       }
     }
     else {
