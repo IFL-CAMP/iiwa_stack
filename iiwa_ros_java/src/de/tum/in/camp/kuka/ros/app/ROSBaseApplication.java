@@ -44,7 +44,6 @@ import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
-import com.kuka.roboticsAPI.applicationModel.IApplicationControl;
 // import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
@@ -62,6 +61,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
+import de.tum.in.camp.kuka.ros.Logger.Level;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
@@ -79,9 +79,6 @@ import de.tum.in.camp.kuka.ros.Logger;
  * configuration, and publishing the current state of the robot.
  */
 public abstract class ROSBaseApplication extends RoboticsAPIApplication {
-
-  @Inject
-  IApplicationControl appControl;
   
   protected LBR robot = null;
   protected Tool tool = null;
@@ -121,11 +118,11 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   // Active tool, you can replace this with a tool you are using that supports ROS messages.
   protected ActiveTool rosTool = null;
+  // Example available at https://github.com/exo-core/iiwa_stack_tools
+  //@Inject protected ROSZimmerR840 rosTool;
+
   ActiveToolThread activeToolThread = null;
   Timer activeToolTimer = null;
-
-  // Example available at https://github.com/exo-core/iiwa_stack_tools
-  // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
   protected NodeConfiguration configurationNodeConfiguration = null;
@@ -169,6 +166,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   public void initialize() {
     // Get the Sunrise Logger.
     Logger.setSunriseLogger(getLogger());
+    if (debug) {
+      Logger.setLogLevel(Level.DEBUG);
+    }
+    
     // Get the robot instance.
     robot = getContext().getDeviceFromType(LBR.class);
 
@@ -198,9 +199,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     try {
       nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
 
-      if (debug) {
-        Logger.info("Initializing ROS tool.");
-      }
+      Logger.debug("Initializing ROS tool.");
       if (rosTool != null) {
         rosTool.initialize(configuration, nodeMainExecutor);
       }
@@ -213,9 +212,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       // Additional Nodes from subclasses.
       addNodesToExecutor(nodeMainExecutor);
 
-      if (debug) {
-        Logger.info("ROS Node Executor initialized.");
-      }
+      Logger.debug("ROS Node Executor initialized.");
     }
     catch (Exception e) {
       if (debug) {
@@ -306,7 +303,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     }
 
     // Load speed limits from configuration.
-    SpeedLimits.init(configuration, appControl);
+    SpeedLimits.init(configuration, getApplicationControl());
 
     // TODO: check this.
     controlModeHandler = new ControlModeHandler(robot, tool, endpointFrame, publisher, actionServer, configuration);

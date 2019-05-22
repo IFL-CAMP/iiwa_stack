@@ -30,8 +30,18 @@ import com.kuka.task.ITaskLogger;
 
 public class Logger {
   public static enum Level {
-    DEBUG, INFO, WARN, ERROR, FATAL
-  }
+    DEBUG(4), INFO(3), WARN(2), ERROR(1), FATAL(0);
+
+    private final int value;
+    private Level(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+  
 
   public static enum Target {
     BOTH, SUNRISE, ROS
@@ -39,6 +49,7 @@ public class Logger {
 
   private static ITaskLogger sunriseLogger = null;
   private static Log rosLogger = null;
+  private static Level logLevel = Level.INFO;
 
   public static void setRosLogger(Log logger) {
     rosLogger = logger;
@@ -70,10 +81,11 @@ public class Logger {
 
   public static void log(String message, Level level, Target target) {
     if (target == Target.BOTH || target == Target.SUNRISE) {
-      if (sunriseLogger != null) {
+      if (sunriseLogger != null && level.getValue() >= logLevel.getValue()) {
         switch (level) {
           case DEBUG:
-            sunriseLogger.fine(message);
+            //sunriseLogger.fine(message); // fine does not get displayed on SmartPad
+            sunriseLogger.info(message);
             break;
           case INFO:
             sunriseLogger.info(message);
@@ -112,5 +124,12 @@ public class Logger {
         }
       }
     }
+  }
+  
+  public static void setLogLevel(Level level) {
+    Logger.logLevel = level;
+    debug("Setting logger level to"+level);
+    
+    // TODO: change setting of sunrise and ROS logger to display log messages accordingly
   }
 }
