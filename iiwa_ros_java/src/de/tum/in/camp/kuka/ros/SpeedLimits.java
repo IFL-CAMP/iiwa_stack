@@ -70,7 +70,7 @@ public class SpeedLimits {
     }
     
     /**
-     * True if thread has not yet finieshed execution
+     * True if thread has not yet finished execution
      * @return
      */
     public boolean isRunning() {
@@ -138,14 +138,14 @@ public class SpeedLimits {
   protected static OverrideRampThread rampThread = null;
   
   // Overall override factor
-  private static double overrideReduction =              1.0; // relative
+  private static double overrideReduction = 1.0; // relative
   
   // Joint motion limits
-  private static double ss_relativeJointVelocity =       1.0; // relative
-  private static double ss_relativeJointAcceleration =   1.0; // relative
-  private static double ss_OverrideJointAcceleration = 1.0; // relative, between 0.0 and 10.0
+  private static double ss_relativeJointVelocity = 1.0; // relative
+  private static double ss_relativeJointAcceleration = 1.0; // relative
+  private static double ss_overrideJointAcceleration = 1.0; // relative, between 0.0 and 10.0
 
-  // SmarteServo Cartesian motion limits
+  // SmartServo Cartesian motion limits
   private static double[] ss_maxTranslationalVelocity = { 1.0, 1.0, 1.0 }; // m/s
   private static double[] ss_maxRotationalVelocity = { 0.5, 0.5, 0.5 }; // rad/s
 
@@ -205,6 +205,7 @@ public class SpeedLimits {
     
     if (ramp) {
       rampThread = new OverrideRampThread(overrideReduction, OVERRIDE_RAMP_TIME_LENGTH_MS, OVERRIDE_RAMP_NUM_STEPS);
+      rampThread.start();
     }
     else {
       appControl.setApplicationOverride(overrideReduction);
@@ -247,7 +248,7 @@ public class SpeedLimits {
   public static void setSmartServoJointSpeedLimits(SetSmartServoJointSpeedLimitsRequest srvReq) {
     ss_relativeJointVelocity = srvReq.getJointRelativeVelocity();
     ss_relativeJointAcceleration = srvReq.getJointRelativeAcceleration();
-    ss_OverrideJointAcceleration = srvReq.getOverrideJointAcceleration();
+    ss_overrideJointAcceleration = srvReq.getOverrideJointAcceleration();
   }
 
   /**
@@ -272,8 +273,8 @@ public class SpeedLimits {
     if (ss_relativeJointAcceleration > 0) {
       motion.setJointAccelerationRel(ss_relativeJointAcceleration);
     }
-    if (ss_OverrideJointAcceleration > 0) {
-      motion.overrideJointAcceleration(ss_OverrideJointAcceleration);
+    if (ss_overrideJointAcceleration > 0) {
+      motion.overrideJointAcceleration(ss_overrideJointAcceleration);
     }
   }
 

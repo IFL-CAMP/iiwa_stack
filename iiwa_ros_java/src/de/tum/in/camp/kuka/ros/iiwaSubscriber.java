@@ -75,8 +75,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
   private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
 
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> setSpeedOverrideServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> setSpeedOverrideCallback = null;
+  private ServiceServer<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> speedOverrideServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> speedOverrideCallback = null;
 
   @SuppressWarnings("unused")
   private ServiceServer<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse> smartServoLimitsServer = null;
@@ -210,7 +210,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
    */
   public void setSpeedOverrideCallback(
       ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> callback) {
-    setSpeedOverrideCallback = callback;
+    speedOverrideCallback = callback;
   }
 
   /**
@@ -581,6 +581,11 @@ public class iiwaSubscriber extends AbstractNodeMain {
     // Creating TimeToDestination service if a callback has been defined.
     if (timeToDestinationCallback != null) {
       timeToDestinationServer = node.newServiceServer(iiwaName + "/state/timeToDestination", "iiwa_msgs/TimeToDestination", timeToDestinationCallback);
+    }
+
+    // Creating setSmartServoLimits service if a callback has been defined.
+    if (speedOverrideCallback != null) {
+      speedOverrideServer = node.newServiceServer(iiwaName + "/configuration/setSpeedOverride", "iiwa_msgs/SetSpeedOverride", speedOverrideCallback);
     }
     
     // Creating setSmartServoLimits service if a callback has been defined.
