@@ -81,7 +81,7 @@ public class Logger {
 
   public static void log(String message, Level level, Target target) {
     if (target == Target.BOTH || target == Target.SUNRISE) {
-      if (sunriseLogger != null && level.getValue() >= logLevel.getValue()) {
+      if (sunriseLogger != null && level.getValue() <= logLevel.getValue()) {
         switch (level) {
           case DEBUG:
             //sunriseLogger.fine(message); // fine does not get displayed on SmartPad
