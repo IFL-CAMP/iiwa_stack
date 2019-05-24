@@ -170,6 +170,8 @@ public class SpeedLimits {
   public static void init(Configuration configuration, IApplicationControl appControl) {
     SpeedLimits.appControl = appControl;
     overrideReduction = appControl.getApplicationOverride();
+
+    Logger.debug("Loading speed limits from configuration");
     
     ss_relativeJointVelocity = configuration.getSSRelativeJointVelocity();
     ss_relativeJointAcceleration = configuration.getSSRelativeJointAcceleration();
@@ -177,6 +179,11 @@ public class SpeedLimits {
     ss_maxTranslationalVelocity = configuration.getSSMaxTranslationVelocity();
     ss_maxRotationalVelocity = configuration.getSSmaxOrientationVelocity();
 
+    Logger.debug("SmartServo relativeJointVelocity: "+ss_relativeJointVelocity);
+    Logger.debug("SmartServo relativeJointAcceleration: "+ss_relativeJointAcceleration);
+    Logger.debug("SmartServo maxTranslationalVelocity: ["+ss_maxTranslationalVelocity[0]+", "+ss_maxTranslationalVelocity[1]+", "+ss_maxTranslationalVelocity[2]+"]");
+    Logger.debug("SmartServo maxRotationalVelocity: ["+ss_maxRotationalVelocity[0]+", "+ss_maxRotationalVelocity[1]+", "+ss_maxRotationalVelocity[2]+"]");
+    
     ptp_relativeJointVelocity = configuration.getPTPRelativeJointVelocity();
     ptp_relativeJointAcceleration = configuration.getPTPJointAcceleration();
 
@@ -186,6 +193,15 @@ public class SpeedLimits {
     ptp_maxOrientationAcceleration = configuration.getPTPMaxOrientationAccelration();
     ptp_maxCartesianJerk = configuration.getPTPMaxCartesianJerk();
     ptp_maxOrientationJerk = configuration.getPTPMaxOrientationJerk();
+    
+    Logger.debug("PTP relativeJointVelocity: "+ptp_relativeJointVelocity);
+    Logger.debug("PTP relativeJointAcceleration: "+ptp_relativeJointAcceleration);
+    Logger.debug("PTP maxCartesianVelocity: "+ptp_maxCartesianVelocity);
+    Logger.debug("PTP maxOrientationVelocity: "+ptp_maxOrientationVelocity);
+    Logger.debug("PTP maxCartesianAcceleration: "+ptp_maxCartesianAcceleration);
+    Logger.debug("PTP maxOrientationAcceleration: "+ptp_maxOrientationAcceleration);
+    Logger.debug("PTP maxCartesianJerk: "+ptp_maxCartesianJerk);
+    Logger.debug("PTP maxOrientationJerk: "+ptp_maxOrientationJerk);
   }
 
   public static void setOverrideRecution(double override, boolean ramp) {

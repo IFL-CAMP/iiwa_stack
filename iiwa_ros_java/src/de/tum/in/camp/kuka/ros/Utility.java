@@ -37,5 +37,4 @@ public final class Utility {
   public static boolean isVector3GreaterThan(geometry_msgs.Vector3 vector, double value) {
     return (vector.getX() > value && vector.getY() > value && vector.getZ() > value);
   }
-
 }

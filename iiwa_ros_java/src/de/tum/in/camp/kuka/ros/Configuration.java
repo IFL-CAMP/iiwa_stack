@@ -298,11 +298,11 @@ public class Configuration extends AbstractNodeMain {
     double[] maxTranslationVelocity = new double[3];
 
     if (maxTranslationVelocityList == null) {
-      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+      Arrays.fill(maxTranslationVelocity, 1.0); // Setting the default value in m/s.
     }
     else if (maxTranslationVelocityList.size() != 3) {
       Logger.warn("The ROS parameter 'maxTranslationalVelocity' has to have 3 components, using its default values.");
-      Arrays.fill(maxTranslationVelocity, 1000.0); // Setting the default value.
+      Arrays.fill(maxTranslationVelocity, 1.0); // Setting the default value in m/s.
     }
     // At this point the List is not null and has 3 elements.
     else {
