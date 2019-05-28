@@ -47,7 +47,7 @@ public class PTPMotionFinishedEventListener implements IMotionContainerListener 
 
   @Override
   public void containerFinished(IMotionContainer container) {
-    Logger.info("Motion finished");
+    Logger.debug("Motion finished");
     if (publisher != null) {
       publisher.publishDestinationReached();
     }

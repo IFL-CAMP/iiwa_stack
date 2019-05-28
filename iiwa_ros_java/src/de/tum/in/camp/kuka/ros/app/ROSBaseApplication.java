@@ -72,6 +72,7 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
+//import de.tum.in.robotics.zimmer.r840.ROSZimmerR840;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -89,7 +90,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected SmartServoLIN linearMotion = null;
   protected ControlModeHandler controlModeHandler = null;
   protected Lock controlModeLock = new ReentrantLock();
-  protected CommandType lastCommandType = CommandType.JOINT_POSITION;
+  protected CommandType lastCommandType = CommandType.SMART_SERVO_JOINT_POSITION;
   protected GoalReachedEventListener handler = null;
 
   // Tool frame.
@@ -119,7 +120,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // Active tool, you can replace this with a tool you are using that supports ROS messages.
   protected ActiveTool rosTool = null;
   // Example available at https://github.com/exo-core/iiwa_stack_tools
-  //@Inject protected ROSZimmerR840 rosTool;
+  // @Inject protected ROSZimmerR840 rosTool;
 
   ActiveToolThread activeToolThread = null;
   Timer activeToolTimer = null;
@@ -439,7 +440,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
         Logger.warn("Enabling Fake Hand Guiding Mode.");
         handGuidanceControlMode.setStiffness(2, 2, 2, 2, 2, 0, 0);
         handGuidanceControlMode.setDampingForAllJoints(0.7);
-        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, handGuidanceControlMode);
         }
         else {
@@ -451,7 +452,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
         Logger.warn("Disabling Fake Hand Guiding Mode.");
-        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, new PositionControlMode(true));
         }
         else {

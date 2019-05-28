@@ -135,7 +135,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 
     cartesianPoseServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName
         + "/action/move_to_cartesian_pose", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-    cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT) {
+    cartesianPoseServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT_CARTESIAN_POSE) {
       @Override
       public String getGoalId(MoveToCartesianPoseActionGoal goal) {
         return goal.getGoalId().getId();
@@ -144,7 +144,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 
     cartesianPoseLinServer = new ActionServer<MoveToCartesianPoseActionGoal, MoveToCartesianPoseActionFeedback, MoveToCartesianPoseActionResult>(node, iiwaName
         + "/action/move_to_cartesian_pose_lin", MoveToCartesianPoseActionGoal._TYPE, MoveToCartesianPoseActionFeedback._TYPE, MoveToCartesianPoseActionResult._TYPE);
-    cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT_LIN) {
+    cartesianPoseLinServer.attachListener(new iiwaActionServerListener<MoveToCartesianPoseActionGoal>(this, CommandType.POINT_TO_POINT_CARTESIAN_POSE_LIN) {
       @Override
       public String getGoalId(MoveToCartesianPoseActionGoal goal) {
         return goal.getGoalId().getId();
@@ -153,7 +153,7 @@ public class iiwaActionServer extends AbstractNodeMain {
     
     moveAlongSplineServer = new ActionServer<MoveAlongSplineActionGoal, MoveAlongSplineActionFeedback, MoveAlongSplineActionResult>(node, iiwaName
         + "/action/move_along_spline", MoveAlongSplineActionGoal._TYPE, MoveAlongSplineActionFeedback._TYPE, MoveAlongSplineActionResult._TYPE);
-    moveAlongSplineServer.attachListener(new iiwaActionServerListener<MoveAlongSplineActionGoal>(this, CommandType.POINT_TO_POINT_SPLINE) {
+    moveAlongSplineServer.attachListener(new iiwaActionServerListener<MoveAlongSplineActionGoal>(this, CommandType.POINT_TO_POINT_CARTESIAN_SPLINE) {
       @Override
       public String getGoalId(MoveAlongSplineActionGoal goal) {
         return goal.getGoalId().getId();
@@ -162,7 +162,7 @@ public class iiwaActionServer extends AbstractNodeMain {
 
     jointPositionServer = new ActionServer<MoveToJointPositionActionGoal, MoveToJointPositionActionFeedback, MoveToJointPositionActionResult>(node, iiwaName
         + "/action/move_to_joint_position", MoveToJointPositionActionGoal._TYPE, MoveToJointPositionActionFeedback._TYPE, MoveToJointPositionActionResult._TYPE);
-    jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this, CommandType.JOINT_POSITION) {
+    jointPositionServer.attachListener(new iiwaActionServerListener<MoveToJointPositionActionGoal>(this, CommandType.POINT_TO_POINT_JOINT_POSITION) {
       @Override
       public String getGoalId(MoveToJointPositionActionGoal goal) {
         return goal.getGoalId().getId();
@@ -196,7 +196,9 @@ public class iiwaActionServer extends AbstractNodeMain {
    * Sets current goal to succeeded and publishes result message
    */
   public void markCurrentGoalReached() {
-    Logger.info("Publishing current goal reached: " + currentGoal.goalId);
+    if (hasCurrentGoal()) {
+      Logger.debug("Publishing current "+currentGoal.goalType+" goal reached: " + currentGoal.goalId);
+    }
     markCurrentGoal(true, "");
   }
 
@@ -204,6 +206,9 @@ public class iiwaActionServer extends AbstractNodeMain {
    * Sets current goal to aborted and publishes result message
    */
   public void markCurrentGoalFailed(String error_msg) {
+    if (hasCurrentGoal()) {
+      Logger.debug("Publishing current "+currentGoal.goalType+" goal failed: " + currentGoal.goalId);
+    }
     markCurrentGoal(false, error_msg);
   }
 
@@ -211,7 +216,7 @@ public class iiwaActionServer extends AbstractNodeMain {
     if (hasCurrentGoal()) {
       switch (currentGoal.goalType) {
       	// TODO: Reduce similar code
-        case POINT_TO_POINT: {
+        case POINT_TO_POINT_CARTESIAN_POSE: {
           MoveToCartesianPoseActionResult result = cartesianPoseServer.newResultMessage();
           result.getResult().setSuccess(succeeded);
           result.getResult().setError(error_msg);
@@ -228,7 +233,7 @@ public class iiwaActionServer extends AbstractNodeMain {
           cartesianPoseServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
           break;
         }
-        case POINT_TO_POINT_LIN: {
+        case POINT_TO_POINT_CARTESIAN_POSE_LIN: {
           MoveToCartesianPoseActionResult result = cartesianPoseLinServer.newResultMessage();
           result.getResult().setSuccess(succeeded);
           result.getResult().setError(error_msg);
@@ -245,7 +250,7 @@ public class iiwaActionServer extends AbstractNodeMain {
           cartesianPoseLinServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
           break;
         }
-        case POINT_TO_POINT_SPLINE: {
+        case POINT_TO_POINT_CARTESIAN_SPLINE: {
             MoveAlongSplineActionResult result = moveAlongSplineServer.newResultMessage();
             result.getResult().setSuccess(succeeded);
             result.getResult().setError(error_msg);
@@ -262,7 +267,7 @@ public class iiwaActionServer extends AbstractNodeMain {
             moveAlongSplineServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
             break;
           }
-        case JOINT_POSITION: {
+        case POINT_TO_POINT_JOINT_POSITION: {
           MoveToJointPositionActionResult result = jointPositionServer.newResultMessage();
           result.getResult().setSuccess(succeeded);
           result.getResult().setError(error_msg);
@@ -330,13 +335,16 @@ public class iiwaActionServer extends AbstractNodeMain {
   public synchronized void publishCurrentState() {
     if (hasCurrentGoal()) {
       switch (currentGoal.goalType) {
-        case POINT_TO_POINT:
+        case POINT_TO_POINT_CARTESIAN_POSE:
           cartesianPoseServer.sendStatusTick();
           break;
-        case POINT_TO_POINT_LIN:
+        case POINT_TO_POINT_CARTESIAN_POSE_LIN:
           cartesianPoseLinServer.sendStatusTick();
           break;
-        case JOINT_POSITION:
+        case POINT_TO_POINT_CARTESIAN_SPLINE:
+          moveAlongSplineServer.sendStatusTick();
+          break;
+        case POINT_TO_POINT_JOINT_POSITION:
           jointPositionServer.sendStatusTick();
           break;
         default:

@@ -28,6 +28,7 @@ package de.tum.in.camp.kuka.ros.app;
 import geometry_msgs.PoseStamped;
 import iiwa_msgs.ConfigureControlModeRequest;
 import iiwa_msgs.ConfigureControlModeResponse;
+import iiwa_msgs.JointPosition;
 import iiwa_msgs.MoveAlongSplineActionGoal;
 import iiwa_msgs.MoveToCartesianPoseActionGoal;
 import iiwa_msgs.MoveToJointPositionActionGoal;
@@ -98,7 +99,7 @@ public class ROSSmartServo extends ROSBaseApplication {
         controlModeLock.lock();
         try {
           // TODO: reduce code duplication
-          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+          if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
             // We can just change the parameters if the control strategy is the same.
             if (controlModeHandler.isSameControlMode(linearMotion.getMode(), req.getControlMode())) {
               // If the request was for PositionControlMode and we are already there, do nothing.
@@ -148,7 +149,7 @@ public class ROSSmartServo extends ROSBaseApplication {
       @Override
       public void build(TimeToDestinationRequest req, TimeToDestinationResponse res) throws ServiceException {
         try {
-          if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+          if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
             linearMotion.getRuntime().updateWithRealtimeSystem();
             res.setRemainingTime(linearMotion.getRuntime().getRemainingTime());
           }
@@ -237,7 +238,7 @@ public class ROSSmartServo extends ROSBaseApplication {
             try {
               SpeedLimits.setSmartServoJointSpeedLimits(req);
 
-              if (lastCommandType != CommandType.CARTESIAN_POSE_LIN) {
+              if (lastCommandType != CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
                 iiwa_msgs.ConfigureControlModeRequest request = null;
                 motion = controlModeHandler.changeSmartServoControlMode(motion, request);
               }
@@ -263,7 +264,7 @@ public class ROSSmartServo extends ROSBaseApplication {
             try {
               SpeedLimits.setSmartServoLinSpeedLimits(req);
               
-              if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+              if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
                 iiwa_msgs.ConfigureControlModeRequest request = null;
                 linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, request);
 
@@ -339,7 +340,7 @@ public class ROSSmartServo extends ROSBaseApplication {
         controlModeHandler.setEndpointFrame(endpointFrame);
         
         // update motion
-        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.switchToSmartServoLIN(motion);
         }
         else {
@@ -378,22 +379,22 @@ public class ROSSmartServo extends ROSBaseApplication {
 
         Goal<?> actionGoal = actionServer.getCurrentGoal();
         switch (actionGoal.goalType) {
-          case POINT_TO_POINT: {
-            movePointToPoint(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
+          case POINT_TO_POINT_CARTESIAN_POSE: {
+            movePointToPointCartesian(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
                 .getGoal().getCartesianPose().getRedundancy());
             break;
           }
-          case POINT_TO_POINT_LIN: {
-            movePointToPointLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
+          case POINT_TO_POINT_CARTESIAN_POSE_LIN: {
+            movePointToPointCartesianLin(((MoveToCartesianPoseActionGoal) actionGoal.goal).getGoal().getCartesianPose().getPoseStamped(), ((MoveToCartesianPoseActionGoal) actionGoal.goal)
                 .getGoal().getCartesianPose().getRedundancy());
             break;
           }
-          case POINT_TO_POINT_SPLINE: {
-              movePointToPointSpline(((MoveAlongSplineActionGoal) actionGoal.goal).getGoal().getSpline());
+          case POINT_TO_POINT_CARTESIAN_SPLINE: {
+              movePointToPointCartesianSpline(((MoveAlongSplineActionGoal) actionGoal.goal).getGoal().getSpline());
               break;
             }
-          case JOINT_POSITION: {
-            moveToJointPosition(((MoveToJointPositionActionGoal) actionGoal.goal).getGoal().getJointPosition());
+          case POINT_TO_POINT_JOINT_POSITION: {
+            movePointToPointJointPosition(((MoveToJointPositionActionGoal) actionGoal.goal).getGoal().getJointPosition());
             break;
           }
           default: {
@@ -414,27 +415,27 @@ public class ROSSmartServo extends ROSBaseApplication {
         subscriber.currentCommandType = null;
 
         switch (copy) {
-          case CARTESIAN_POSE: {
+          case SMART_SERVO_CARTESIAN_POSE: {
             moveToCartesianPose(subscriber.getCartesianPose(), null);
             break;
           }
-          case CARTESIAN_POSE_LIN: {
+          case SMART_SERVO_CARTESIAN_POSE_LIN: {
             moveToCartesianPoseLin(subscriber.getCartesianPoseLin(), null);
             break;
           }
-          case CARTESIAN_VELOCITY: {
+          case SMART_SERVO_CARTESIAN_VELOCITY: {
             moveByCartesianVelocity(subscriber.getCartesianVelocity());
             break;
           }
-          case JOINT_POSITION: {
+          case SMART_SERVO_JOINT_POSITION: {
             moveToJointPosition(subscriber.getJointPosition());
             break;
           }
-          case JOINT_POSITION_VELOCITY: {
+          case SMART_SERVO_JOINT_POSITION_VELOCITY: {
             moveByJointPositionVelocity(subscriber.getJointPositionVelocity());
             break;
           }
-          case JOINT_VELOCITY: {
+          case SMART_SERVO_JOINT_VELOCITY: {
             moveByJointVelocity(subscriber.getJointVelocity());
             break;
           }
@@ -465,42 +466,59 @@ public class ROSSmartServo extends ROSBaseApplication {
    */
   protected void activateMotionMode(CommandType commandType) {
     if (commandType == lastCommandType) {
-      if (commandType == CommandType.POINT_TO_POINT_SPLINE) {
+      if (commandType == CommandType.POINT_TO_POINT_CARTESIAN_SPLINE) {
         // For some reason the application gets stuck when executing two spline motions
         // in a row. Switching the control mode to SmartServo and back in between 
         // resolves the issue.
         // TODO: Find a cleaner way of solving this issue 
-        activateMotionMode(CommandType.CARTESIAN_POSE_LIN);
-        activateMotionMode(CommandType.POINT_TO_POINT_SPLINE);
+        activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE_LIN);
+        activateMotionMode(commandType);
       }
       return;
     }
 
     Logger.debug("Switching control mode from " + lastCommandType + " to " + commandType);
 
-    if (commandType == CommandType.CARTESIAN_POSE || commandType == CommandType.CARTESIAN_VELOCITY || commandType == CommandType.JOINT_POSITION
-        || commandType == CommandType.JOINT_POSITION_VELOCITY || commandType == CommandType.JOINT_VELOCITY) {
-      if (lastCommandType == CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) {
+    if (commandType == CommandType.SMART_SERVO_CARTESIAN_POSE
+        || commandType == CommandType.SMART_SERVO_CARTESIAN_VELOCITY
+        || commandType == CommandType.SMART_SERVO_JOINT_POSITION
+        || commandType == CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY
+        || commandType == CommandType.SMART_SERVO_JOINT_VELOCITY) {
+      if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN
+          || lastCommandType == null) {
         motion = controlModeHandler.switchToSmartServo(linearMotion);
       }
-      else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
+      else if (lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE
+          || lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE_LIN
+          || lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_SPLINE
+          || lastCommandType == CommandType.POINT_TO_POINT_JOINT_POSITION) {
         motion = controlModeHandler.enableSmartServo(motion);
       }
     }
-    else if (commandType == CommandType.CARTESIAN_POSE_LIN) {
-      if (lastCommandType != CommandType.CARTESIAN_POSE_LIN || lastCommandType == null) {
+    else if (commandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
+      if (lastCommandType != CommandType.SMART_SERVO_CARTESIAN_POSE_LIN
+          || lastCommandType == null) {
         linearMotion = controlModeHandler.switchToSmartServoLIN(motion);
       }
-      else if (lastCommandType == CommandType.POINT_TO_POINT || lastCommandType == CommandType.POINT_TO_POINT_LIN || lastCommandType == CommandType.POINT_TO_POINT_SPLINE) {
+      else if (lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE
+          || lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE_LIN
+          || lastCommandType == CommandType.POINT_TO_POINT_CARTESIAN_SPLINE
+          || lastCommandType == CommandType.POINT_TO_POINT_JOINT_POSITION) {
         linearMotion = controlModeHandler.enableSmartServo(linearMotion);
       }
     }
-    else if (commandType == CommandType.POINT_TO_POINT || commandType == CommandType.POINT_TO_POINT_LIN || commandType == CommandType.POINT_TO_POINT_SPLINE) {
-      if (lastCommandType == CommandType.CARTESIAN_POSE || lastCommandType == CommandType.JOINT_POSITION || lastCommandType == CommandType.JOINT_POSITION_VELOCITY
-          || lastCommandType == CommandType.JOINT_VELOCITY || lastCommandType == CommandType.CARTESIAN_VELOCITY) {
+    else if (commandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE
+        || commandType == CommandType.POINT_TO_POINT_CARTESIAN_POSE_LIN
+        || commandType == CommandType.POINT_TO_POINT_CARTESIAN_SPLINE
+        || commandType == CommandType.POINT_TO_POINT_JOINT_POSITION) {
+      if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE
+          || lastCommandType == CommandType.SMART_SERVO_JOINT_POSITION
+          || lastCommandType == CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY
+          || lastCommandType == CommandType.SMART_SERVO_JOINT_VELOCITY
+          || lastCommandType == CommandType.SMART_SERVO_CARTESIAN_VELOCITY) {
         controlModeHandler.disableSmartServo(motion);
       }
-      else if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+      else if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
         controlModeHandler.disableSmartServo(linearMotion);
       }
       else if (lastCommandType == null) {
@@ -508,8 +526,8 @@ public class ROSSmartServo extends ROSBaseApplication {
         // in a row. Switching the control mode to SmartServo and back in between 
         // resolves the issue.
         // TODO: Find a cleaner way of solving this issue 
-        activateMotionMode(CommandType.CARTESIAN_POSE_LIN);
-        activateMotionMode(CommandType.POINT_TO_POINT_SPLINE);
+        activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE_LIN);
+        activateMotionMode(commandType);
       }
     }
     else {
@@ -520,12 +538,12 @@ public class ROSSmartServo extends ROSBaseApplication {
   }
 
   protected void moveToJointPosition(iiwa_msgs.JointPosition commandPosition) {
-    activateMotionMode(CommandType.JOINT_POSITION);
+    activateMotionMode(CommandType.SMART_SERVO_JOINT_POSITION);
     motions.jointPositionMotion(motion, commandPosition);
   }
 
   protected void moveToCartesianPose(PoseStamped commandPosition, RedundancyInformation redundancy) {
-    activateMotionMode(CommandType.CARTESIAN_POSE);
+    activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE);
     commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
     if (commandPosition != null) {
       motions.cartesianPositionMotion(motion, commandPosition, redundancy);
@@ -536,7 +554,7 @@ public class ROSSmartServo extends ROSBaseApplication {
   }
 
   protected void moveToCartesianPoseLin(PoseStamped commandPosition, RedundancyInformation redundancy) {
-    activateMotionMode(CommandType.CARTESIAN_POSE_LIN);
+    activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE_LIN);
     commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
     if (commandPosition != null) {
       motions.cartesianPositionLinMotion(linearMotion, commandPosition, redundancy);
@@ -546,33 +564,38 @@ public class ROSSmartServo extends ROSBaseApplication {
     }
   }
 
-  protected void movePointToPoint(PoseStamped commandPosition, RedundancyInformation redundancy) {
-    activateMotionMode(CommandType.POINT_TO_POINT);
+  protected void movePointToPointJointPosition(JointPosition commandPosition) {
+    activateMotionMode(CommandType.POINT_TO_POINT_JOINT_POSITION);
+    motions.pointToPointJointPositionMotion(controlModeHandler.getControlMode(), commandPosition);
+  }  
+  
+  protected void movePointToPointCartesian(PoseStamped commandPosition, RedundancyInformation redundancy) {
+    activateMotionMode(CommandType.POINT_TO_POINT_CARTESIAN_POSE);
     commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
 
     if (commandPosition != null) {
-      motions.pointToPointMotion(controlModeHandler.getControlMode(), commandPosition, redundancy);
+      motions.pointToPointCartesianMotion(controlModeHandler.getControlMode(), commandPosition, redundancy);
     }
     else {
       Logger.warn("Invalid motion target pose");
     }
   }
 
-  protected void movePointToPointLin(PoseStamped commandPosition, RedundancyInformation redundancy) {
-    activateMotionMode(CommandType.POINT_TO_POINT_LIN);
+  protected void movePointToPointCartesianLin(PoseStamped commandPosition, RedundancyInformation redundancy) {
+    activateMotionMode(CommandType.POINT_TO_POINT_CARTESIAN_POSE_LIN);
     commandPosition = subscriber.transformPose(commandPosition, robotBaseFrameID);
 
     if (commandPosition != null) {
-      motions.pointToPointMotionLin(controlModeHandler.getControlMode(), commandPosition, redundancy);
+      motions.pointToPointLinearCartesianMotion(controlModeHandler.getControlMode(), commandPosition, redundancy);
     }
     else {
       Logger.warn("Invalid motion target pose");
     }
   }
 
-  protected void movePointToPointSpline(Spline spline) {
-    activateMotionMode(CommandType.POINT_TO_POINT_SPLINE);
-    boolean success = motions.pointToPointMotionSpline(controlModeHandler.getControlMode(), spline, subscriber);
+  protected void movePointToPointCartesianSpline(Spline spline) {
+    activateMotionMode(CommandType.POINT_TO_POINT_CARTESIAN_SPLINE);
+    boolean success = motions.pointToPointCartesianSplineMotion(controlModeHandler.getControlMode(), spline, subscriber);
 
     if (!success && actionServer.hasCurrentGoal()) {
       actionServer.markCurrentGoalFailed("Invalid spline.");
@@ -580,12 +603,12 @@ public class ROSSmartServo extends ROSBaseApplication {
   }
 
   protected void moveByJointPositionVelocity(iiwa_msgs.JointPositionVelocity commandPositionVelocity) {
-    activateMotionMode(CommandType.JOINT_POSITION_VELOCITY);
+    activateMotionMode(CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY);
     motions.jointPositionVelocityMotion(motion, commandPositionVelocity);
   }
 
   protected void moveByJointVelocity(iiwa_msgs.JointVelocity commandVelocity) {
-    activateMotionMode(CommandType.JOINT_VELOCITY);
+    activateMotionMode(CommandType.SMART_SERVO_JOINT_VELOCITY);
 
     /*
      * This will acquire the last received JointVelocity command from the commanding ROS node, if there is any
@@ -598,7 +621,7 @@ public class ROSSmartServo extends ROSBaseApplication {
   }
 
   protected void moveByCartesianVelocity(geometry_msgs.TwistStamped commandVelocity) {
-    activateMotionMode(CommandType.CARTESIAN_VELOCITY);
+    activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_VELOCITY);
     motions.cartesianVelocityMotion(motion, commandVelocity, endpointFrame);
   }
 }

@@ -40,7 +40,9 @@ import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
-import com.kuka.roboticsAPI.motionModel.IMotion;
+import com.kuka.roboticsAPI.motionModel.CartesianPTP;
+import com.kuka.roboticsAPI.motionModel.LIN;
+import com.kuka.roboticsAPI.motionModel.PTP;
 import com.kuka.roboticsAPI.motionModel.Spline;
 import com.kuka.roboticsAPI.motionModel.SplineMotionCP;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -123,7 +125,7 @@ public class Motions {
     }
   }
 
-  public void pointToPointMotion(IMotionControlMode motion, PoseStamped commandPosition, RedundancyInformation redundancy) {
+  public void pointToPointCartesianMotion(IMotionControlMode motion, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
@@ -131,12 +133,13 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      IMotion ptpMotion = ptp(destinationFrame);
+      CartesianPTP ptpMotion = ptp(destinationFrame);
+      SpeedLimits.applySpeedLimits(ptpMotion);
       endPointFrame.moveAsync(ptpMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
 
-  public void pointToPointMotionLin(IMotionControlMode mode, PoseStamped commandPosition, RedundancyInformation redundancy) {
+  public void pointToPointLinearCartesianMotion(IMotionControlMode mode, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
@@ -144,7 +147,7 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      SplineMotionCP<?> linMotion = lin(destinationFrame);
+      LIN linMotion = lin(destinationFrame);
       SpeedLimits.applySpeedLimits(linMotion);
       endPointFrame.moveAsync(linMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
@@ -157,7 +160,7 @@ public class Motions {
    * @param splineMsg
    * @param subscriber: Required for TF lookups
    */
-  public boolean pointToPointMotionSpline(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
+  public boolean pointToPointCartesianSplineMotion(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
     if (splineMsg == null) { return false; }
 
     boolean success = true;
@@ -207,12 +210,22 @@ public class Motions {
     }
 
     if (success) {
+      Logger.debug("Executing spline with "+splineSegments.size()+" segments");
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
       SpeedLimits.applySpeedLimits(spline);
       endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
 
     return success;
+  }
+
+  public void pointToPointJointPositionMotion(IMotionControlMode motion, iiwa_msgs.JointPosition commandPosition) {
+    if (commandPosition != null) {
+      Conversions.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
+      PTP ptpMotion = ptp(jp);
+      SpeedLimits.applySpeedLimits(ptpMotion);
+      robot.moveAsync(ptpMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
+    }
   }
 
   public void cartesianVelocityMotion(SmartServo motion, geometry_msgs.TwistStamped commandVelocity, ObjectFrame toolFrame) {

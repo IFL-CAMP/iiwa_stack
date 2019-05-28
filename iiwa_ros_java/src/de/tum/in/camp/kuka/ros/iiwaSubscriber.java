@@ -486,7 +486,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_cp) {
           cp = position;
-          currentCommandType = CommandType.CARTESIAN_POSE;
+          currentCommandType = CommandType.SMART_SERVO_CARTESIAN_POSE;
           new_cp = true;
         }
       }
@@ -502,7 +502,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
           }
         }
         cv = velocity;
-        currentCommandType = CommandType.CARTESIAN_VELOCITY;
+        currentCommandType = CommandType.SMART_SERVO_CARTESIAN_VELOCITY;
       }
     });
 
@@ -518,7 +518,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_cp_lin) {
           cp_lin = position;
-          currentCommandType = CommandType.CARTESIAN_POSE_LIN;
+          currentCommandType = CommandType.SMART_SERVO_CARTESIAN_POSE_LIN;
           new_cp_lin = true;
         }
       }
@@ -535,7 +535,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_jp) {
           jp = position;
-          currentCommandType = CommandType.JOINT_POSITION;
+          currentCommandType = CommandType.SMART_SERVO_JOINT_POSITION;
           new_jp = true;
         }
       }
@@ -553,7 +553,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_jpv) {
           jpv = positionVelocity;
-          currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+          currentCommandType = CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY;
           new_jpv = true;
         }
       }
@@ -569,7 +569,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
           }
         }
         jv = velocity;
-        currentCommandType = CommandType.JOINT_VELOCITY;
+        currentCommandType = CommandType.SMART_SERVO_JOINT_VELOCITY;
       }
     });
 
