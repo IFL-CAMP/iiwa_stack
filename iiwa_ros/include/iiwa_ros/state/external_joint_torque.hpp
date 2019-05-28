@@ -54,7 +54,7 @@ public:
   void init(const std::string& robot_namespace, const std::function<void(const iiwa_msgs::JointTorque&)> callback);
 
   /**
-   * @brief Returns the current robot joint torque.
+   * @brief Returns the current robot external joint torque.
    */
   iiwa_msgs::JointTorque getTorque();
 
