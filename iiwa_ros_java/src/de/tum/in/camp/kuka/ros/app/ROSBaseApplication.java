@@ -72,7 +72,6 @@ import de.tum.in.camp.kuka.ros.SpeedLimits;
 import de.tum.in.camp.kuka.ros.iiwaActionServer;
 import de.tum.in.camp.kuka.ros.iiwaPublisher;
 import de.tum.in.camp.kuka.ros.Logger;
-//import de.tum.in.robotics.zimmer.r840.ROSZimmerR840;
 
 /*
  * Base application for all ROS-Sunrise applications. Manages lifetime of ROS Nodes, NTP synchronization,
@@ -120,7 +119,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // Active tool, you can replace this with a tool you are using that supports ROS messages.
   protected ActiveTool rosTool = null;
   // Example available at https://github.com/exo-core/iiwa_stack_tools
-  // @Inject protected ROSZimmerR840 rosTool;
+  //@Inject protected ROSZimmerR840 rosTool;
 
   ActiveToolThread activeToolThread = null;
   Timer activeToolTimer = null;
@@ -299,8 +298,13 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       endpointFrame = robot.getFlange();
     }
     else {
-      Logger.info("Setting endpoint frame " + endpointFrameFromConfig);
-      endpointFrame = tool.getFrame(endpointFrameFromConfig);
+      try {
+        Logger.info("Setting endpoint frame " + endpointFrameFromConfig);
+        endpointFrame = tool.getFrame(endpointFrameFromConfig);
+      }
+      catch (Exception e) {
+        Logger.error("Error while setting endpoint frame to \""+endpointFrameFromConfig+"\": "+e.getMessage());
+      }
     }
 
     // Load speed limits from configuration.

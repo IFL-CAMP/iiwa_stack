@@ -43,11 +43,7 @@ public class MoveAsyncErrorHandler implements IErrorHandler {
   @Override
   public ErrorHandlingAction handleError(Device device, IMotionContainer failedContainer,
       List<IMotionContainer> canceledContainers) {
-    if (actionServer != null && actionServer.hasCurrentGoal()) {
-      actionServer.markCurrentGoalFailed(failedContainer.getErrorMessage());
-      Logger.error(failedContainer.getErrorMessage());
-    }
-    
+    Logger.error(failedContainer.getErrorMessage());
     return ErrorHandlingAction.PauseMotion;
   }
 

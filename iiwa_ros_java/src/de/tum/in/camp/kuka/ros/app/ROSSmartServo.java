@@ -326,25 +326,41 @@ public class ROSSmartServo extends ROSBaseApplication {
     subscriber.setEndpointFrameCallback(new ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse>() {
       @Override
       public void build(SetEndpointFrameRequest req, SetEndpointFrameResponse res) throws ServiceException {
-        if (req.getFrameId().isEmpty()) {
-          endpointFrame = toolFrame;
+        try {
+          if (req.getFrameId().isEmpty()) {
+            endpointFrame = toolFrame;
+          }
+          else if (req.getFrameId().equals(configuration.getRobotName() + toolFrameIDSuffix)) {
+            endpointFrame = robot.getFlange();
+          }
+          else {
+            endpointFrame = tool.getFrame(req.getFrameId());
+          }
+  
+          motions.setEnpointFrame(endpointFrame);
+          controlModeHandler.setEndpointFrame(endpointFrame);
+          
+          // update motion
+          if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
+            activateMotionMode(CommandType.SMART_SERVO_JOINT_POSITION);
+            activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE_LIN);
+          }
+          else if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE
+              || lastCommandType == CommandType.SMART_SERVO_CARTESIAN_VELOCITY
+              || lastCommandType == CommandType.SMART_SERVO_JOINT_POSITION
+              || lastCommandType == CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY
+              || lastCommandType == CommandType.SMART_SERVO_JOINT_VELOCITY) {
+            activateMotionMode(CommandType.SMART_SERVO_JOINT_POSITION);
+            CommandType currentCommandType = lastCommandType;
+            activateMotionMode(CommandType.SMART_SERVO_CARTESIAN_POSE_LIN);
+            activateMotionMode(currentCommandType);
+          }
+          
+          res.setSuccess(true);
         }
-        else if (req.getFrameId().equals(configuration.getRobotName() + toolFrameIDSuffix)) {
-          endpointFrame = robot.getFlange();
-        }
-        else {
-          endpointFrame = tool.getFrame(req.getFrameId());
-        }
-
-        motions.setEnpointFrame(endpointFrame);
-        controlModeHandler.setEndpointFrame(endpointFrame);
-        
-        // update motion
-        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
-          linearMotion = controlModeHandler.switchToSmartServoLIN(motion);
-        }
-        else {
-          motion = controlModeHandler.switchToSmartServo(linearMotion);
+        catch (Exception e) {
+          Logger.error("Error while setting endpoint frame to \""+req.getFrameId()+"\": "+e.getMessage());
+          res.setError(e.getMessage());
         }
       }
     });
@@ -390,9 +406,9 @@ public class ROSSmartServo extends ROSBaseApplication {
             break;
           }
           case POINT_TO_POINT_CARTESIAN_SPLINE: {
-              movePointToPointCartesianSpline(((MoveAlongSplineActionGoal) actionGoal.goal).getGoal().getSpline());
-              break;
-            }
+            movePointToPointCartesianSpline(((MoveAlongSplineActionGoal) actionGoal.goal).getGoal().getSpline());
+            break;
+          }
           case POINT_TO_POINT_JOINT_POSITION: {
             movePointToPointJointPosition(((MoveToJointPositionActionGoal) actionGoal.goal).getGoal().getJointPosition());
             break;

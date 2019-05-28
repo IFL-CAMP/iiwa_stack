@@ -175,7 +175,7 @@ public class ControlModeHandler {
    * Given a current SmartServoLin motion, it return a SmartServo motion with the same control mode.
    */
   public SmartServo switchToSmartServo(SmartServoLIN linearMotion) {
-    Logger.debug("Switching to SmartServo motion");
+    //Logger.debug("Switching to SmartServo motion");
     IMotionControlMode currentMode = linearMotion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
@@ -195,7 +195,7 @@ public class ControlModeHandler {
    * Given a current SmartServo motion, it return a SmartServoLIN motion with the same control mode.
    */
   public SmartServoLIN switchToSmartServoLIN(SmartServo motion) {
-    Logger.debug("Switching to SmartServoLIN motion");
+    //Logger.debug("Switching to SmartServoLIN motion");
     IMotionControlMode currentMode = motion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
@@ -494,16 +494,16 @@ public class ControlModeHandler {
   }
 
   public void disableSmartServo(SmartServo motion) {
-    if (!(currentControlMode instanceof PositionControlMode)) {
+    /*if (!(currentControlMode instanceof PositionControlMode)) {
       changeSmartServoControlMode(motion, new PositionControlMode(true));
-    }
+    }*/
     motion.getRuntime().stopMotion();
   }
 
   public void disableSmartServo(SmartServoLIN motion) {
-    if (!(currentControlMode instanceof PositionControlMode)) {
+    /*if (!(currentControlMode instanceof PositionControlMode)) {
       changeSmartServoControlMode(motion, new PositionControlMode(true));
-    }
+    }*/
     motion.getRuntime().stopMotion();
   }
 
