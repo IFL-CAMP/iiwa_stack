@@ -98,7 +98,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected ObjectFrame endpointFrame = null;
 
   protected boolean initSuccessful = false;
-  protected boolean debug = true;
   protected boolean running = true;
 
   // ROS Nodes.
@@ -156,10 +155,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   public void initialize() {
     // Get the Sunrise Logger.
     Logger.setSunriseLogger(getLogger());
-    if (debug) {
+    if (getApplicationData().getProcessData("debug").getValue()) {
       Logger.setLogLevel(Level.DEBUG);
     }
-    
+
     // Get the robot instance.
     robot = getContext().getDeviceFromType(LBR.class);
 
@@ -178,9 +177,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       configureNodes();
     }
     catch (Exception e) {
-      if (debug) {
-        Logger.error("Node Configuration failed. Please check the ROS Master IP in the Sunrise Process Data.");
-      }
+      Logger.error("Node Configuration failed. Please check the ROS Master IP in the Sunrise Process Data.");
       Logger.error(e.toString());
       e.printStackTrace();
       return;
@@ -205,9 +202,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       Logger.debug("ROS Node Executor initialized.");
     }
     catch (Exception e) {
-      if (debug) {
-        Logger.error("ROS Node Executor initialization failed.");
-      }
+      Logger.error("ROS Node Executor initialization failed.");
       Logger.error(e.toString());
       e.printStackTrace();
       return;

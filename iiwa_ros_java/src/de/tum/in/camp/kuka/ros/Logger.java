@@ -1,7 +1,7 @@
 /**
- * Copyright (C) 2018 Arne Peters - arne.peters@tum.de Technische Universität München Chair for Robotics,
- * Artificial Intelligence and Embedded Systems Fakultät für Informatik / I6, Boltzmannstraße 3, 85748
- * Garching bei München, Germany http://www6.in.tum.de All rights reserved.
+ * Copyright (C) 2018 Arne Peters - arne.peters@tum.de Technische Universitï¿½t Mï¿½nchen Chair for Robotics,
+ * Artificial Intelligence and Embedded Systems Fakultï¿½t fï¿½r Informatik / I6, Boltzmannstraï¿½e 3, 85748
+ * Garching bei Mï¿½nchen, Germany http://www6.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -103,13 +103,12 @@ public class Logger {
           }
         }
       }
-  
+
       if (target == Target.BOTH || target == Target.ROS) {
         if (rosLogger != null) {
           switch (level) {
             case DEBUG:
               rosLogger.debug(message);
-              //rosLogger.info(message);
               break;
             case INFO:
               rosLogger.info(message);
