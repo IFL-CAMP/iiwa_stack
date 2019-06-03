@@ -223,10 +223,10 @@ public class iiwaPublisher extends AbstractNodeMain {
       jointTorquePublisher.publish(jt);
     }
     if (externalJointTorquePublisher.getNumberOfSubscribers() > 0) {
-        helper.getCurrentExternalJointTorque(ejt, robot);
-        helper.incrementSeqNumber(ejt.getHeader());
-        externalJointTorquePublisher.publish(ejt);
-      }
+      helper.getCurrentExternalJointTorque(ejt, robot);
+      helper.incrementSeqNumber(ejt.getHeader());
+      externalJointTorquePublisher.publish(ejt);
+    }
 
     if (publishJointState && jointStatesPublisher.getNumberOfSubscribers() > 0) {
       helper.getCurrentJointState(js, robot);
