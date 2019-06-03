@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakult�t f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany
@@ -151,16 +151,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected abstract void beforeControlLoop();
 
   protected abstract void controlLoop();
-
-  /*
-   * SmartServo control makes the control loop very slow These variables are used to run them every
-   * *decimation* times, In order to balance the load, they alternate at *decimationCounter* % *decimation* ==
-   * 0 and *decimationCounter* % *decimation* == *decimation* / 2
-   */
-
-  // TODO : in config.txt or processData
-  protected int decimationCounter = 0;
-  protected int controlDecimation = 8;
 
   @PostConstruct
   public void initialize() {
