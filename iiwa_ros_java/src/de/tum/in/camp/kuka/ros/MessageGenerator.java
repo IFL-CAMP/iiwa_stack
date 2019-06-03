@@ -282,9 +282,10 @@ public class MessageGenerator {
     currentJointTorque.getHeader().setStamp(time.getCurrentTime());
     Conversions.vectorToJointQuantity(torque, currentJointTorque.getTorque());
   }
-  
+
   /**
-   * Builds a iiwa_msgs.JointTorque message containing the external torque applied to the given LBR iiwa Robot.
+   * Builds a iiwa_msgs.JointTorque message containing the external torque applied to the given LBR iiwa
+   * Robot.
    * <p>
    * The message header is set to current time.<br>
    * 
