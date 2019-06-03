@@ -492,32 +492,28 @@ public class ControlModeHandler {
   }
 
   public void disableSmartServo(SmartServo motion) {
-    /*if (!(currentControlMode instanceof PositionControlMode)) {
-      changeSmartServoControlMode(motion, new PositionControlMode(true));
-    }*/
+    if (currentControlMode != null) {
+      if (!(currentControlMode instanceof PositionControlMode)) {
+        changeSmartServoControlMode(motion, new PositionControlMode(true));
+      }
+    }
     motion.getRuntime().stopMotion();
   }
 
   public void disableSmartServo(SmartServoLIN motion) {
-    /*if (!(currentControlMode instanceof PositionControlMode)) {
-      changeSmartServoControlMode(motion, new PositionControlMode(true));
-    }*/
+    if (currentControlMode != null) {
+      if (!(currentControlMode instanceof PositionControlMode)) {
+        changeSmartServoControlMode(motion, new PositionControlMode(true));
+      }
+    }
     motion.getRuntime().stopMotion();
   }
 
   public SmartServo enableSmartServo(SmartServo motion) {
     return changeSmartServoControlMode(motion, lastSmartServoRequest);
-    /*
-     * motion.setMode(getCurrentMode()); endpointFrame.moveAsync(motion);
-     * motion.getRuntime().setGoalReachedEventHandler(handler);
-     */
   }
 
   public SmartServoLIN enableSmartServo(SmartServoLIN linearMotion) {
     return changeSmartServoControlMode(linearMotion, lastSmartServoRequest);
-    /*
-     * linearMotion.setMode(getCurrentMode()); endpointFrame.moveAsync(linearMotion);
-     * linearMotion.getRuntime().setGoalReachedEventHandler(handler);
-     */
   }
 }
