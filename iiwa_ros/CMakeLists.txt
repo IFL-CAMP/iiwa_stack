@@ -23,6 +23,7 @@ add_library(${PROJECT_NAME}
   src/state/cartesian_wrench.cpp
   src/state/joint_position.cpp
   src/state/joint_torque.cpp
+  src/state/external_joint_torque.cpp
   src/state/joint_velocity.cpp
   src/state/destination_reached.cpp
 
