@@ -85,7 +85,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   @SuppressWarnings("unused")
   private ServiceServer<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> smartServoLinLimitsServer = null;
   private ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> smartServoLinLimitsCallback = null;
-  
+
   @SuppressWarnings("unused")
   private ServiceServer<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse> PTPJointLimitsServer = null;
   private ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse> PTPJointLimitsCallback = null;
@@ -208,8 +208,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   /**
    * Add a callback to the SetSpeedOverride service
    */
-  public void setSpeedOverrideCallback(
-      ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> callback) {
+  public void setSpeedOverrideCallback(ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> callback) {
     speedOverrideCallback = callback;
   }
 
@@ -226,7 +225,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   public void setSmartServoLinLimitsCallback(ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> callback) {
     smartServoLinLimitsCallback = callback;
   }
-  
+
   /**
    * Add a callback to the SetPathParameters service
    */
@@ -396,29 +395,23 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @param robotBaseFrame: String id of robot base frame (usually iiwa_link_0)
    * @return
    **/
-	public Frame cartesianPoseToRosFrame(AbstractFrame parent, CartesianPose cartesianPose, String robotBaseFrame) {
-		PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(),	robotBaseFrame);
-		
-		if (poseStamped == null) {
-			return null;
-		}
+  public Frame cartesianPoseToRosFrame(AbstractFrame parent, CartesianPose cartesianPose, String robotBaseFrame) {
+    PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(), robotBaseFrame);
 
-		Frame frame = Conversions.rosPoseToKukaFrame(parent, poseStamped.getPose());
-		RedundancyInformation redundancy = cartesianPose.getRedundancy();
+    if (poseStamped == null) { return null; }
 
-		if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-  		// You can get this info from the robot Cartesian Position (SmartPad)
-		  // or the /iiwa/state/CartesianPose topic
-			IRedundancyCollection redundantData = new LBRE1Redundancy(
-					redundancy.getE1(),
-					redundancy.getStatus(),
-					redundancy.getTurn()
-			);
-			frame.setRedundancyInformation(robot, redundantData);
-		}
+    Frame frame = Conversions.rosPoseToKukaFrame(parent, poseStamped.getPose());
+    RedundancyInformation redundancy = cartesianPose.getRedundancy();
 
-		return frame;
-	}
+    if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
+      // You can get this info from the robot Cartesian Position (SmartPad)
+      // or the /iiwa/state/CartesianPose topic
+      IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
+      frame.setRedundancyInformation(robot, redundantData);
+    }
+
+    return frame;
+  }
 
   /**
    * Returns the last received Joint Velocity message. Returns null if no new message is available.
@@ -587,7 +580,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
     if (speedOverrideCallback != null) {
       speedOverrideServer = node.newServiceServer(iiwaName + "/configuration/setSpeedOverride", "iiwa_msgs/SetSpeedOverride", speedOverrideCallback);
     }
-    
+
     // Creating setSmartServoLimits service if a callback has been defined.
     if (smartServoLimitsCallback != null) {
       smartServoLimitsServer = node.newServiceServer(iiwaName + "/configuration/setSmartServoLimits", "iiwa_msgs/SetSmartServoJointSpeedLimits", smartServoLimitsCallback);
@@ -597,12 +590,12 @@ public class iiwaSubscriber extends AbstractNodeMain {
     if (smartServoLinLimitsCallback != null) {
       smartServoLinLimitsServer = node.newServiceServer(iiwaName + "/configuration/setSmartServoLinLimits", "iiwa_msgs/SetSmartServoLinSpeedLimits", smartServoLinLimitsCallback);
     }
-    
+
     // Creating setPTPJointLimits service if a callback has been defined.
     if (PTPJointLimitsCallback != null) {
       PTPJointLimitsServer = node.newServiceServer(iiwaName + "/configuration/setPTPJointLimits", "iiwa_msgs/SetPTPJointSpeedLimits", PTPJointLimitsCallback);
     }
-    
+
     // Creating setPTPCartesianLimits service if a callback has been defined.
     if (PTPCartesianLimitsCallback != null) {
       PTPCartesianLimitsServer = node.newServiceServer(iiwaName + "/configuration/setPTPCartesianLimits", "iiwa_msgs/SetPTPCartesianSpeedLimits", PTPCartesianLimitsCallback);

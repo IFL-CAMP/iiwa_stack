@@ -210,7 +210,7 @@ public class Motions {
     }
 
     if (success) {
-      Logger.debug("Executing spline with "+splineSegments.size()+" segments");
+      Logger.debug("Executing spline with " + splineSegments.size() + " segments");
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
       SpeedLimits.applySpeedLimits(spline);
       endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));

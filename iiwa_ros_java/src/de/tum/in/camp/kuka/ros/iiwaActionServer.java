@@ -150,9 +150,9 @@ public class iiwaActionServer extends AbstractNodeMain {
         return goal.getGoalId().getId();
       }
     });
-    
-    moveAlongSplineServer = new ActionServer<MoveAlongSplineActionGoal, MoveAlongSplineActionFeedback, MoveAlongSplineActionResult>(node, iiwaName
-        + "/action/move_along_spline", MoveAlongSplineActionGoal._TYPE, MoveAlongSplineActionFeedback._TYPE, MoveAlongSplineActionResult._TYPE);
+
+    moveAlongSplineServer = new ActionServer<MoveAlongSplineActionGoal, MoveAlongSplineActionFeedback, MoveAlongSplineActionResult>(node, iiwaName + "/action/move_along_spline",
+        MoveAlongSplineActionGoal._TYPE, MoveAlongSplineActionFeedback._TYPE, MoveAlongSplineActionResult._TYPE);
     moveAlongSplineServer.attachListener(new iiwaActionServerListener<MoveAlongSplineActionGoal>(this, CommandType.POINT_TO_POINT_CARTESIAN_SPLINE) {
       @Override
       public String getGoalId(MoveAlongSplineActionGoal goal) {
@@ -197,7 +197,7 @@ public class iiwaActionServer extends AbstractNodeMain {
    */
   public void markCurrentGoalReached() {
     if (hasCurrentGoal()) {
-      Logger.debug("Publishing current "+currentGoal.goalType+" goal reached: " + currentGoal.goalId);
+      Logger.debug("Publishing current " + currentGoal.goalType + " goal reached: " + currentGoal.goalId);
     }
     markCurrentGoal(true, "");
   }
@@ -207,7 +207,7 @@ public class iiwaActionServer extends AbstractNodeMain {
    */
   public void markCurrentGoalFailed(String error_msg) {
     if (hasCurrentGoal()) {
-      Logger.debug("Publishing current "+currentGoal.goalType+" goal failed: " + currentGoal.goalId);
+      Logger.debug("Publishing current " + currentGoal.goalType + " goal failed: " + currentGoal.goalId);
     }
     markCurrentGoal(false, error_msg);
   }
@@ -215,7 +215,7 @@ public class iiwaActionServer extends AbstractNodeMain {
   private synchronized void markCurrentGoal(boolean succeeded, String error_msg) {
     if (hasCurrentGoal()) {
       switch (currentGoal.goalType) {
-      	// TODO: Reduce similar code
+      // TODO: Reduce similar code
         case POINT_TO_POINT_CARTESIAN_POSE: {
           MoveToCartesianPoseActionResult result = cartesianPoseServer.newResultMessage();
           result.getResult().setSuccess(succeeded);
@@ -251,22 +251,22 @@ public class iiwaActionServer extends AbstractNodeMain {
           break;
         }
         case POINT_TO_POINT_CARTESIAN_SPLINE: {
-            MoveAlongSplineActionResult result = moveAlongSplineServer.newResultMessage();
-            result.getResult().setSuccess(succeeded);
-            result.getResult().setError(error_msg);
-            result.getStatus().getGoalId().setId(currentGoal.goalId);
-            if (succeeded) {
-              result.getStatus().setStatus(GoalStatus.SUCCEEDED);
-              moveAlongSplineServer.setSucceed(currentGoal.goalId);
-            }
-            else {
-              result.getStatus().setStatus(GoalStatus.ABORTED);
-              moveAlongSplineServer.setAborted(currentGoal.goalId);
-            }
-            moveAlongSplineServer.sendResult(result);
-            moveAlongSplineServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
-            break;
+          MoveAlongSplineActionResult result = moveAlongSplineServer.newResultMessage();
+          result.getResult().setSuccess(succeeded);
+          result.getResult().setError(error_msg);
+          result.getStatus().getGoalId().setId(currentGoal.goalId);
+          if (succeeded) {
+            result.getStatus().setStatus(GoalStatus.SUCCEEDED);
+            moveAlongSplineServer.setSucceed(currentGoal.goalId);
           }
+          else {
+            result.getStatus().setStatus(GoalStatus.ABORTED);
+            moveAlongSplineServer.setAborted(currentGoal.goalId);
+          }
+          moveAlongSplineServer.sendResult(result);
+          moveAlongSplineServer.setGoalStatus(result.getStatus(), currentGoal.goalId);
+          break;
+        }
         case POINT_TO_POINT_JOINT_POSITION: {
           MoveToJointPositionActionResult result = jointPositionServer.newResultMessage();
           result.getResult().setSuccess(succeeded);

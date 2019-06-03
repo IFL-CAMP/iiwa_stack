@@ -37,46 +37,47 @@ import iiwa_msgs.SetSmartServoLinSpeedLimitsRequest;
 
 public class SpeedLimits {
   /**
-   * Changes the robot's override velocity by 'slowly' adjusting the speed until the target override value has been reached 
+   * Changes the robot's override velocity by 'slowly' adjusting the speed until the target override value has
+   * been reached
    */
   protected static class OverrideRampThread extends Thread {
     private long timeLength;
     private int steps;
     private boolean running = false;
     private double targetOverride;
-    
+
     public OverrideRampThread(double targetOverride, long timeLength, int steps) {
       this.targetOverride = targetOverride;
       this.timeLength = timeLength;
       this.steps = steps;
     }
-    
+
     /**
      * Request thread to end
+     * 
      * @param asynchronous: If true the method will block until the thread has terminated
      */
     public void requestStop(boolean asynchronous) {
       synchronized (this) {
-        running = false; 
+        running = false;
       }
-      
-      if (asynchronous) {
-        return;
-      }
-      
+
+      if (asynchronous) { return; }
+
       while (running) {
         waitUntil(1);
       }
     }
-    
+
     /**
      * True if thread has not yet finished execution
+     * 
      * @return
      */
     public boolean isRunning() {
       return running;
     }
-    
+
     /**
      * 
      */
@@ -85,13 +86,13 @@ public class SpeedLimits {
       synchronized (this) {
         running = true;
       }
-      
+
       double currentOverride = appControl.getApplicationOverride();
       double overrideStep = (targetOverride - currentOverride) / steps;
-      
+
       while (Math.abs(targetOverride - currentOverride) < 1.e-3 && running) {
         double nextOverrride = currentOverride + overrideStep;
-        
+
         if (overrideStep < 0 && nextOverrride < targetOverride) {
           // we are reducing the speed and the nextOverride is smaller than the target override
           nextOverrride = targetOverride;
@@ -100,12 +101,12 @@ public class SpeedLimits {
           // we are increasing the speed and the nextOverride is greate than the target override
           nextOverrride = targetOverride;
         }
-        
+
         appControl.setApplicationOverride(nextOverrride);
         currentOverride = appControl.getApplicationOverride();
         waitUntil(timeLength / steps);
       }
-      
+
       synchronized (this) {
         running = false;
       }
@@ -113,12 +114,13 @@ public class SpeedLimits {
 
     /**
      * Sleeps until a specific number of Milliseconds have passed
+     * 
      * @param ms
      */
     private void waitUntil(long ms) {
       long _before = System.currentTimeMillis();
       long _now = 0;
-      
+
       do {
         _now = System.currentTimeMillis();
         try {
@@ -136,10 +138,10 @@ public class SpeedLimits {
   protected static final int OVERRIDE_RAMP_NUM_STEPS = 10;
   private static IApplicationControl appControl;
   protected static OverrideRampThread rampThread = null;
-  
+
   // Overall override factor
   private static double overrideReduction = 1.0; // relative
-  
+
   // Joint motion limits
   private static double ss_relativeJointVelocity = 1.0; // relative
   private static double ss_relativeJointAcceleration = 1.0; // relative
@@ -172,18 +174,18 @@ public class SpeedLimits {
     overrideReduction = appControl.getApplicationOverride();
 
     Logger.debug("Loading speed limits from configuration");
-    
+
     ss_relativeJointVelocity = configuration.getSSRelativeJointVelocity();
     ss_relativeJointAcceleration = configuration.getSSRelativeJointAcceleration();
 
     ss_maxTranslationalVelocity = configuration.getSSMaxTranslationVelocity();
     ss_maxRotationalVelocity = configuration.getSSmaxOrientationVelocity();
 
-    Logger.debug("SmartServo relativeJointVelocity: "+ss_relativeJointVelocity);
-    Logger.debug("SmartServo relativeJointAcceleration: "+ss_relativeJointAcceleration);
-    Logger.debug("SmartServo maxTranslationalVelocity: ["+ss_maxTranslationalVelocity[0]+", "+ss_maxTranslationalVelocity[1]+", "+ss_maxTranslationalVelocity[2]+"]");
-    Logger.debug("SmartServo maxRotationalVelocity: ["+ss_maxRotationalVelocity[0]+", "+ss_maxRotationalVelocity[1]+", "+ss_maxRotationalVelocity[2]+"]");
-    
+    Logger.debug("SmartServo relativeJointVelocity: " + ss_relativeJointVelocity);
+    Logger.debug("SmartServo relativeJointAcceleration: " + ss_relativeJointAcceleration);
+    Logger.debug("SmartServo maxTranslationalVelocity: [" + ss_maxTranslationalVelocity[0] + ", " + ss_maxTranslationalVelocity[1] + ", " + ss_maxTranslationalVelocity[2] + "]");
+    Logger.debug("SmartServo maxRotationalVelocity: [" + ss_maxRotationalVelocity[0] + ", " + ss_maxRotationalVelocity[1] + ", " + ss_maxRotationalVelocity[2] + "]");
+
     ptp_relativeJointVelocity = configuration.getPTPRelativeJointVelocity();
     ptp_relativeJointAcceleration = configuration.getPTPJointAcceleration();
 
@@ -193,15 +195,15 @@ public class SpeedLimits {
     ptp_maxOrientationAcceleration = configuration.getPTPMaxOrientationAccelration();
     ptp_maxCartesianJerk = configuration.getPTPMaxCartesianJerk();
     ptp_maxOrientationJerk = configuration.getPTPMaxOrientationJerk();
-    
-    Logger.debug("PTP relativeJointVelocity: "+ptp_relativeJointVelocity);
-    Logger.debug("PTP relativeJointAcceleration: "+ptp_relativeJointAcceleration);
-    Logger.debug("PTP maxCartesianVelocity: "+ptp_maxCartesianVelocity);
-    Logger.debug("PTP maxOrientationVelocity: "+ptp_maxOrientationVelocity);
-    Logger.debug("PTP maxCartesianAcceleration: "+ptp_maxCartesianAcceleration);
-    Logger.debug("PTP maxOrientationAcceleration: "+ptp_maxOrientationAcceleration);
-    Logger.debug("PTP maxCartesianJerk: "+ptp_maxCartesianJerk);
-    Logger.debug("PTP maxOrientationJerk: "+ptp_maxOrientationJerk);
+
+    Logger.debug("PTP relativeJointVelocity: " + ptp_relativeJointVelocity);
+    Logger.debug("PTP relativeJointAcceleration: " + ptp_relativeJointAcceleration);
+    Logger.debug("PTP maxCartesianVelocity: " + ptp_maxCartesianVelocity);
+    Logger.debug("PTP maxOrientationVelocity: " + ptp_maxOrientationVelocity);
+    Logger.debug("PTP maxCartesianAcceleration: " + ptp_maxCartesianAcceleration);
+    Logger.debug("PTP maxOrientationAcceleration: " + ptp_maxOrientationAcceleration);
+    Logger.debug("PTP maxCartesianJerk: " + ptp_maxCartesianJerk);
+    Logger.debug("PTP maxOrientationJerk: " + ptp_maxOrientationJerk);
   }
 
   public static void setOverrideRecution(double override, boolean ramp) {
@@ -214,11 +216,11 @@ public class SpeedLimits {
     else {
       SpeedLimits.overrideReduction = override;
     }
-    
+
     if (rampThread != null && rampThread.isRunning()) {
       rampThread.requestStop(true);
     }
-    
+
     if (ramp) {
       rampThread = new OverrideRampThread(overrideReduction, OVERRIDE_RAMP_TIME_LENGTH_MS, OVERRIDE_RAMP_NUM_STEPS);
       rampThread.start();

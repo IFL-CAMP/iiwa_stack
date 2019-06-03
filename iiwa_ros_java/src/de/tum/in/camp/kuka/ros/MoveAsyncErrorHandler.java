@@ -41,8 +41,7 @@ public class MoveAsyncErrorHandler implements IErrorHandler {
   protected iiwaActionServer actionServer;
 
   @Override
-  public ErrorHandlingAction handleError(Device device, IMotionContainer failedContainer,
-      List<IMotionContainer> canceledContainers) {
+  public ErrorHandlingAction handleError(Device device, IMotionContainer failedContainer, List<IMotionContainer> canceledContainers) {
     Logger.error(failedContainer.getErrorMessage());
     return ErrorHandlingAction.PauseMotion;
   }
