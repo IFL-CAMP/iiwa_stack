@@ -3,7 +3,21 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:macro name="iiwa_gazebo" params="robot_name">
-    
+
+     <!-- Enable the Joint Feedback -->
+    <gazebo reference="${robot_name}_joint_7">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+
+    <!-- The ft_sensor plugin -->
+    <gazebo>
+      <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>50.0</updateRate>
+        <topicName>/${robot_name}/state/CartesianWrench</topicName>
+        <jointName>${robot_name}_joint_7</jointName>
+      </plugin>
+    </gazebo>   
+
     <!-- Load Gazebo lib and set the robot namespace -->
     <gazebo>
       <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">

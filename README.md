@@ -1,7 +1,7 @@
 ## IIWA STACK
 ROS Indigo/Kinetic metapackage for the KUKA LBR IIWA R800/R820 (7/14 Kg).
 
-**Current version : v-1.2.0 for Sunrise 1.11**    
+**Current version : v-1.2.0 for Sunrise 1.10 - 1.14**   
 [Using a previous version of Sunrise?](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ#which-version-of-sunriseossunrise-workbench-is-supported)    
 
 [![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
@@ -30,12 +30,15 @@ ___
 
 If you use iiwa_stack for reseach, you could cite the following work. It is the first publication where it was used.
 
-    @article{hennersperger2016towards,
-        title={Towards MRI-based Autonomous Robotic US Acquisitions: A First Feasibility Study},
-        author={Hennersperger, Christoph and Fuerst, Bernhard and Virga, Salvatore and Zettinig, Oliver and Frisch, Benjamin and Neff, Thomas and Navab, Nassir},
-        journal={IEEE transactions on medical imaging},
-        year={2016},
-        publisher={IEEE}
+    @article{hennersperger2017towards,
+      title={Towards MRI-based autonomous robotic US acquisitions: a first feasibility study},
+      author={Hennersperger, Christoph and Fuerst, Bernhard and Virga, Salvatore and Zettinig, Oliver and Frisch, Benjamin and Neff, Thomas and Navab, Nassir},
+      journal={IEEE transactions on medical imaging},
+      volume={36},
+      number={2},
+      pages={538--548},
+      year={2017},
+      publisher={IEEE}
     }
 
 ___
