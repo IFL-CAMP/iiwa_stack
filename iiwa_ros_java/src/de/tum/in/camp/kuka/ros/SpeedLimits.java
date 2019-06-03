@@ -341,12 +341,10 @@ public class SpeedLimits {
     if (ss_maxTranslationalVelocity[0] > 0 || ss_maxTranslationalVelocity[1] > 0 || ss_maxTranslationalVelocity[2] > 0) {
       // Transform to mm/s before setting the values.
       linMotion.setMaxTranslationVelocity(new double[] { Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[0]),
-          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[1]), 
-          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[2])
-          });
+          Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[1]), Conversions.rosTranslationToKuka(ss_maxTranslationalVelocity[2]) });
     }
     if (ss_maxRotationalVelocity[0] > 0 || ss_maxRotationalVelocity[1] > 0 || ss_maxRotationalVelocity[2] > 0) {
-      linMotion.setMaxTranslationVelocity(new double[] { ss_maxRotationalVelocity[0], ss_maxRotationalVelocity[1], ss_maxRotationalVelocity[2] });
+      linMotion.setMaxOrientationVelocity(new double[] { ss_maxRotationalVelocity[0], ss_maxRotationalVelocity[1], ss_maxRotationalVelocity[2] });
 
     }
 
