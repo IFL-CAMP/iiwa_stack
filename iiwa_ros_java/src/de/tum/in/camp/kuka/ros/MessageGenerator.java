@@ -284,7 +284,7 @@ public class MessageGenerator {
   }
   
   /**
-   * Builds a iiwa_msgs.JointTorque message given a LBR iiwa Robot.
+   * Builds a iiwa_msgs.JointTorque message containing the external torque applied to the given LBR iiwa Robot.
    * <p>
    * The message header is set to current time.<br>
    * 
