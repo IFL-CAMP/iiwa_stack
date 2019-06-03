@@ -431,8 +431,32 @@ public class ControlModeHandler {
         direction = CartDOF.Z;
         break;
       }
+      case iiwa_msgs.DOF.A: {
+        direction = CartDOF.A;
+        break;
+      }
+      case iiwa_msgs.DOF.B: {
+        direction = CartDOF.B;
+        break;
+      }
+      case iiwa_msgs.DOF.C: {
+        direction = CartDOF.C;
+        break;
+      }
+      case iiwa_msgs.DOF.ROT: {
+        direction = CartDOF.ROT;
+        break;
+      }
+      case iiwa_msgs.DOF.TRANSL: {
+        direction = CartDOF.TRANSL;
+        break;
+      }
+      case iiwa_msgs.DOF.ALL: {
+        direction = CartDOF.ALL;
+        break;
+      }
       default: {
-        logger.error("Wrong direction given, use [1,2,3] for directions [X,Y,Z] respectively.");
+        logger.error("Wrong direction given, use [1,2,3,4,5,6,7,8,9] for directions [X,Y,Z,A,B,C,ROT,TRANSL,ALL] respectively.");
         break;
       }
     }
