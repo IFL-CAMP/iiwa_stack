@@ -284,6 +284,21 @@ public class MessageGenerator {
   }
 
   /**
+   * Builds a iiwa_msgs.JointTorque message containing the external torque applied to the given LBR iiwa
+   * Robot.
+   * <p>
+   * The message header is set to current time.<br>
+   * 
+   * @param currentExternalJointTorque : the JointTorque message that will be created.
+   * @param robot : an iiwa Robot, its current state is used to set the values of the message.
+   */
+  public void getCurrentExternalJointTorque(iiwa_msgs.JointTorque currentExternalJointTorque, LBR robot) {
+    double[] torque = robot.getExternalTorque().getTorqueValues();
+    currentExternalJointTorque.getHeader().setStamp(time.getCurrentTime());
+    Conversions.vectorToJointQuantity(torque, currentExternalJointTorque.getTorque());
+  }
+
+  /**
    * Builds a sensor_msgs.JointState message given a LBR iiwa Robot.
    * <p>
    * <b>No velocity information currently available</b>

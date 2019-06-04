@@ -153,7 +153,9 @@ void HardwareInterface::registerJointLimits(const std::string& joint_name,
   if (has_soft_limits) {
     const joint_limits_interface::EffortJointSoftLimitsHandle limits_handle(joint_handle, limits, soft_limits);
     ej_limits_interface_.registerHandle(limits_handle);
-  } else {
+  }
+  else
+  {
     const joint_limits_interface::EffortJointSaturationHandle sat_handle(joint_handle, limits);
     ej_sat_interface_.registerHandle(sat_handle);
   }
