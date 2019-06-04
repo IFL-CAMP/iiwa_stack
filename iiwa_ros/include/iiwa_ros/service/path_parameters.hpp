@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include <iiwa_msgs/SetPathParameters.h>
+#include <iiwa_msgs/SetSmartServoJointSpeedLimits.h>
 #include <iiwa_ros/service/iiwa_services.hpp>
 
 namespace iiwa_ros {
@@ -41,7 +41,7 @@ namespace service {
  * Once an object of this class is initialized using the appropriate robot namespace name,
  * it is possible to call its functions to set the desired robot velocity and acceleration.
  */
-class PathParametersService : public iiwaServices<iiwa_msgs::SetPathParameters> {
+class PathParametersService : public iiwaServices<iiwa_msgs::SetSmartServoJointSpeedLimits> {
 public:
   PathParametersService() = default;
   virtual ~PathParametersService() override = default;
@@ -54,7 +54,7 @@ public:
    * @param [in] joint_velocity - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum speed.
    * @return bool - success status.
    */
-  bool setJointVelocity(const double joint_velocity);
+  bool setJointVelocity(const double joint_relative_velocity);
 
   /**
    * @brief Set the robot joint acceleration.
@@ -62,7 +62,7 @@ public:
    * @param [in] joint_acceleration - Values in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
    * @return bool - success status.
    */
-  bool setJointAcceleration(const double joint_acceleration);
+  bool setJointAcceleration(const double joint_relative_acceleration);
 
   /**
    * @brief Set the override joint acceleration.
@@ -79,7 +79,7 @@ public:
    * @param [in] joint_acceleration - alues in (0,1]. e.g., 0.5 will make the robot joints move at 50% of their maximum acceleration.
    * @return bool - success status.
    */
-  bool setPathParameters(const double joint_velocity, const double joint_acceleration);
+  bool setSmartServoJointSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration);
 
   /**
    * @brief Set joint velocity, acceleration and override acceleration at once.
@@ -89,7 +89,7 @@ public:
    * @param override_acceleration - TODO.
    * @return bool - success status.
    */
-  bool setPathParameters(const double joint_velocity, const double joint_acceleration,
+  bool setSmartServoJointSpeedLimits(const double joint_relative_velocity, const double joint_relative_acceleration,
                          const double override_joint_acceleration);
 
 protected:

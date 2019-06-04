@@ -24,17 +24,45 @@
 
 package de.tum.in.camp.kuka.ros;
 
-public class CommandTypes {
-  public enum CommandType {
-    SMART_SERVO_CARTESIAN_POSE,
-    SMART_SERVO_CARTESIAN_POSE_LIN,
-    SMART_SERVO_CARTESIAN_VELOCITY,
-    SMART_SERVO_JOINT_POSITION,
-    SMART_SERVO_JOINT_POSITION_VELOCITY,
-    SMART_SERVO_JOINT_VELOCITY,
-    POINT_TO_POINT_CARTESIAN_POSE,
-    POINT_TO_POINT_CARTESIAN_POSE_LIN,
-    POINT_TO_POINT_CARTESIAN_SPLINE,
-    POINT_TO_POINT_JOINT_POSITION 
+import com.kuka.roboticsAPI.executionModel.ExecutionState;
+import com.kuka.roboticsAPI.executionModel.IExecutionContainer;
+import com.kuka.roboticsAPI.motionModel.IMotion;
+import com.kuka.roboticsAPI.motionModel.IMotionContainer;
+import com.kuka.roboticsAPI.motionModel.IMotionContainerListener;
+
+public class PTPMotionFinishedEventListener implements IMotionContainerListener {
+
+  protected iiwaPublisher publisher;
+  protected iiwaActionServer actionServer;
+
+  public PTPMotionFinishedEventListener(iiwaPublisher publisher, iiwaActionServer actionServer) {
+    this.publisher = publisher;
+    this.actionServer = actionServer;
+  }
+
+  @Override
+  public void onStateChanged(IExecutionContainer container, ExecutionState state) {
+    // not used
+  }
+
+  @Override
+  public void containerFinished(IMotionContainer container) {
+    Logger.debug("Motion finished");
+    if (publisher != null) {
+      publisher.publishDestinationReached();
+    }
+    if (actionServer != null && actionServer.hasCurrentGoal()) {
+      actionServer.markCurrentGoalReached();
+    }
+  }
+
+  @Override
+  public void motionFinished(IMotion motion) {
+    // not used
+  }
+
+  @Override
+  public void motionStarted(IMotion motion) {
+    // not used
   }
 }

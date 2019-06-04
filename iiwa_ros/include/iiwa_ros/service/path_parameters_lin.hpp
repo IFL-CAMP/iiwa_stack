@@ -30,7 +30,7 @@
 
 #pragma once
 
-#include <iiwa_msgs/SetPathParametersLin.h>
+#include <iiwa_msgs/SetSmartServoLinSpeedLimits.h>
 #include <iiwa_ros/service/iiwa_services.hpp>
 
 namespace iiwa_ros {
@@ -41,7 +41,7 @@ namespace service {
  * Once an object of this class is initialized using the appropriate robot namespace name,
  * it is possible to call its functions to set the desired max cartesian velocity to be applied during linear motions.
  */
-class PathParametersLinService : public iiwaServices<iiwa_msgs::SetPathParametersLin> {
+class PathParametersLinService : public iiwaServices<iiwa_msgs::SetSmartServoLinSpeedLimits> {
 public:
   PathParametersLinService() = default;
   virtual ~PathParametersLinService() override = default;

@@ -36,8 +36,8 @@ namespace service {
 void PathParametersService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};
-  service_name_ = ros_namespace_ + "configuration/pathParameters";
-  client_ = node_handle.serviceClient<iiwa_msgs::SetPathParameters>(service_name_);
+  service_name_ = ros_namespace_ + "configuration/setSmartServoJointSpeedLimits";
+  client_ = node_handle.serviceClient<iiwa_msgs::SetSmartServoJointSpeedLimits>(service_name_);
   service_ready_ = true;
 }
 
@@ -58,30 +58,30 @@ bool PathParametersService::callService() {
   ROS_ERROR_STREAM("The service client was not intialized yet. Call the init function of this object first.");
 }
 
-bool PathParametersService::setPathParameters(const double joint_velocity,
-                                              const double joint_acceleration,
+bool PathParametersService::setSmartServoJointSpeedLimits(const double joint_relative_velocity,
+                                              const double joint_relative_acceleration,
                                               const double override_joint_acceleration) {
-  config_.request.joint_relative_velocity = joint_velocity;
-  config_.request.joint_relative_velocity = joint_acceleration;
+  config_.request.joint_relative_velocity = joint_relative_velocity;
+  config_.request.joint_relative_velocity = joint_relative_acceleration;
   config_.request.override_joint_acceleration = override_joint_acceleration;
   return callService();
 }
 
-bool PathParametersService::setPathParameters(const double joint_velocity,
-                                              const double joint_acceleration) {
-  setPathParameters(joint_velocity, joint_acceleration, -1);
+bool PathParametersService::setSmartServoJointSpeedLimits(const double joint_relative_velocity,
+                                              const double joint_relative_acceleration) {
+  setSmartServoJointSpeedLimits(joint_relative_velocity, joint_relative_acceleration, -1);
 }
 
-bool PathParametersService::setJointVelocity(const double joint_velocity) {
-  setPathParameters(joint_velocity, -1, -1);
+bool PathParametersService::setJointVelocity(const double joint_relative_velocity) {
+  setSmartServoJointSpeedLimits(joint_relative_velocity, -1, -1);
 }
 
-bool PathParametersService::setJointAcceleration(const double joint_acceleration) {
-  setPathParameters(-1, joint_acceleration, -1);
+bool PathParametersService::setJointAcceleration(const double joint_relative_acceleration) {
+  setSmartServoJointSpeedLimits(-1, joint_relative_acceleration, -1);
 }
 
-bool PathParametersService::setOverrideJointAcceleration(const double override_acceleration) {
-  setPathParameters(-1, -1, override_acceleration);
+bool PathParametersService::setOverrideJointAcceleration(const double override_joint_acceleration) {
+  setSmartServoJointSpeedLimits(-1, -1, override_joint_acceleration);
 }
 
 }  // namespace service

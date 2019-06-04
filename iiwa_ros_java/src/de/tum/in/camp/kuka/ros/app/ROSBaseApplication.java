@@ -1,8 +1,8 @@
-/**
+﻿/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakult�t f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany
- * http://campar.in.tum.de All rights reserved.
+ * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakult�t
+ * f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany http://campar.in.tum.de All
+ * rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -34,8 +34,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
-
-// import javax.inject.Inject; // MEDIAFLANGEIO
+import javax.inject.Inject;
 
 import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
@@ -62,9 +61,11 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
+import de.tum.in.camp.kuka.ros.Logger.Level;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
 import de.tum.in.camp.kuka.ros.GoalReachedEventListener;
 import de.tum.in.camp.kuka.ros.Configuration;
+import de.tum.in.camp.kuka.ros.MoveAsyncErrorHandler;
 import de.tum.in.camp.kuka.ros.PublisherThread;
 import de.tum.in.camp.kuka.ros.ActiveTool;
 import de.tum.in.camp.kuka.ros.SpeedLimits;
@@ -88,7 +89,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected SmartServoLIN linearMotion = null;
   protected ControlModeHandler controlModeHandler = null;
   protected Lock controlModeLock = new ReentrantLock();
-  protected CommandType lastCommandType = CommandType.JOINT_POSITION;
+  protected CommandType lastCommandType = CommandType.SMART_SERVO_JOINT_POSITION;
   protected GoalReachedEventListener handler = null;
 
   // Tool frame.
@@ -97,7 +98,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   protected ObjectFrame endpointFrame = null;
 
   protected boolean initSuccessful = false;
-  protected boolean debug = true;
   protected boolean running = true;
 
   // ROS Nodes.
@@ -117,11 +117,11 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   // Active tool, you can replace this with a tool you are using that supports ROS messages.
   protected ActiveTool rosTool = null;
+  // Example available at https://github.com/exo-core/iiwa_stack_tools
+  // @Inject protected ROSZimmerR840 rosTool;
+
   ActiveToolThread activeToolThread = null;
   Timer activeToolTimer = null;
-
-  // Example available at https://github.com/exo-core/iiwa_stack_tools
-  // @Inject protected SchunkEGN100 rosTool;
 
   // ROS Configuration and Node execution objects.
   protected NodeConfiguration configurationNodeConfiguration = null;
@@ -151,20 +151,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   protected abstract void controlLoop();
 
-  /*
-   * SmartServo control makes the control loop very slow These variables are used to run them every
-   * *decimation* times, In order to balance the load, they alternate at *decimationCounter* % *decimation* ==
-   * 0 and *decimationCounter* % *decimation* == *decimation* / 2
-   */
-
-  // TODO : in config.txt or processData
-  protected int decimationCounter = 0;
-  protected int controlDecimation = 8;
-
   @PostConstruct
   public void initialize() {
     // Get the Sunrise Logger.
     Logger.setSunriseLogger(getLogger());
+    if (getApplicationData().getProcessData("debug").getValue()) {
+      Logger.setLogLevel(Level.DEBUG);
+    }
+
     // Get the robot instance.
     robot = getContext().getDeviceFromType(LBR.class);
 
@@ -183,9 +177,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       configureNodes();
     }
     catch (Exception e) {
-      if (debug) {
-        Logger.error("Node Configuration failed. Please check the ROS Master IP in the Sunrise Process Data.");
-      }
+      Logger.error("Node Configuration failed. Please check the ROS Master IP in the Sunrise Process Data.");
       Logger.error(e.toString());
       e.printStackTrace();
       return;
@@ -194,9 +186,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     try {
       nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
 
-      if (debug) {
-        Logger.info("Initializing ROS tool.");
-      }
+      Logger.debug("Initializing ROS tool.");
       if (rosTool != null) {
         rosTool.initialize(configuration, nodeMainExecutor);
       }
@@ -209,14 +199,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       // Additional Nodes from subclasses.
       addNodesToExecutor(nodeMainExecutor);
 
-      if (debug) {
-        Logger.info("ROS Node Executor initialized.");
-      }
+      Logger.debug("ROS Node Executor initialized.");
     }
     catch (Exception e) {
-      if (debug) {
-        Logger.error("ROS Node Executor initialization failed.");
-      }
+      Logger.error("ROS Node Executor initialization failed.");
       Logger.error(e.toString());
       e.printStackTrace();
       return;
@@ -246,6 +232,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     handGuidanceKey.setText(UserKeyAlignment.TopMiddle, "ON");
     handGuidanceKey.setText(UserKeyAlignment.BottomMiddle, "OFF");
     handGuidanceKeybar.publish();
+
+    // Register MoveAsyncErrorHandler
+    getApplicationControl().registerMoveAsyncErrorHandler(new MoveAsyncErrorHandler(publisher, actionServer));
 
     // Additional initialization from subclasses.
     initializeApp();
@@ -294,12 +283,17 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       endpointFrame = robot.getFlange();
     }
     else {
-      Logger.info("Setting endpoint frame " + endpointFrameFromConfig);
-      endpointFrame = tool.getFrame(endpointFrameFromConfig);
+      try {
+        Logger.info("Setting endpoint frame " + endpointFrameFromConfig);
+        endpointFrame = tool.getFrame(endpointFrameFromConfig);
+      }
+      catch (Exception e) {
+        Logger.error("Error while setting endpoint frame to \"" + endpointFrameFromConfig + "\": " + e.getMessage());
+      }
     }
 
     // Load speed limits from configuration.
-    SpeedLimits.init(configuration);
+    SpeedLimits.init(configuration, getApplicationControl());
 
     // TODO: check this.
     controlModeHandler = new ControlModeHandler(robot, tool, endpointFrame, publisher, actionServer, configuration);
@@ -435,7 +429,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
         Logger.warn("Enabling Fake Hand Guiding Mode.");
         handGuidanceControlMode.setStiffness(2, 2, 2, 2, 2, 0, 0);
         handGuidanceControlMode.setDampingForAllJoints(0.7);
-        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, handGuidanceControlMode);
         }
         else {
@@ -447,7 +441,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       if (handGuidanceSwitched) {
         handGuidanceSwitched = false;
         Logger.warn("Disabling Fake Hand Guiding Mode.");
-        if (lastCommandType == CommandType.CARTESIAN_POSE_LIN) {
+        if (lastCommandType == CommandType.SMART_SERVO_CARTESIAN_POSE_LIN) {
           linearMotion = controlModeHandler.changeSmartServoControlMode(linearMotion, new PositionControlMode(true));
         }
         else {

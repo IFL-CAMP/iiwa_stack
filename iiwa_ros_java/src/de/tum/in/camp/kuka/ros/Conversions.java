@@ -103,7 +103,7 @@ public final class Conversions {
     double sqy = y * y;
     double sqz = z * z;
 
-    if ((sqx + sqy + sqz + sqw) < 10e-8) { // This is a faily safe assumption,
+    if ((sqx + sqy + sqz + sqw) < 10e-8) { // This is a fairly safe assumption,
                                            // we are expecting the norm to be
                                            // around 1 anyway.
       throw new IllegalArgumentException("Commanded geometry_msgs.Pose contains an invalid quaternion. The norm of the given quaternion has to be 1.");
@@ -301,15 +301,24 @@ public final class Conversions {
     return ret;
   }
 
+  /**
+   * Converts a ROS geometry_msgs.Vector3 to a Java array of doubles.
+   */
   public static double[] rosVectorToArray(geometry_msgs.Vector3 vector) {
     double[] ret = { vector.getX(), vector.getY(), vector.getZ() };
     return ret;
   }
 
+  /**
+   * Converts the value of a translational element from meters (ROS) to millimeters (KUKA).
+   */
   public static double rosTranslationToKuka(double value) {
     return value * 1000.0;
   }
 
+  /**
+   * Converts the value of a translational element from millimeters (KUKA) to meters (ROS).
+   */
   public static double kukaTranslationToRos(double value) {
     return value / 1000.0;
   }

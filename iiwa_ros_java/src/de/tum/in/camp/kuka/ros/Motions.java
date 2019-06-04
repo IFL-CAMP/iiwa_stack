@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
- * rights reserved.
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
+ * http://campar.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -40,8 +40,9 @@ import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
-import com.kuka.roboticsAPI.motionModel.IMotion;
-import com.kuka.roboticsAPI.motionModel.IMotionContainer;
+import com.kuka.roboticsAPI.motionModel.CartesianPTP;
+import com.kuka.roboticsAPI.motionModel.LIN;
+import com.kuka.roboticsAPI.motionModel.PTP;
 import com.kuka.roboticsAPI.motionModel.Spline;
 import com.kuka.roboticsAPI.motionModel.SplineMotionCP;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.IMotionControlMode;
@@ -50,10 +51,8 @@ import static com.kuka.roboticsAPI.motionModel.BasicMotions.ptp;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.lin;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.circ;
 import static com.kuka.roboticsAPI.motionModel.BasicMotions.spl;
-import static com.kuka.roboticsAPI.motionModel.BasicMotions.spline;
 
 public class Motions {
-
   private LBR robot;
   private String robotBaseFrameId;
 
@@ -72,10 +71,6 @@ public class Motions {
   private long previousTime = System.nanoTime();
   private double loopPeriod = 0.0; // Loop period in s.
   private final double softJointLimit = 0.0174533; // in radians.
-
-  private PTPCheckForGoalReachedThread goalReachedThread;
-
-  int i = 0;
 
   public Motions(LBR robot, String robotBaseFrameId, SmartServo motion, ObjectFrame endPointFrame, iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.robot = robot;
@@ -130,7 +125,7 @@ public class Motions {
     }
   }
 
-  public void pointToPointMotion(IMotionControlMode motion, PoseStamped commandPosition, RedundancyInformation redundancy) {
+  public void pointToPointCartesianMotion(IMotionControlMode motion, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
@@ -138,13 +133,13 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      IMotionContainer mc = endPointFrame.moveAsync(ptp(destinationFrame).setMode(motion));
-      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
-      goalReachedThread.run();
+      CartesianPTP ptpMotion = ptp(destinationFrame);
+      SpeedLimits.applySpeedLimits(ptpMotion);
+      endPointFrame.moveAsync(ptpMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
 
-  public void pointToPointMotionLin(IMotionControlMode mode, PoseStamped commandPosition, RedundancyInformation redundancy) {
+  public void pointToPointLinearCartesianMotion(IMotionControlMode mode, PoseStamped commandPosition, RedundancyInformation redundancy) {
     if (commandPosition != null) {
       Frame destinationFrame = Conversions.rosPoseToKukaFrame(robot.getRootFrame(), commandPosition.getPose());
       if (redundancy != null && redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
@@ -152,13 +147,9 @@ public class Motions {
         IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
         destinationFrame.setRedundancyInformation(robot, redundantData);
       }
-      // endPointFrame.moveAsync(lin(destinationFrame));
-      IMotion linMotion = lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setCartAcceleration(SpeedLimits.cartesianAcceleration)
-          .setOrientationAcceleration(SpeedLimits.orientationAcceleration); // .setMode(mode);
-      IMotionContainer mc = endPointFrame.moveAsync(linMotion);
-      // endPointFrame.moveAsync(lin(destinationFrame).setCartVelocity(SpeedLimits.maxTranslationlVelocity[0]).setOrientationVelocity(SpeedLimits.maxOrientationVelocity[0]));
-      goalReachedThread = new PTPCheckForGoalReachedThread(mc, robot, publisher, actionServer);
-      goalReachedThread.run();
+      LIN linMotion = lin(destinationFrame);
+      SpeedLimits.applySpeedLimits(linMotion);
+      endPointFrame.moveAsync(linMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
   }
 
@@ -169,7 +160,7 @@ public class Motions {
    * @param splineMsg
    * @param subscriber: Required for TF lookups
    */
-  public boolean pointToPointMotionSpline(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
+  public boolean pointToPointCartesianSplineMotion(IMotionControlMode motion, iiwa_msgs.Spline splineMsg, iiwaSubscriber subscriber) {
     if (splineMsg == null) { return false; }
 
     boolean success = true;
@@ -179,25 +170,25 @@ public class Motions {
     for (SplineSegment segmentMsg : splineMsg.getSegments()) {
       SplineMotionCP<?> segment = null;
       switch (segmentMsg.getType()) {
+        case SplineSegment.SPL: {
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
+          if (p != null) {
+            segment = spl(p);
+          }
+          break;
+        }
         case SplineSegment.LIN: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          if (p == null) {
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
+          if (p != null) {
             segment = lin(p);
           }
           break;
         }
         case SplineSegment.CIRC: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          Frame pAux = subscriber.cartesianPoseToRosFrame(segmentMsg.getPointAux(), robotBaseFrameId);
+          Frame p = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPoint(), robotBaseFrameId);
+          Frame pAux = subscriber.cartesianPoseToRosFrame(robot.getRootFrame(), segmentMsg.getPointAux(), robotBaseFrameId);
           if (p != null && pAux != null) {
             segment = circ(p, pAux);
-          }
-          break;
-        }
-        case SplineSegment.SPL: {
-          Frame p = subscriber.cartesianPoseToRosFrame(segmentMsg.getPoint(), robotBaseFrameId);
-          if (p != null) {
-            segment = spl(p);
           }
           break;
         }
@@ -218,15 +209,23 @@ public class Motions {
       i++;
     }
 
-    if (!success) {
+    if (success) {
+      Logger.debug("Executing spline with " + splineSegments.size() + " segments");
       Spline spline = new Spline(splineSegments.toArray(new SplineMotionCP<?>[splineSegments.size()]));
-      endPointFrame.moveAsync(spline(spline).setCartVelocity(SpeedLimits.maxTranslationVelocity[0]).setMode(motion));
-
-      goalReachedThread = new PTPCheckForGoalReachedThread(null, robot, publisher, actionServer);
-      goalReachedThread.run();
+      SpeedLimits.applySpeedLimits(spline);
+      endPointFrame.moveAsync(spline, new PTPMotionFinishedEventListener(publisher, actionServer));
     }
 
     return success;
+  }
+
+  public void pointToPointJointPositionMotion(IMotionControlMode motion, iiwa_msgs.JointPosition commandPosition) {
+    if (commandPosition != null) {
+      Conversions.rosJointQuantityToKuka(commandPosition.getPosition(), jp);
+      PTP ptpMotion = ptp(jp);
+      SpeedLimits.applySpeedLimits(ptpMotion);
+      robot.moveAsync(ptpMotion, new PTPMotionFinishedEventListener(publisher, actionServer));
+    }
   }
 
   public void cartesianVelocityMotion(SmartServo motion, geometry_msgs.TwistStamped commandVelocity, ObjectFrame toolFrame) {
@@ -245,6 +244,7 @@ public class Motions {
       destinationFrame.setBetaRad(commandVelocity.getTwist().getAngular().getY() * loopPeriod + destinationFrame.getBetaRad());
       destinationFrame.setGammaRad(commandVelocity.getTwist().getAngular().getZ() * loopPeriod + destinationFrame.getGammaRad());
       previousTime = currentTime;
+
       if (robot.isReadyToMove()) {
         motion.getRuntime().setDestination(destinationFrame);
       }

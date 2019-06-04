@@ -41,7 +41,7 @@ public class ActiveToolThread extends TimerTask {
       tool.publishCurrentState();
     }
     catch (InterruptedException e) {
-      Logger.error(e.toString());
+      Logger.error("Error while publishing tool state: " + e.toString());
     }
   }
 

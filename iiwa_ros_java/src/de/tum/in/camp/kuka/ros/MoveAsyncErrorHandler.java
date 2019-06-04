@@ -24,55 +24,26 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import com.kuka.common.ThreadUtil;
-import com.kuka.roboticsAPI.controllerModel.sunrise.SunriseExecutionService;
-import com.kuka.roboticsAPI.deviceModel.LBR;
+import java.util.List;
+
+import com.kuka.roboticsAPI.deviceModel.Device;
+import com.kuka.roboticsAPI.motionModel.ErrorHandlingAction;
+import com.kuka.roboticsAPI.motionModel.IErrorHandler;
 import com.kuka.roboticsAPI.motionModel.IMotionContainer;
 
-public class PTPCheckForGoalReachedThread implements Runnable {
-
-  protected iiwaPublisher publisher;
-  protected iiwaActionServer actionServer;
-  protected LBR robot;
-  protected int rate = 1000 / 30; // 30hz
-  protected IMotionContainer motionContainer;
-
-  public PTPCheckForGoalReachedThread(IMotionContainer motion, LBR robot, iiwaPublisher publisher, iiwaActionServer actionServer) {
-    this.motionContainer = motion;
-    this.robot = robot;
+public class MoveAsyncErrorHandler implements IErrorHandler {
+  public MoveAsyncErrorHandler(iiwaPublisher publisher, iiwaActionServer actionServer) {
     this.publisher = publisher;
     this.actionServer = actionServer;
   }
 
+  protected iiwaPublisher publisher;
+  protected iiwaActionServer actionServer;
+
   @Override
-  public void run() {
-    while (!((SunriseExecutionService) robot.getController().getExecutionService()).isPausedAndStopped() || !robot.isReadyToMove()) {
-      // while (robot.hasActiveMotionCommand() ||
-      // ((SunriseExecutionService)robot.getController().getExecutionService()).isPaused())
-      // {
-      if (motionContainer.isFinished()) {
-        Logger.info("Motion finished");
-
-        if (publisher != null) {
-          publisher.publishDestinationReached();
-        }
-        if (actionServer != null && actionServer.hasCurrentGoal()) {
-          actionServer.markCurrentGoalReached();
-        }
-        return;
-      }
-      else if (motionContainer.hasError()) {
-        Logger.error("Motion failed: " + motionContainer.getErrorMessage());
-
-        if (actionServer != null && actionServer.hasCurrentGoal()) {
-          actionServer.markCurrentGoalFailed(motionContainer.getErrorMessage());
-        }
-        return;
-      }
-
-      ThreadUtil.milliSleep(rate);
-    }
-
-    Logger.info("Execution paused and stopped. Ending PTPcheckForGoalReachedThread.");
+  public ErrorHandlingAction handleError(Device device, IMotionContainer failedContainer, List<IMotionContainer> canceledContainers) {
+    Logger.error(failedContainer.getErrorMessage());
+    return ErrorHandlingAction.PauseMotion;
   }
+
 }

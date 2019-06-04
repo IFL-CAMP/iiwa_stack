@@ -36,8 +36,8 @@ namespace service {
 void PathParametersLinService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};
-  service_name_ = ros_namespace_ + "configuration/pathParametersLin";
-  client_ = node_handle.serviceClient<iiwa_msgs::SetPathParametersLin>(service_name_);
+  service_name_ = ros_namespace_ + "configuration/setSmartServoLinSpeedLimits";
+  client_ = node_handle.serviceClient<iiwa_msgs::SetSmartServoLinSpeedLimits>(service_name_);
   service_ready_ = true;
 }
 

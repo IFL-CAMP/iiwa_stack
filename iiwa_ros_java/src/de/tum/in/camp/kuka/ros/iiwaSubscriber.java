@@ -50,6 +50,7 @@ import org.ros.time.TimeProvider;
 
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
+import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
 import com.kuka.roboticsAPI.geometricModel.Frame;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.redundancy.IRedundancyCollection;
@@ -74,20 +75,32 @@ public class iiwaSubscriber extends AbstractNodeMain {
   private ServiceResponseBuilder<iiwa_msgs.TimeToDestinationRequest, iiwa_msgs.TimeToDestinationResponse> timeToDestinationCallback = null;
 
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> setPathParametersCallback = null;
+  private ServiceServer<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> speedOverrideServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> speedOverrideCallback = null;
 
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> setPathParametersLinCallback = null;
+  private ServiceServer<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse> smartServoLimitsServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse> smartServoLimitsCallback = null;
 
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> setWorkpieceCallback = null;
+  private ServiceServer<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> smartServoLinLimitsServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> smartServoLinLimitsCallback = null;
 
   @SuppressWarnings("unused")
-  private ServiceServer<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameServer = null;
-  private ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> setEndpointFrameCallback = null;
+  private ServiceServer<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse> PTPJointLimitsServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse> PTPJointLimitsCallback = null;
+
+  @SuppressWarnings("unused")
+  private ServiceServer<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse> PTPCartesianLimitsServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse> PTPCartesianLimitsCallback = null;
+
+  @SuppressWarnings("unused")
+  private ServiceServer<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> workpieceServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> workpieceCallback = null;
+
+  @SuppressWarnings("unused")
+  private ServiceServer<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> endpointFrameServer = null;
+  private ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> endpointFrameCallback = null;
 
   // ROSJava Subscribers for iiwa_msgs
   private Subscriber<geometry_msgs.PoseStamped> cartesianPoseSubscriber;
@@ -193,31 +206,52 @@ public class iiwaSubscriber extends AbstractNodeMain {
   }
 
   /**
+   * Add a callback to the SetSpeedOverride service
+   */
+  public void setSpeedOverrideCallback(ServiceResponseBuilder<iiwa_msgs.SetSpeedOverrideRequest, iiwa_msgs.SetSpeedOverrideResponse> callback) {
+    speedOverrideCallback = callback;
+  }
+
+  /**
    * Add a callback to the SetPathParameters service
    */
-  public void setPathParametersCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersRequest, iiwa_msgs.SetPathParametersResponse> callback) {
-    setPathParametersCallback = callback;
+  public void setSmartServoLimitsCallback(ServiceResponseBuilder<iiwa_msgs.SetSmartServoJointSpeedLimitsRequest, iiwa_msgs.SetSmartServoJointSpeedLimitsResponse> callback) {
+    smartServoLimitsCallback = callback;
   }
 
   /**
    * Add a callback to the SetPathParametersLin service
    */
-  public void setPathParametersLinCallback(ServiceResponseBuilder<iiwa_msgs.SetPathParametersLinRequest, iiwa_msgs.SetPathParametersLinResponse> callback) {
-    setPathParametersLinCallback = callback;
+  public void setSmartServoLinLimitsCallback(ServiceResponseBuilder<iiwa_msgs.SetSmartServoLinSpeedLimitsRequest, iiwa_msgs.SetSmartServoLinSpeedLimitsResponse> callback) {
+    smartServoLinLimitsCallback = callback;
+  }
+
+  /**
+   * Add a callback to the SetPathParameters service
+   */
+  public void setPTPJointLimitsCallback(ServiceResponseBuilder<iiwa_msgs.SetPTPJointSpeedLimitsRequest, iiwa_msgs.SetPTPJointSpeedLimitsResponse> callback) {
+    PTPJointLimitsCallback = callback;
+  }
+
+  /**
+   * Add a callback to the SetPathParametersLin service
+   */
+  public void setPTPCartesianLimitsCallback(ServiceResponseBuilder<iiwa_msgs.SetPTPCartesianSpeedLimitsRequest, iiwa_msgs.SetPTPCartesianSpeedLimitsResponse> callback) {
+    PTPCartesianLimitsCallback = callback;
   }
 
   /**
    * Add a callback to the SetWorkpiece service
    */
   public void setWorkpieceCallback(ServiceResponseBuilder<iiwa_msgs.SetWorkpieceRequest, iiwa_msgs.SetWorkpieceResponse> callback) {
-    setWorkpieceCallback = callback;
+    workpieceCallback = callback;
   }
 
   /**
    * Add a callback to the SetEndpointFrame service
    */
   public void setEndpointFrameCallback(ServiceResponseBuilder<iiwa_msgs.SetEndpointFrameRequest, iiwa_msgs.SetEndpointFrameResponse> callback) {
-    setEndpointFrameCallback = callback;
+    endpointFrameCallback = callback;
   }
 
   /**
@@ -356,19 +390,22 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * Creates a KUKA Sunrise frame from a CartesianPose message. Includes resolving TF transformation and
    * applying redundancy data.
    * 
+   * @param parent: parent frame of robot base coordinate system
    * @param cartesianPose: Pose to transform
    * @param robotBaseFrame: String id of robot base frame (usually iiwa_link_0)
    * @return
    **/
-  public Frame cartesianPoseToRosFrame(CartesianPose cartesianPose, String robotBaseFrame) {
+  public Frame cartesianPoseToRosFrame(AbstractFrame parent, CartesianPose cartesianPose, String robotBaseFrame) {
     PoseStamped poseStamped = transformPose(cartesianPose.getPoseStamped(), robotBaseFrame);
+
     if (poseStamped == null) { return null; }
 
-    Frame frame = Conversions.rosPoseToKukaFrame(poseStamped.getPose());
+    Frame frame = Conversions.rosPoseToKukaFrame(parent, poseStamped.getPose());
     RedundancyInformation redundancy = cartesianPose.getRedundancy();
 
     if (redundancy.getStatus() >= 0 && redundancy.getTurn() >= 0) {
-      // You can get this info from the robot SmartPad.
+      // You can get this info from the robot Cartesian Position (SmartPad)
+      // or the /iiwa/state/CartesianPose topic
       IRedundancyCollection redundantData = new LBRE1Redundancy(redundancy.getE1(), redundancy.getStatus(), redundancy.getTurn());
       frame.setRedundancyInformation(robot, redundantData);
     }
@@ -442,7 +479,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_cp) {
           cp = position;
-          currentCommandType = CommandType.CARTESIAN_POSE;
+          currentCommandType = CommandType.SMART_SERVO_CARTESIAN_POSE;
           new_cp = true;
         }
       }
@@ -458,7 +495,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
           }
         }
         cv = velocity;
-        currentCommandType = CommandType.CARTESIAN_VELOCITY;
+        currentCommandType = CommandType.SMART_SERVO_CARTESIAN_VELOCITY;
       }
     });
 
@@ -474,7 +511,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_cp_lin) {
           cp_lin = position;
-          currentCommandType = CommandType.CARTESIAN_POSE_LIN;
+          currentCommandType = CommandType.SMART_SERVO_CARTESIAN_POSE_LIN;
           new_cp_lin = true;
         }
       }
@@ -491,7 +528,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_jp) {
           jp = position;
-          currentCommandType = CommandType.JOINT_POSITION;
+          currentCommandType = CommandType.SMART_SERVO_JOINT_POSITION;
           new_jp = true;
         }
       }
@@ -509,7 +546,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         synchronized (new_jpv) {
           jpv = positionVelocity;
-          currentCommandType = CommandType.JOINT_POSITION_VELOCITY;
+          currentCommandType = CommandType.SMART_SERVO_JOINT_POSITION_VELOCITY;
           new_jpv = true;
         }
       }
@@ -525,7 +562,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
           }
         }
         jv = velocity;
-        currentCommandType = CommandType.JOINT_VELOCITY;
+        currentCommandType = CommandType.SMART_SERVO_JOINT_VELOCITY;
       }
     });
 
@@ -539,24 +576,39 @@ public class iiwaSubscriber extends AbstractNodeMain {
       timeToDestinationServer = node.newServiceServer(iiwaName + "/state/timeToDestination", "iiwa_msgs/TimeToDestination", timeToDestinationCallback);
     }
 
-    // Creating TimeToDestination service if a callback has been defined.
-    if (setPathParametersCallback != null) {
-      setPathParametersServer = node.newServiceServer(iiwaName + "/configuration/pathParameters", "iiwa_msgs/SetPathParameters", setPathParametersCallback);
+    // Creating setSmartServoLimits service if a callback has been defined.
+    if (speedOverrideCallback != null) {
+      speedOverrideServer = node.newServiceServer(iiwaName + "/configuration/setSpeedOverride", "iiwa_msgs/SetSpeedOverride", speedOverrideCallback);
+    }
+
+    // Creating setSmartServoLimits service if a callback has been defined.
+    if (smartServoLimitsCallback != null) {
+      smartServoLimitsServer = node.newServiceServer(iiwaName + "/configuration/setSmartServoLimits", "iiwa_msgs/SetSmartServoJointSpeedLimits", smartServoLimitsCallback);
+    }
+
+    // Creating setSmartServoLinLimits service if a callback has been defined.
+    if (smartServoLinLimitsCallback != null) {
+      smartServoLinLimitsServer = node.newServiceServer(iiwaName + "/configuration/setSmartServoLinLimits", "iiwa_msgs/SetSmartServoLinSpeedLimits", smartServoLinLimitsCallback);
+    }
+
+    // Creating setPTPJointLimits service if a callback has been defined.
+    if (PTPJointLimitsCallback != null) {
+      PTPJointLimitsServer = node.newServiceServer(iiwaName + "/configuration/setPTPJointLimits", "iiwa_msgs/SetPTPJointSpeedLimits", PTPJointLimitsCallback);
+    }
+
+    // Creating setPTPCartesianLimits service if a callback has been defined.
+    if (PTPCartesianLimitsCallback != null) {
+      PTPCartesianLimitsServer = node.newServiceServer(iiwaName + "/configuration/setPTPCartesianLimits", "iiwa_msgs/SetPTPCartesianSpeedLimits", PTPCartesianLimitsCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
-    if (setPathParametersLinCallback != null) {
-      setPathParametersLinServer = node.newServiceServer(iiwaName + "/configuration/pathParametersLin", "iiwa_msgs/SetPathParametersLin", setPathParametersLinCallback);
+    if (workpieceCallback != null) {
+      workpieceServer = node.newServiceServer(iiwaName + "/configuration/setWorkpiece", "iiwa_msgs/SetWorkpiece", workpieceCallback);
     }
 
     // Creating TimeToDestination service if a callback has been defined.
-    if (setWorkpieceCallback != null) {
-      setWorkpieceServer = node.newServiceServer(iiwaName + "/configuration/setWorkpiece", "iiwa_msgs/SetWorkpiece", setWorkpieceCallback);
-    }
-
-    // Creating TimeToDestination service if a callback has been defined.
-    if (setEndpointFrameCallback != null) {
-      setEndpointFrameServer = node.newServiceServer(iiwaName + "/configuration/setEndpointFrame", "iiwa_msgs/SetEndpointFrame", setEndpointFrameCallback);
+    if (endpointFrameCallback != null) {
+      endpointFrameServer = node.newServiceServer(iiwaName + "/configuration/setEndpointFrame", "iiwa_msgs/SetEndpointFrame", endpointFrameCallback);
     }
   }
 }

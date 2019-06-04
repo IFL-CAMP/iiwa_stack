@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München Chair for Computer Aided Medical Procedures and Augmented Reality Fakultät
- * für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany http://campar.in.tum.de All
- * rights reserved.
+ * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
+ * http://campar.in.tum.de All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -175,7 +175,6 @@ public class ControlModeHandler {
    * Given a current SmartServoLin motion, it return a SmartServo motion with the same control mode.
    */
   public SmartServo switchToSmartServo(SmartServoLIN linearMotion) {
-    Logger.debug("Switching to SmartServo motion");
     IMotionControlMode currentMode = linearMotion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
@@ -195,7 +194,6 @@ public class ControlModeHandler {
    * Given a current SmartServo motion, it return a SmartServoLIN motion with the same control mode.
    */
   public SmartServoLIN switchToSmartServoLIN(SmartServo motion) {
-    Logger.debug("Switching to SmartServoLIN motion");
     IMotionControlMode currentMode = motion.getMode();
     if (currentMode == null) {
       currentMode = new PositionControlMode();
@@ -238,9 +236,7 @@ public class ControlModeHandler {
     SmartServo motion = new SmartServo(robot.getCurrentJointPosition());
     motion.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
     motion.setTimeoutAfterGoalReach(configuration.getTimeoutAfterGoalReach());
-    motion.setJointVelocityRel(SpeedLimits.jointVelocity);
-    motion.setJointAccelerationRel(SpeedLimits.jointAcceleration);
-    motion.overrideJointAcceleration(SpeedLimits.overrideJointAcceleration);
+    SpeedLimits.applySpeedLimits(motion);
     return motion;
   }
 
@@ -249,13 +245,7 @@ public class ControlModeHandler {
     linearMotion.setReferenceFrame(World.Current.getRootFrame());
     linearMotion.setMinimumTrajectoryExecutionTime(configuration.getMinTrajExecTime());
     linearMotion.setTimeoutAfterGoalReach(configuration.getTimeoutAfterGoalReach());
-    linearMotion.setMaxTranslationVelocity(SpeedLimits.maxTranslationVelocity);
-    linearMotion.setMaxOrientationVelocity(SpeedLimits.maxOrientationVelocity);
-    // linearMotion.setMaxTranslationAcceleration(value);
-    // linearMotion.setMaxNullSpaceAcceleration(value);
-    // linearMotion.setMaxNullSpaceVelocity(value);
-    // linearMotion.setMaxOrientationAcceleration(value);
-
+    SpeedLimits.applySpeedLimits(linearMotion);
     return linearMotion;
   }
 
@@ -526,32 +516,28 @@ public class ControlModeHandler {
   }
 
   public void disableSmartServo(SmartServo motion) {
-    if (!(currentControlMode instanceof PositionControlMode)) {
-      changeSmartServoControlMode(motion, new PositionControlMode(true));
+    if (currentControlMode != null) {
+      if (!(currentControlMode instanceof PositionControlMode)) {
+        changeSmartServoControlMode(motion, new PositionControlMode(true));
+      }
     }
     motion.getRuntime().stopMotion();
   }
 
   public void disableSmartServo(SmartServoLIN motion) {
-    if (!(currentControlMode instanceof PositionControlMode)) {
-      changeSmartServoControlMode(motion, new PositionControlMode(true));
+    if (currentControlMode != null) {
+      if (!(currentControlMode instanceof PositionControlMode)) {
+        changeSmartServoControlMode(motion, new PositionControlMode(true));
+      }
     }
     motion.getRuntime().stopMotion();
   }
 
   public SmartServo enableSmartServo(SmartServo motion) {
     return changeSmartServoControlMode(motion, lastSmartServoRequest);
-    /*
-     * motion.setMode(getCurrentMode()); endpointFrame.moveAsync(motion);
-     * motion.getRuntime().setGoalReachedEventHandler(handler);
-     */
   }
 
   public SmartServoLIN enableSmartServo(SmartServoLIN linearMotion) {
     return changeSmartServoControlMode(linearMotion, lastSmartServoRequest);
-    /*
-     * linearMotion.setMode(getCurrentMode()); endpointFrame.moveAsync(linearMotion);
-     * linearMotion.getRuntime().setGoalReachedEventHandler(handler);
-     */
   }
 }
