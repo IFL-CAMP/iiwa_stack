@@ -53,9 +53,9 @@ Most of the original files were completely refactored though.
 
 ### Contacts
 
-[![TUM](http://campar.in.tum.de/files/goeblr/TUM_Web_Logo_blau.png "TUM Logo")](http://tum.de)      
+[![TUM](http://campar.in.tum.de/files/goeblr/TUM_Web_Logo_blau.png "TUM Logo")](http://www.tum.de)      
 [Chair for Computer Aided Medical Procedures](http://campar.in.tum.de/)      
-[Technical University of Munich](www.tum.de), Germany.      
+[Technical University of Munich](http://www.tum.de), Germany.      
 
 <b>Salvatore Virga</b> : [salvo.virga@tum.de][salvo_email]       
 <b>Marco Esposito</b> : [marco.esposito@tum.de][marco_email]      
