@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakult�t
  * f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany http://campar.in.tum.de All
@@ -153,12 +153,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   @PostConstruct
   public void initialize() {
-    // Get the Sunrise Logger.
-    Logger.setSunriseLogger(getLogger());
-    if (getApplicationData().getProcessData("debug").getValue()) {
-      Logger.setLogLevel(Level.DEBUG);
-    }
-
     // Get the robot instance.
     robot = getContext().getDeviceFromType(LBR.class);
 
@@ -167,6 +161,14 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider());
     actionServer = new iiwaActionServer(robot, configuration);
 
+    // Get the Sunrise Logger and set its log level.
+    Logger.setSunriseLogger(getLogger());
+    if (configuration.getDebugOutputEnabled()) {
+      Logger.setLogLevel(Level.DEBUG);
+    }
+    else {
+      Logger.setLogLevel(Level.INFO);
+    }
     // ROS initialization.
     try {
       configurationNodeConfiguration = configureNode("/iiwa_configuration", 30000, 30001);
