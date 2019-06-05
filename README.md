@@ -1,10 +1,10 @@
 ## IIWA STACK
 ROS Indigo/Kinetic metapackage for the KUKA LBR IIWA R800/R820 (7/14 Kg).
 
-**Current version : v-1.3.0 for Sunrise 1.10 - 1.16**
+**Current version : v-1.3.0 for Sunrise 1.10 - 1.16**    
 [Using a previous version of Sunrise?](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ#which-version-of-sunriseossunrise-workbench-is-supported)    
 
-[![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
+[![Build Status](https://travis-ci.org/IFL-CAMP/iiwa_stack.svg?branch=master)](https://travis-ci.org/IFL-CAMP/iiwa_stack)
 ___
 ### Features
 - Native ROSJava nodes running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, etc.
@@ -53,12 +53,12 @@ Most of the original files were completely refactored though.
 
 ### Contacts
 
-[![TUM](http://campar.in.tum.de/files/goeblr/TUM_Web_Logo_blau.png "TUM Logo")](http://tum.de)
-[Chair for Computer Aided Medical Procedures](http://campar.in.tum.de/)
-[Technical University of Munich](www.tum.de), Germany.
+[![TUM](http://campar.in.tum.de/files/goeblr/TUM_Web_Logo_blau.png "TUM Logo")](http://tum.de)      
+[Chair for Computer Aided Medical Procedures](http://campar.in.tum.de/)      
+[Technical University of Munich](www.tum.de), Germany.      
 
-<b>Salvatore Virga</b>> : [salvo.virga@tum.de][salvo_email]
-<b>Marco Esposito</b> : [fernanda.langsch@tum.de][fernanda_email]
+<b>Salvatore Virga</b> : [salvo.virga@tum.de][salvo_email]       
+<b>Marco Esposito</b> : [marco.esposito@tum.de][marco_email]      
 
 [salvo_email]: salvo.virga@tum.de
 [marco_email]: marco.esposito@tum.de
