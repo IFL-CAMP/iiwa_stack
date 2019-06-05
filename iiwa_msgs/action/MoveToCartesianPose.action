@@ -1,0 +1,10 @@
+# Goal
+CartesianPose cartesian_pose
+
+---
+# Result
+bool success
+string error
+
+---
+# Feedback

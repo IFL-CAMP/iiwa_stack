@@ -1,13 +1,5 @@
 /**
- * This code is a porting of the work from the Centro E. Piaggio in Pisa : https://github.com/CentroEPiaggio/kuka-lwr
- * for the LBR IIWA. We acknowledge the good work of their main contributors :
- * Carlos J. Rosales - cjrosales@gmail.com
- * Enrico Corvaglia
- * Marco Esposito - marco.esposito@tum.de
- * Manuel Bonilla - josemanuelbonilla@gmail.com
- *
- * LICENSE :
- * Copyright (C) 2016-2017 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
  * Technische Universität München
  * Chair for Computer Aided Medical Procedures and Augmented Reality
  * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
@@ -37,69 +29,63 @@
  */
 
 #include <ros/ros.h>
-#include <signal.h>
-#include "iiwa_hw.h"
+#include <csignal>
 
-bool g_quit = false;
+#include "iiwa_hw.hpp"
 
-void quitRequested(int sig)
-{
-  g_quit = true;
-}
+static bool quit{false};
 
-int main(int argc, char** argv)
-{
-  // initialize ROS
+void signalHandler(int /*unused*/) { quit = true; }
+
+int main(int argc, char** argv) {
+  // Initialize ROS.
   ros::init(argc, argv, "iiwa_hw", ros::init_options::NoSigintHandler);
 
-  // ros spinner
+  // ROS spinner.
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  // custom signal handlers
-  signal(SIGTERM, quitRequested);
-  signal(SIGINT, quitRequested);
-  signal(SIGHUP, quitRequested);
+  // Signal handlers.
+  signal(SIGTERM, signalHandler);
+  signal(SIGINT, signalHandler);
+  signal(SIGHUP, signalHandler);
 
-  // construct the lbr iiwa
+  // Construct the LBR iiwa.
   ros::NodeHandle iiwa_nh;
-  IIWA_HW iiwa_robot(iiwa_nh);
+  iiwa_hw::HardwareInterface iiwa_robot;
 
-  // configuration routines
-  iiwa_robot.start();
+  // Configuration routines.
+  iiwa_robot.init(iiwa_nh, iiwa_nh);
 
   ros::Time last(ros::Time::now());
   ros::Time now;
   ros::Duration period(1.0);
 
-  // the controller manager
+  // Controller manager.
   controller_manager::ControllerManager manager(&iiwa_robot, iiwa_nh);
 
-  // run as fast as possible
-  while (!g_quit)
-  {
-    // get the time / period
+  // Run as fast as possible.
+  while (!quit) {
+
+    // Get the time / period.
     now = ros::Time::now();
     period = now - last;
     last = now;
 
-    // read current robot position
-    iiwa_robot.read(period);
+    // Read current robot position.
+    iiwa_robot.read(now, period);
 
-    // update the controllers
+    // Update the controllers.
     manager.update(now, period);
 
     // send command position to the robot
-    iiwa_robot.write(period);
+    iiwa_robot.write(now, period);
 
     // wait for some milliseconds defined in controlFrequency
-    iiwa_robot.getRate()->sleep();
+    iiwa_robot.getRate().sleep();
   }
 
-  std::cerr << "Stopping spinner..." << std::endl;
   spinner.stop();
-
-  std::cerr << "Bye!" << std::endl;
 
   return 0;
 }

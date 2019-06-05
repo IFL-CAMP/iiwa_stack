@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>iiwa_control</name>
   <version>1.4.0</version>
   <description>A package containing controllers used by MoveIt! and Gazebo</description>
@@ -10,6 +10,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>controller_manager</run_depend>
+  <depend>controller_manager</depend>
 
 </package>

@@ -1,0 +1,13 @@
+# This service allows to set relative joint velocity and acceleration of the robot.
+# Set a parameter to -1 to ignore it
+
+# Relative velocity of the individual joints, 0.0 < value <= 1
+float64 joint_relative_velocity
+
+# Relative acceleration of the individual joints, 0.0 < value <= 1.0
+float64 joint_relative_acceleration
+
+---
+
+bool success
+string error
