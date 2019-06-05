@@ -57,7 +57,7 @@ Most of the original files were completely refactored though.
 [Chair for Computer Aided Medical Procedures](http://campar.in.tum.de/)      
 [Technical University of Munich](http://www.tum.de), Germany.      
 
-<b>Salvatore Virga</b> : [salvo.virga@tum.de](mailto:salvo.virga@tum.de)
+<b>Salvatore Virga</b> : [salvo.virga@tum.de](mailto:salvo.virga@tum.de)      
 <b>Marco Esposito</b> : [marco.esposito@tum.de](mailto:marco.esposito@tum.de) 
 
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
