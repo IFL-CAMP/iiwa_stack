@@ -1,0 +1,7 @@
+# Translational and rotational speed in m/s and rad/s
+geometry_msgs/Twist max_cartesian_velocity
+
+---
+
+bool success
+string error

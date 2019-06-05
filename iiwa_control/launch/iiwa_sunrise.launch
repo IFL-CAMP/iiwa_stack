@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="hardware_interface" default="PositionJointInterface"/>
+  <arg name="robot_name" default="iiwa" />
+  <arg name="model" default="iiwa14"/>
+  <arg name="tool_length" default="0.0"/>
+
+  <group ns="$(arg robot_name)">
+    <node name="iiwa_sunrise" pkg="iiwa_control" type="iiwa_sunrise.py" output="screen">
+      <param name="hardware_interface" value="$(arg hardware_interface)"/>
+      <param name="robot_name" value="$(arg robot_name)"/>
+      <param name="model" value="$(arg model)"/>
+      <param name="tool_length" value="$(arg tool_length)"/>
+    </node>
+  </group>
+</launch>

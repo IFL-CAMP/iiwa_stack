@@ -1,4 +1,4 @@
-# Lines that start with '#' are comments.
+﻿# Lines that start with '#' are comments.
 
 # Backup and data files
 eg/eg.*
@@ -61,6 +61,9 @@ CVS/*
 */*/CVS/*
 */*/*/CVS/*
 *.cvsignore
+
+# Vim files
+*.swp
 
 # Other files
 working/

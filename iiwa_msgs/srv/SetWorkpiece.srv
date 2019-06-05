@@ -1,0 +1,8 @@
+# This service allows to attach a workpiece to the robots tool.
+# Setting a new workpiece automatically detaches the old one.
+
+# Id of Sunrise workpiece template. Leave emtpy to detach current workpiece.
+string workpiece_id
+---
+bool success
+string error
