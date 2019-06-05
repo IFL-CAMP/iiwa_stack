@@ -2,12 +2,6 @@
 
 # Copyright (C) 2016-2019
 #
-# Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
-# Technische Universitaet Muenchen
-# Chair for Computer Aided Medical Procedures and Augmented Reality
-# Fakultaet fuer Informatik / I16, Boltzmannstrasse 3, 85748 Garching bei Muenchen, Germany
-# http://campar.in.tum.de
-#
 # David Wuthier - daw@mp.aau.dk
 # Aalborg University
 # Robotics, Vision and Machine Intelligence Laboratory
@@ -36,9 +30,9 @@
 import rospy
 
 from iiwa_msgs.msg import JointPosition
-from iiwa_msgs.srv import ConfigureSmartServo, ConfigureSmartServoRequest, ConfigureSmartServoResponse
-from iiwa_msgs.srv import SetPathParameters, SetPathParametersRequest, SetPathParametersResponse
-from iiwa_msgs.srv import SetPathParametersLin, SetPathParametersLinRequest, SetPathParametersLinResponse
+from iiwa_msgs.srv import ConfigureControlMode, ConfigureControlModeRequest, ConfigureControlModeResponse
+from iiwa_msgs.srv import SetSmartServoJointSpeedLimits, SetSmartServoJointSpeedLimitsRequest, SetSmartServoJointSpeedLimitsResponse
+from iiwa_msgs.srv import SetSmartServoLinSpeedLimits, SetSmartServoLinSpeedLimitsRequest, SetSmartServoLinSpeedLimitsResponse
 from numpy import pi, sqrt, cos, sin, arctan2, array, matrix
 from numpy.linalg import norm
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, WrenchStamped
@@ -139,11 +133,11 @@ class IiwaSunrise(object):
         '{}_trajectory_controller/command'.format(hardware_interface), JointTrajectory, queue_size = 1)
 
     path_parameters_configuration_srv = Service(
-        'configuration/pathParameters', SetPathParameters, self.handlePathParametersConfiguration)
+        'configuration/setSmartServoLimits', SetSmartServoJointSpeedLimits, self.handlePathParametersConfiguration)
     path_parameters_lin_configuration_srv = Service(
-        'configuration/pathParametersLin', SetPathParametersLin, self.handlePathParametersLinConfiguration)
+        'configuration/setSmartServoLinLimits', SetSmartServoLinSpeedLimits, self.handlePathParametersLinConfiguration)
     smart_servo_configuration_srv = Service(
-        'configuration/configureSmartServo', ConfigureSmartServo, self.handleSmartServoConfiguration)
+        'configuration/ConfigureControlMode', ConfigureControlMode, self.handleSmartServoConfiguration)
 
     spin()
 
@@ -152,7 +146,7 @@ class IiwaSunrise(object):
         [msg.position.a1, msg.position.a2, msg.position.a3, msg.position.a4, msg.position.a5, msg.position.a6, msg.position.a7])
 
   def handleSmartServoConfiguration(self, request):
-    return ConfigureSmartServoResponse(True, '')
+    return ConfigureControlModeResponse(True, '')
 
   def handlePathParametersConfiguration(self, request):
     loginfo('setting path parameters')
@@ -161,9 +155,9 @@ class IiwaSunrise(object):
 
     if v >= 0.0 and v <= 1.0:
       self.v = linearlyMap(v, 0.0, 1.0, 2.0, 0.5)
-      return SetPathParametersResponse(True, '')
+      return SetSmartServoJointSpeedLimitsResponse(True, '')
     else:
-      return SetPathParametersResponse(False, '')
+      return SetSmartServoJointSpeedLimitsResponse(False, '')
 
   def handlePathParametersLinConfiguration(self, request):
     loginfo('setting path parameters linear')
@@ -172,9 +166,9 @@ class IiwaSunrise(object):
 
     if v >= 0.0 and v <= 1000.0:
       self.v = linearlyMap(v, 0.0, 1000.0, 2.0, 0.5)
-      return SetPathParametersLinResponse(True, '')
+      return SetSmartServoLinSpeedLimitsResponse(True, '')
     else:
-      return SetPathParametersLinResponse(False, '')
+      return SetSmartServoLinSpeedLimitsResponse(False, '')
 
   def redundancyCb(self, msg):
     self.tr = msg.data
