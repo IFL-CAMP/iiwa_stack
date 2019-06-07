@@ -50,7 +50,7 @@ public:
   TimeToDestinationService() = default;
   virtual ~TimeToDestinationService() override = default;
 
-  virtual void init(const std::string& robot_namespace) override;
+  virtual void init(const std::string& robot_namespace = "iiwa") override;
 
   /**
    * @brief Returns the time left to reach the last commanded destination in <b>seconds</b>.

@@ -47,20 +47,14 @@ public:
    * @brief Initialize the object with a given robot namespace.
    * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
    */
-  void init(const std::string& robot_namespace) override;
-
-  /**
-   * @brief Command the robot end-effector to move to the given Cartesian pose.
-   * @param [in] pose - the commanded Cartesian pose.
-   */
-  void setPose(const geometry_msgs::PoseStamped& pose);
+  void init(const std::string& robot_namespace = "iiwa") override;
 
   /**
    * @brief Command the robot end-effector to move to the given Cartesian pose.
    * @param [in] pose - the commanded Cartesian pose.
    * @param [in] callback - a callback function to call when the motion terminates.
    */
-  void setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback);
+  void setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback = nullptr);
 
 private:
   Command<geometry_msgs::PoseStamped> command_{};

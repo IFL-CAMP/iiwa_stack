@@ -33,12 +33,6 @@
 namespace iiwa_ros {
 namespace state {
 
-void JointVelocity::init(const std::string& robot_namespace) {
-  setup(robot_namespace);
-  initROS("JointTorqueState");
-  state_.init(ros_namespace_ + "state/JointVelocity");
-}
-
 void JointVelocity::init(const std::string& robot_namespace,
                          const std::function<void(const iiwa_msgs::JointVelocity&)> callback) {
   setup(robot_namespace);

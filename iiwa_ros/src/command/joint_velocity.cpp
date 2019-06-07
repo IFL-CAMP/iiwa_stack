@@ -38,18 +38,17 @@ void JointVelocity::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   initROS("JointVelocityCommand");
   command_.init(ros_namespace_ + "command/JointVelocity");
-}
-
-void JointVelocity::setVelocity(const iiwa_msgs::JointVelocity& velocity) {
-  command_.set(velocity);
-  command_.publish();
+  time_to_destination_.init(ros_namespace_);
 }
 
 void JointVelocity::setVelocity(const iiwa_msgs::JointVelocity& velocity, const std::function<void()> callback) {
-  setVelocity(velocity);
-  callback_ = callback;
-  std::thread t(&JointVelocity::completedMotionWatcher, this);
-  t.detach();
+  command_.set(velocity);
+  command_.publish();
+  if (callback != nullptr) {
+    callback_ = callback;
+    std::thread t(&JointVelocity::completedMotionWatcher, this);
+    t.detach();
+  }
 }
 
 }  // namespace command

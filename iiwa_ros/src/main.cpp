@@ -43,8 +43,8 @@ int main() {
   iiwa_ros::state::JointPosition jp_state;
   iiwa_ros::state::JointTorque jt_state;
 
-  jp_state.init("iiwa");
-  jt_state.init("iiwa");
+  jp_state.init();
+  jt_state.init();
 
   // ROS spinner.
   ros::AsyncSpinner spinner(1);

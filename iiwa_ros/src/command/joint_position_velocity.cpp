@@ -38,19 +38,18 @@ void JointPositionVelocity::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   initROS("JointPositionVelocityCommand");
   command_.init(ros_namespace_ + "command/JointPositionVelocity");
-}
-
-void JointPositionVelocity::setPosition(const iiwa_msgs::JointPositionVelocity& position) {
-  command_.set(position);
-  command_.publish();
+  time_to_destination_.init(ros_namespace_);
 }
 
 void JointPositionVelocity::setPosition(const iiwa_msgs::JointPositionVelocity& position,
                                         const std::function<void()> callback) {
-  setPosition(position);
-  callback_ = callback;
-  std::thread t(&JointPositionVelocity::completedMotionWatcher, this);
-  t.detach();
+  command_.set(position);
+  command_.publish();
+  if (callback != nullptr) {
+    callback_ = callback;
+    std::thread t(&JointPositionVelocity::completedMotionWatcher, this);
+    t.detach();
+  }
 }
 
 }  // namespace command

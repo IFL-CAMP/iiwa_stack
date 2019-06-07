@@ -47,20 +47,14 @@ public:
    * @brief Initialize the object with a given robot namespace.
    * @param [in] robot_namespace - the namespace under which the command topics for the desired robot exist.
    */
-  void init(const std::string& robot_namespace) override;
-
-  /**
-   * @brief Command the robot to move with the given joint velocity.
-   * @param [in] velocity - the commanded joint velocity.
-   */
-  void setVelocity(const iiwa_msgs::JointVelocity& velocity);
+  void init(const std::string& robot_namespace = "iiwa") override;
 
   /**
    * @brief Command the robot to move with the given joint velocity.
    * @param [in] velocity - the commanded joint velocity.
    * @param [in] callback - a callback function to call when the motion terminates.
    */
-  void setVelocity(const iiwa_msgs::JointVelocity& velocity, const std::function<void()> callback);
+  void setVelocity(const iiwa_msgs::JointVelocity& velocity, const std::function<void()> callback = nullptr);
 
 private:
   Command<iiwa_msgs::JointVelocity> command_{};

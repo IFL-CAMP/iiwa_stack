@@ -46,7 +46,7 @@ public:
   PathParametersLinService() = default;
   virtual ~PathParametersLinService() override = default;
 
-  virtual void init(const std::string& robot_namespace) override;
+  virtual void init(const std::string& robot_namespace = "iiwa") override;
 
   /**
    * @brief Set the maximum cartesian velocity to be applied during SmartServoLin motions.

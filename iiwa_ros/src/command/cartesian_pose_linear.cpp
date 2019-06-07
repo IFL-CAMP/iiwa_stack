@@ -38,18 +38,17 @@ void CartesianPoseLinear::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   initROS("CartesianPoseLinearCommand");
   command_.init(ros_namespace_ + "command/CartesianPoseLin");
-}
-
-void CartesianPoseLinear::setPose(const geometry_msgs::PoseStamped& pose) {
-  command_.set(pose);
-  command_.publish();
+  time_to_destination_.init(ros_namespace_);
 }
 
 void CartesianPoseLinear::setPose(const geometry_msgs::PoseStamped& pose, const std::function<void()> callback) {
-  setPose(pose);
-  callback_ = callback;
-  std::thread t(&CartesianPoseLinear::completedMotionWatcher, this);
-  t.detach();
+  command_.set(pose);
+  command_.publish();
+  if (callback != nullptr) {
+    callback_ = callback;
+    std::thread t(&CartesianPoseLinear::completedMotionWatcher, this);
+    t.detach();
+  }
 }
 
 }  // namespace command

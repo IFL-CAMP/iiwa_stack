@@ -33,12 +33,6 @@
 namespace iiwa_ros {
 namespace state {
 
-void DestinationReached::init(const std::string& robot_namespace) {
-  setup(robot_namespace);
-  initROS("DestinationReachedState");
-  state_.init(ros_namespace_ + "state/DestinationReached");
-}
-
 void DestinationReached::init(const std::string& robot_namespace,
                               const std::function<void(const std_msgs::Time&)> callback) {
   setup(robot_namespace);

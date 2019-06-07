@@ -65,14 +65,10 @@ class State {
 public:
   State() = default;
 
-  void init(const std::string& topic) {
+  void init(const std::string& topic, const std::function<void(const ROSMSG&)>& callback = nullptr) {
+    callback_ = std::move(callback);
     ros::NodeHandle nh;
     subscriber_ = nh.subscribe<ROSMSG>(topic, 1, &State<ROSMSG>::set, this);
-  }
-
-  void init(const std::string& topic, const std::function<void(const ROSMSG&)>& callback) {
-    callback_ = std::move(callback);
-    init(topic);
   }
 
   void set(ROSMSG value) {
@@ -115,12 +111,12 @@ private:
 class Robot {
 public:
   virtual ~Robot() = default;
-  virtual void init(const std::string& robot_namespace) = 0;
+  virtual void init(const std::string& /*unused*/) {}
 
 protected:
   Robot() = default;
   void initROS(const std::string& ros_node_name);
-  void setup(const std::string& robot_namespace) {
+  void setup(const std::string& robot_namespace = "iiwa") {
     // Build the correct ROS namespace if one was given, else use the root namespace.
     if (!robot_namespace.empty() && robot_namespace != ros_namespace_) { ros_namespace_.append(robot_namespace + "/"); }
   }

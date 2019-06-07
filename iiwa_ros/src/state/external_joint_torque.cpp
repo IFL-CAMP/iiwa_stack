@@ -33,12 +33,6 @@
 namespace iiwa_ros {
 namespace state {
 
-void ExternalJointTorque::init(const std::string& robot_namespace) {
-  setup(robot_namespace);
-  initROS("ExternalJointTorqueState");
-  state_.init(ros_namespace_ + "state/ExternalJointTorque");
-}
-
 void ExternalJointTorque::init(const std::string& robot_namespace,
                        const std::function<void(const iiwa_msgs::JointTorque&)> callback) {
   setup(robot_namespace);

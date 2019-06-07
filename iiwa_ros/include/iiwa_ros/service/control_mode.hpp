@@ -46,7 +46,7 @@ public:
   ControlModeService() = default;
   virtual ~ControlModeService() override = default;
 
-  virtual void init(const std::string& robot_namespace) override;
+  virtual void init(const std::string& robot_namespace = "iiwa") override;
 
   /**
    * @brief Sets the control mode to PositionControl.
