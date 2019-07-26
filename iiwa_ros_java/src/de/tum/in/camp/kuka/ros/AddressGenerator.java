@@ -1,9 +1,9 @@
 /**
- * Copyright (C) 2019 Salvatore Virga - salvo.virga@tum.de
- * Technische Universität München
- * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
- * http://campar.in.tum.de
+ * Copyright (C) 2018 Arne Peters - arne.peters@tum.de 
+ * Technische UniversitÃ¤t MÃ¼nchen
+ * Chair for Robotics, Artificial Intelligence and Embedded Systems 
+ * FakultÃ¤t fÃ¼r Informatik / I6, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany 
+ * http://www6.in.tum.de 
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
@@ -27,19 +27,19 @@
 
 package de.tum.in.camp.kuka.ros;
 
-import java.util.TimerTask;
+public class AddressGenerator {
+  int address = 30000;
 
-public class ActionServerThread extends TimerTask {
-
-  private iiwaActionServer actionServer = null;
-
-  public ActionServerThread(iiwaActionServer actionServer) {
-    this.actionServer = actionServer;
+  public int getNewAddress() {
+    // Only port numbers from 30000 to 30010 are available.
+    // See KUKA SI Manual "Network communication via UDP and TCP/IP".
+    if (address > 30010) {
+      throw new RuntimeException("Only port numbers from 30000 to 30010 are available");
+    }
+    else {
+      int newAddress = address;
+      address++;
+      return newAddress;
+    }
   }
-
-  @Override
-  public void run() {
-    actionServer.publishCurrentState();
-  }
-
 }

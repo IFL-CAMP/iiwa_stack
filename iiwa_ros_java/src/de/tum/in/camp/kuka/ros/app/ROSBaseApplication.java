@@ -1,8 +1,10 @@
-﻿/**
- * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universit�t M�nchen Chair for Computer Aided Medical Procedures and Augmented Reality Fakult�t
- * f�r Informatik / I16, Boltzmannstra�e 3, 85748 Garching bei M�nchen, Germany http://campar.in.tum.de All
- * rights reserved.
+/**
+ * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -34,7 +36,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+// import javax.inject.Inject;
 
 import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
@@ -61,6 +63,7 @@ import com.kuka.roboticsAPI.uiModel.userKeys.UserKeyEvent;
 
 import de.tum.in.camp.kuka.ros.ActionServerThread;
 import de.tum.in.camp.kuka.ros.ActiveToolThread;
+import de.tum.in.camp.kuka.ros.AddressGenerator;
 import de.tum.in.camp.kuka.ros.CommandTypes.CommandType;
 import de.tum.in.camp.kuka.ros.Logger.Level;
 import de.tum.in.camp.kuka.ros.ControlModeHandler;
@@ -103,6 +106,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   // ROS Nodes.
   protected Configuration configuration = null;
+
+  protected AddressGenerator addressGenerator = new AddressGenerator();
 
   // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button status
   AbstractIOGroup mediaFlange = null;
@@ -154,12 +159,6 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   @PostConstruct
   public void initialize() {
-    // Get the Sunrise Logger.
-    Logger.setSunriseLogger(getLogger());
-    if (getApplicationData().getProcessData("debug").getValue()) {
-      Logger.setLogLevel(Level.DEBUG);
-    }
-
     // Get the robot instance.
     robot = getContext().getDeviceFromType(LBR.class);
 
@@ -168,11 +167,23 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider(), mediaFlange);
     actionServer = new iiwaActionServer(robot, configuration);
 
+    // Get the Sunrise Logger and set its log level.
+    Logger.setSunriseLogger(getLogger());
+    if (configuration.getDebugOutputEnabled()) {
+      Logger.setLogLevel(Level.DEBUG);
+    }
+    else {
+      Logger.setLogLevel(Level.INFO);
+    }
+
     // ROS initialization.
     try {
-      configurationNodeConfiguration = configureNode("/iiwa_configuration", 30000, 30001);
-      publisherNodeConfiguration = configureNode("/iiwa_publisher", 30002, 30003);
-      actionServerNodeConfiguration = configureNode("/iiwa_action_server", 30004, 30005);
+      configurationNodeConfiguration = configureNode("/iiwa_configuration", addressGenerator.getNewAddress(),
+          addressGenerator.getNewAddress());
+      publisherNodeConfiguration = configureNode("/iiwa_publisher", addressGenerator.getNewAddress(),
+          addressGenerator.getNewAddress());
+      actionServerNodeConfiguration = configureNode("/iiwa_action_server", addressGenerator.getNewAddress(),
+          addressGenerator.getNewAddress());
 
       // Additional configuration needed in subclasses.
       configureNodes();

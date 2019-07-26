@@ -1,8 +1,10 @@
 /**
- * Copyright (C) 2016-2019 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universitï¿½t Mï¿½nchen Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultï¿½t fï¿½r Informatik / I16, Boltzmannstraï¿½e 3, 85748 Garching bei Mï¿½nchen, Germany
- * http://campar.in.tum.de All rights reserved.
+ * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
+ * Technische Universität München
+ * Chair for Computer Aided Medical Procedures and Augmented Reality
+ * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * http://campar.in.tum.de
+ * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
@@ -69,6 +71,7 @@ public class Configuration extends AbstractNodeMain {
   private String robotIp;
   private boolean configurationSuccessful = false;
   private boolean ntpWithHost;
+  private boolean debugOutput;
 
   private TimeProvider timeProvider;
   private ScheduledExecutorService ntpExecutorService = null;
@@ -100,6 +103,9 @@ public class Configuration extends AbstractNodeMain {
 
     // Check if NTP Server is used or not.
     ntpWithHost = applicationData.getProcessData("ntp").getValue();
+    
+    // Check if debug ouput is enabled.
+    debugOutput = applicationData.getProcessData("debug").getValue();
 
     // Obtain IP and port of the ROS Master
     masterIp = applicationData.getProcessData("master_ip").getValue();
@@ -160,7 +166,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the ROS Master IP address, obtained from the configuration file.
+   * Get the ROS Master IP address, value obtained from the SmartPad process data.
    * 
    * @return ROS Master IP address
    */
@@ -170,7 +176,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the robot IP address, obtained from the configuration file.
+   * Get the robot IP address, value obtained from the SmartPad process data.
    * 
    * @return Robot IP address
    */
@@ -180,7 +186,7 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Get the robot name, obtained from the configuration file.
+   * Get the robot name, value obtained from the SmartPad process data.
    * 
    * @return name of the robot
    */
@@ -190,13 +196,23 @@ public class Configuration extends AbstractNodeMain {
   }
 
   /**
-   * Return if an external NTP server should be used, value obtained from the configuration file.
+   * Return if an external NTP server should be used, value obtained from the SmartPad process data.
    * 
    * @return true if external NTP server should be used
    */
   public boolean getShouldUseNtp() {
     checkConfiguration();
     return ntpWithHost;
+  }
+  
+  /**
+   * Return if an the debug output text should be printed, value obtained from the SmartPad process data.
+   * 
+   * @return true debug output should be printed
+   */
+  public boolean getDebugOutputEnabled() {
+	 checkConfiguration();
+	 return debugOutput;
   }
 
   /**
