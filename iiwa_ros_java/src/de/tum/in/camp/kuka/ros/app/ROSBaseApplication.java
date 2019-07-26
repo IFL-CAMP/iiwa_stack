@@ -50,6 +50,7 @@ import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.ioModel.AbstractIOGroup;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
@@ -103,9 +104,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
   // ROS Nodes.
   protected Configuration configuration = null;
 
-  // MEDIAFLANGEIO
-  // @Inject
-  // protected MediaFlangeIOGroup mediaFlange;
+  // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button status
+  AbstractIOGroup mediaFlange = null;
+  // @Inject protected MediaFlangeIOGroup mediaFlange; // MEDIAFLANGEIO
 
   protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
@@ -164,7 +165,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
     // Standard configuration.
     configuration = new Configuration(getApplicationData());
-    publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider());
+    publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider(), mediaFlange);
     actionServer = new iiwaActionServer(robot, configuration);
 
     // ROS initialization.
