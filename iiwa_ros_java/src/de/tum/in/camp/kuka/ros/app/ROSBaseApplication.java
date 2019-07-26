@@ -109,7 +109,8 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   protected AddressGenerator addressGenerator = new AddressGenerator();
 
-  // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button status
+  // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button
+  // status
   AbstractIOGroup mediaFlange = null;
   // @Inject protected MediaFlangeIOGroup mediaFlange; // MEDIAFLANGEIO
 
