@@ -209,7 +209,7 @@ public class SpeedLimits {
     Logger.debug("PTP maxOrientationJerk: " + ptp_maxOrientationJerk);
   }
 
-  public static void setOverrideRecution(double override, boolean ramp) {
+  public static void setOverrideReduction(double override, boolean ramp) {
     if (override < 0.0) {
       SpeedLimits.overrideReduction = 0.0;
     }
