@@ -62,7 +62,7 @@ bool PathParametersService::setSmartServoJointSpeedLimits(const double joint_rel
                                               const double joint_relative_acceleration,
                                               const double override_joint_acceleration) {
   config_.request.joint_relative_velocity = joint_relative_velocity;
-  config_.request.joint_relative_velocity = joint_relative_acceleration;
+  config_.request.joint_relative_acceleration = joint_relative_acceleration;
   config_.request.override_joint_acceleration = override_joint_acceleration;
   return callService();
 }
