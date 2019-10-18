@@ -1,7 +1,7 @@
 moveit_setup_assistant_config:
   URDF:
     package: iiwa_description
-    relative_path: urdf/iiwa14.urdf
+    relative_path: urdf/generated/iiwa14.urdf
   SRDF:
     relative_path: config/iiwa14.srdf
   CONFIG:

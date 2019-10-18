@@ -58,7 +58,7 @@
         </include>
         
         <include if="$(arg rviz)" file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
-            <arg name="config" value="true"/>
+            <arg name="rviz_config" value="$(find iiwa_moveit)/launch/moveit.rviz"/>
         </include>
     </group>
     
