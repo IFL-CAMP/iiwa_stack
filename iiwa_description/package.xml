@@ -10,5 +10,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>force_torque_sensor_controller</depend>
+  <depend>xacro</depend>
 
 </package>
