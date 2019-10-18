@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>iiwa_moveit</name>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <description>
 	  A package with all the configuration and launch files for using the KUKA LBR IIWA with the MoveIt Motion Planning Framework
   </description>

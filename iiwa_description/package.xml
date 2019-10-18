@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>iiwa_description</name>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <description>This package contains the URDF of the KUKA LBR IIWA robot</description>
   <author email="salvo.virga@tum.de">Salvo Virga</author>
   <maintainer email="salvo.virga@tum.de">Salvo Virga</maintainer>
