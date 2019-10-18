@@ -1,20 +1,20 @@
 ## IIWA STACK
 ROS Indigo/Kinetic metapackage for the KUKA LBR IIWA R800/R820 (7/14 Kg).
 
-**Current version : v-1.2.0 for Sunrise 1.10 - 1.14**   
+**Current version : v-1.3.0 for Sunrise 1.10 - 1.16**    
 [Using a previous version of Sunrise?](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ#which-version-of-sunriseossunrise-workbench-is-supported)    
 
-[![Build Status](https://travis-ci.org/SalvoVirga/iiwa_stack.svg?branch=master)](https://travis-ci.org/SalvoVirga/iiwa_stack)
+[![Build Status](https://travis-ci.org/IFL-CAMP/iiwa_stack.svg?branch=master)](https://travis-ci.org/IFL-CAMP/iiwa_stack)
 ___
 ### Features
 - Native ROSJava nodes running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, etc.
-- Integration of KUKA's SmartServo motions:
+- Integration of KUKA's SmartServo and PTP motions:
   - joint position, joint velocity and cartesian position control via simple ROS messages. 
   - online configuration of JointImpedance, CartesianImpedance, DesiredForce and Sine(Force)Pattern via ROS service.
-  - online configuration of joint velocity and acceleration via ROS service.
+  - online configuration of joint/cartesian velocity and acceleration via ROS service.
   - updates on the time left to reach the commanded destination via ROS service.
-- The Sunrise tool to use can be selected via a ROS parameter.
-- Gravity compensation by setting the appropriate JointImpedance values.
+- Selection of the tool and endframe to use via ROS parameters and services.
+- 'Fake' hand-guidance mode.
 - NTP synchronization with a server running on the ROS master
 - full MoveIt! integration
 - Gazebo support
@@ -50,9 +50,15 @@ This repository takes inspiration from the work of :
 
 Most of the original files were completely refactored though.
 
+
 ### Contacts
-Salvatore Virga : salvo.virga@tum.de     
-Marco Esposito : marco.esposito@tum.de
+
+[![TUM](http://campar.in.tum.de/files/goeblr/TUM_Web_Logo_blau.png "TUM Logo")](http://www.tum.de)      
+[Chair for Computer Aided Medical Procedures](http://campar.in.tum.de/)      
+[Technical University of Munich](http://www.tum.de), Germany.      
+
+<b>Salvatore Virga</b> : [salvo.virga@tum.de](mailto:salvo.virga@tum.de)      
+<b>Marco Esposito</b> : [marco.esposito@tum.de](mailto:marco.esposito@tum.de) 
 
 [1]: https://github.com/CentroEPiaggio/kuka-lwr
 [2]: https://bitbucket.org/khansari/iiwa.git

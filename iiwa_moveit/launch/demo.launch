@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     
+    <!-- By default, we start RViz -->
+    <arg name="rviz" default="true" />
     <!-- By default, we do not start a database (it can be large) -->
     <arg name="db" default="false" />
     
@@ -40,7 +42,7 @@
         </include>
         
         <!-- Run Rviz and load the default config to see the state of the move_group node -->
-        <include file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
+        <include if="$(arg rviz)" file="$(find iiwa_moveit)/launch/moveit_rviz.launch">
             <arg name="rviz_config" value="$(find iiwa_moveit)/launch/moveit.rviz"/>
             <arg name="debug" value="$(arg debug)"/>
         </include>
@@ -48,7 +50,5 @@
         <!-- If database loading was enabled, start mongodb as well -->
         <include file="$(find iiwa_moveit)/launch/default_warehouse_db.launch" if="$(arg db)"/>
     </group>
-    
-    
     
 </launch>
