@@ -29,6 +29,7 @@
   <depend>joint_state_publisher</depend>
   <depend>robot_state_publisher</depend>
   <depend>xacro</depend>
+  <depend>rviz</depend>
   <depend>iiwa_description</depend>
   <depend>iiwa_hw</depend>
 

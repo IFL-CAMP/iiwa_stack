@@ -11,5 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>controller_manager</depend>
+  <depend>robot_state_publisher</depend>
 
 </package>
