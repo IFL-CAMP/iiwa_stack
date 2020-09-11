@@ -50,6 +50,7 @@ import org.ros.rosjava.tf.Transform;
 import org.ros.rosjava.tf.pubsub.TransformListener;
 import org.ros.time.TimeProvider;
 
+import com.kuka.generated.ioAccess.MediaFlangeIOGroup;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.deviceModel.LBRE1Redundancy;
 import com.kuka.roboticsAPI.geometricModel.AbstractFrame;
@@ -111,6 +112,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   private Subscriber<iiwa_msgs.JointPosition> jointPositionSubscriber;
   private Subscriber<iiwa_msgs.JointPositionVelocity> jointPositionVelocitySubscriber;
   private Subscriber<iiwa_msgs.JointVelocity> jointVelocitySubscriber;
+  private Subscriber<std_msgs.Int8> mediaFlangeOutputsSubscriber;
 
   private TransformListener tfListener;
 
@@ -139,6 +141,7 @@ public class iiwaSubscriber extends AbstractNodeMain {
   // Name to use to build the name of the ROS topics
   private String iiwaName = "iiwa";
   private LBR robot = null;
+  private MediaFlangeIOGroup mediaFlange;
   private Boolean enforceMessageSequence = false;
 
   /**
@@ -151,8 +154,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @param robotName: name of the robot, it will be used for the topic names with this format : <robot
    *          name>/command/<iiwa message type>
    */
-  public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence) {
-    this(robot, robot.getFlange(), robotName, timeProvider, enforceMessageSequence);
+  public iiwaSubscriber(LBR robot, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence, MediaFlangeIOGroup mediaFlange) {
+    this(robot, robot.getFlange(), robotName, timeProvider, enforceMessageSequence, mediaFlange);
   }
 
   /**
@@ -167,10 +170,11 @@ public class iiwaSubscriber extends AbstractNodeMain {
    * @param robotName : name of the robot, it will be used for the topic names with this format : <robot
    *          name>/command/<iiwa message type>
    */
-  public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence) {
+  public iiwaSubscriber(LBR robot, ObjectFrame frame, String robotName, TimeProvider timeProvider, Boolean enforceMessageSequence, MediaFlangeIOGroup mediaFlange) {
     iiwaName = robotName;
     this.robot = robot;
     this.enforceMessageSequence = enforceMessageSequence;
+    this.mediaFlange = mediaFlange;
     helper = new MessageGenerator(iiwaName, timeProvider);
 
     cp = helper.buildMessage(geometry_msgs.PoseStamped._TYPE);
@@ -467,6 +471,8 @@ public class iiwaSubscriber extends AbstractNodeMain {
     jointPositionSubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPosition", iiwa_msgs.JointPosition._TYPE, hint);
     jointPositionVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointPositionVelocity", iiwa_msgs.JointPositionVelocity._TYPE, hint);
     jointVelocitySubscriber = connectedNode.newSubscriber(iiwaName + "/command/JointVelocity", iiwa_msgs.JointVelocity._TYPE, hint);
+    mediaFlangeOutputsSubscriber = connectedNode.newSubscriber(iiwaName + "/command/MediaFlangeOutputs", std_msgs.Int8._TYPE, hint);
+
     tfListener = new TransformListener(connectedNode);
 
     // Subscribers' callbacks
@@ -565,6 +571,19 @@ public class iiwaSubscriber extends AbstractNodeMain {
         }
         jv = velocity;
         currentCommandType = CommandType.SMART_SERVO_JOINT_VELOCITY;
+      }
+    });
+
+    mediaFlangeOutputsSubscriber.addMessageListener(new MessageListener<std_msgs.Int8>() {
+      @Override
+      public void onNewMessage(std_msgs.Int8 message) {
+        int output = message.getData();
+        Logger.info("Setting media flange outputs to " + output);
+        mediaFlange.setOutput1((output & 0x1) > 0);
+        mediaFlange.setOutput2((output & 0x2) > 0);
+        mediaFlange.setOutput3((output & 0x4) > 0);
+        mediaFlange.setOutput4((output & 0x8) > 0);
+        Logger.info("Outputs set");
       }
     });
 
