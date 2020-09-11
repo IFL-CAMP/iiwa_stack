@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2016 Salvatore Virga - salvo.virga@tum.de, Marco Esposito - marco.esposito@tum.de
- * Technische Universität München
+ * Technische UniversitÃ¤t MÃ¼nchen
  * Chair for Computer Aided Medical Procedures and Augmented Reality
- * Fakultät für Informatik / I16, Boltzmannstraße 3, 85748 Garching bei München, Germany
+ * FakultÃ¤t fÃ¼r Informatik / I16, BoltzmannstraÃŸe 3, 85748 Garching bei MÃ¼nchen, Germany
  * http://campar.in.tum.de
  * All rights reserved.
  * 
@@ -52,6 +52,7 @@ import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
+import com.kuka.roboticsAPI.ioModel.AbstractIOGroup;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
@@ -108,9 +109,10 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   protected AddressGenerator addressGenerator = new AddressGenerator();
 
-  // MEDIAFLANGEIO
-  // @Inject
-  // protected MediaFlangeIOGroup mediaFlange;
+  // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button
+  // status
+  AbstractIOGroup mediaFlange = null;
+  // @Inject protected MediaFlangeIOGroup mediaFlange; // MEDIAFLANGEIO
 
   protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
@@ -163,7 +165,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
     // Standard configuration.
     configuration = new Configuration(getApplicationData());
-    publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider());
+    publisher = new iiwaPublisher(robot, configuration.getRobotName(), configuration.getTimeProvider(), mediaFlange);
     actionServer = new iiwaActionServer(robot, configuration);
 
     // Get the Sunrise Logger and set its log level.
