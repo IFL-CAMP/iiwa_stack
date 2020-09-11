@@ -314,6 +314,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     motion = controlModeHandler.createSmartServoMotion();
 
     // Initialize motion.
+    Logger.info("If blocked here (in teach mode) please make sure the deadman and run buttone are pressed");
     endpointFrame.moveAsync(motion);
 
     // Hook the GoalReachedEventHandler.
