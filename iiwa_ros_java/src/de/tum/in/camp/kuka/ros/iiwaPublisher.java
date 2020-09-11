@@ -33,10 +33,9 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.time.TimeProvider;
 
-// import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
+import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
-import com.kuka.roboticsAPI.ioModel.AbstractIOGroup;
 
 /**
  * This class implements a ROS Node that publishes the current state of the robot. <br>
@@ -62,14 +61,17 @@ public class iiwaPublisher extends AbstractNodeMain {
   private boolean publishJointState = false;
   // DestinationReachedFlag publisher
   private Publisher<std_msgs.Time> destinationReachedPublisher;
-  // Publishes the status of the Media Flange button.
-  private Publisher<std_msgs.Bool> mediaFlangeButtonPublisher;
+  // Publishes the status of the Media Flange.
+  private Publisher<std_msgs.Int8> mediaFlangeOutputsPublisher;
+  private Publisher<std_msgs.Int8> mediaFlangeInputsPublisher;
+
+
   // Name to use to build the name of the ROS topics
   private String robotName = "iiwa";
 
   private LBR robot;
   
-  AbstractIOGroup mediaFlange;
+  MediaFlangeIOGroup mediaFlange;
 
   // Object to easily build iiwa_msgs from the current robot state
   private MessageGenerator helper;
@@ -87,7 +89,9 @@ public class iiwaPublisher extends AbstractNodeMain {
   private iiwa_msgs.JointVelocity jv;
   private std_msgs.Time t;
 
-  private std_msgs.Bool flangeButton;
+  private std_msgs.Int8 flangeOutputs;
+  private std_msgs.Int8 flangeInputs;
+
 
   /**
    * Create a ROS node with publishers for a robot state. <br>
@@ -96,7 +100,7 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @param robotName : name of the robot, topics will be created accordingly : <robot name>/state/<iiwa_msgs
    *          type> (e.g. MyIIWA/state/CartesianPosition)
    */
-  public iiwaPublisher(LBR robot, String robotName, TimeProvider timeProvider, AbstractIOGroup mediaFlange) {
+  public iiwaPublisher(LBR robot, String robotName, TimeProvider timeProvider, MediaFlangeIOGroup mediaFlange) {
     this.robot = robot;
     this.robotName = robotName;
     this.mediaFlange = mediaFlange;
@@ -111,7 +115,8 @@ public class iiwaPublisher extends AbstractNodeMain {
     jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
     js = helper.buildMessage(sensor_msgs.JointState._TYPE);
     t = helper.buildMessage(std_msgs.Time._TYPE);
-    flangeButton = helper.buildMessage(std_msgs.Bool._TYPE);
+    flangeOutputs = helper.buildMessage(std_msgs.Int8._TYPE);
+    flangeInputs = helper.buildMessage(std_msgs.Int8._TYPE);
   }
 
   /**
@@ -169,9 +174,8 @@ public class iiwaPublisher extends AbstractNodeMain {
 
     destinationReachedPublisher = connectedNode.newPublisher(robotName + "/state/DestinationReached", std_msgs.Time._TYPE);
 
-    if (mediaFlange != null) {
-      mediaFlangeButtonPublisher = connectedNode.newPublisher(robotName + "/state/MFButtonState", std_msgs.Bool._TYPE);
-    }
+    mediaFlangeOutputsPublisher = connectedNode.newPublisher(robotName + "/state/mediaFlangeOutputs", std_msgs.Int8._TYPE);
+    mediaFlangeInputsPublisher = connectedNode.newPublisher(robotName + "/state/mediaFlangeInputs", std_msgs.Int8._TYPE);
   }
 
   /**
@@ -185,7 +189,7 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @throws InterruptedException
    */
   public void publishCurrentState() throws InterruptedException {
-    publishCurrentState(robot.getFlange() /* , null */);
+    publishCurrentState(robot.getFlange());
   }
 
   /**
@@ -241,10 +245,29 @@ public class iiwaPublisher extends AbstractNodeMain {
       jointStatesPublisher.publish(js);
     }
  
-    if (mediaFlange != null && mediaFlangeButtonPublisher.getNumberOfSubscribers() > 0) {
-      // Uncomment if using a Media Flange IO.
-      // flangeButton.setData(((MediaFlangeIOGroup)mediaFlange).getUserButton()); // MEDIAFLANGEIO
-      mediaFlangeButtonPublisher.publish(flangeButton);
+    if (mediaFlangeOutputsPublisher.getNumberOfSubscribers() > 0) {
+      int outputs = 0;
+      outputs = outputs | (mediaFlange.getOutput1() ? 0x1: 0);
+      outputs = outputs | (mediaFlange.getOutput2() ? 0x2: 0);
+      outputs = outputs | (mediaFlange.getOutput3() ? 0x4: 0);
+      outputs = outputs | (mediaFlange.getOutput4() ? 0x8: 0);
+
+      flangeOutputs.setData((byte) outputs);
+      mediaFlangeOutputsPublisher.publish(flangeOutputs);
+    }
+
+    if (mediaFlangeInputsPublisher.getNumberOfSubscribers() > 0) {
+      int inputs = 0;
+      inputs = inputs | (mediaFlange.getInput1() ? 0x1: 0);
+      inputs = inputs | (mediaFlange.getInput2() ? 0x2: 0);
+      inputs = inputs | (mediaFlange.getInput3() ? 0x4: 0);
+      inputs = inputs | (mediaFlange.getInput4() ? 0x8: 0);
+      inputs = inputs | (mediaFlange.getInput5() ? 0x10: 0);
+      inputs = inputs | (mediaFlange.getInput6() ? 0x20: 0);
+      inputs = inputs | (mediaFlange.getInput7() ? 0x40: 0);
+      inputs = inputs | (mediaFlange.getInput8() ? 0x80: 0);
+      flangeInputs.setData((byte) inputs);
+      mediaFlangeInputsPublisher.publish(flangeInputs);
     }
   }
 
