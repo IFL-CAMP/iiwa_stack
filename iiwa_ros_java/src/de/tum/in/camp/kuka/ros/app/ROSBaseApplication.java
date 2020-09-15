@@ -279,6 +279,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       tool.attachTo(robot.getFlange());
       toolFrameID = toolFromConfig + toolFrameIDSuffix;
       toolFrame = tool.getFrame("/" + toolFrameID);
+      if (toolFrame == null) {
+        Logger.error("No tool frame");
+      }
     }
     else {
       Logger.info("No tool attached. Using robot's flange.");
