@@ -36,7 +36,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
-// import javax.inject.Inject;
+import javax.inject.Inject;
 
 import org.ros.address.BindAddress;
 import org.ros.node.DefaultNodeMainExecutor;
@@ -46,13 +46,12 @@ import org.ros.time.NtpTimeProvider;
 
 import com.kuka.connectivity.motionModel.smartServo.SmartServo;
 import com.kuka.connectivity.motionModel.smartServoLIN.SmartServoLIN;
-// import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
+import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplication;
 import com.kuka.roboticsAPI.applicationModel.RoboticsAPIApplicationState;
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
 import com.kuka.roboticsAPI.geometricModel.Tool;
-import com.kuka.roboticsAPI.ioModel.AbstractIOGroup;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.JointImpedanceControlMode;
 import com.kuka.roboticsAPI.motionModel.controlModeModel.PositionControlMode;
 import com.kuka.roboticsAPI.uiModel.userKeys.IUserKey;
@@ -111,8 +110,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
 
   // MediaFlangeIO group. Replace this with the line below to activate ROS publisher for media flange button
   // status
-  AbstractIOGroup mediaFlange = null;
-  // @Inject protected MediaFlangeIOGroup mediaFlange; // MEDIAFLANGEIO
+  @Inject protected MediaFlangeIOGroup mediaFlange; // MEDIAFLANGEIO
 
   protected iiwaPublisher publisher = null;
   PublisherThread publisherThread = null;
@@ -281,6 +279,9 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
       tool.attachTo(robot.getFlange());
       toolFrameID = toolFromConfig + toolFrameIDSuffix;
       toolFrame = tool.getFrame("/" + toolFrameID);
+      if (toolFrame == null) {
+        Logger.error("No tool frame");
+      }
     }
     else {
       Logger.info("No tool attached. Using robot's flange.");
@@ -314,7 +315,7 @@ public abstract class ROSBaseApplication extends RoboticsAPIApplication {
     motion = controlModeHandler.createSmartServoMotion();
 
     // Initialize motion.
-    Logger.info("If blocked here (in teach mode) please make sure the deadman and run buttone are pressed");
+    Logger.info("If blocked here (in teach mode) please make sure the deadman and run button are pressed");
     endpointFrame.moveAsync(motion);
 
     // Hook the GoalReachedEventHandler.
