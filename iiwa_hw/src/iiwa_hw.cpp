@@ -30,7 +30,7 @@
 
 #include <pluginlib/class_list_macros.hpp>
 
-#include "iiwa_hw.hpp"
+#include "iiwa_hw/iiwa_hw.hpp"
 #include <iiwa_ros/conversions.hpp>
 
 namespace iiwa_hw {

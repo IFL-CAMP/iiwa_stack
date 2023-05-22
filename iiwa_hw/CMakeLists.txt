@@ -43,3 +43,14 @@ target_link_libraries(${PROJECT_NAME}-bin ${PROJECT_NAME})
 add_dependencies(${PROJECT_NAME} iiwa_msgs_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}-bin iiwa_msgs_generate_messages_cpp)
 
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-bin
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}/)
+
+foreach(dir config launch)
+  install(DIRECTORY ${dir} DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+endforeach()

@@ -31,7 +31,7 @@
 #include <ros/ros.h>
 #include <csignal>
 
-#include "iiwa_hw.hpp"
+#include "iiwa_hw/iiwa_hw.hpp"
 
 static bool quit{false};
 
