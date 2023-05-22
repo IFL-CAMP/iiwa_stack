@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Copyright (C) 2016-2019
 #
@@ -44,7 +44,10 @@ from rospy import ROSException
 from rospy import init_node, get_param, spin
 from tf.transformations import quaternion_from_matrix, quaternion_matrix
 from std_msgs.msg import Float64, Header
-from time import clock
+try:
+  from time import perf_counter
+except ImportError:
+  from time import clock as perf_counter
 
 def linearlyMap(x, x1, x2, y1, y2):
   return (y2 - y1)/(x2 - x1) * (x - x1) + y1
@@ -195,7 +198,7 @@ class IiwaSunrise(object):
               x = q0E[0], y = q0E[1], z = q0E[2], w = q0E[3]))))
 
   def commandPoseCb(self, msg):
-    T0 = clock()
+    T0 = perf_counter()
 
     t = 7 * [0.0]
     pE0 = matrix([[msg.pose.position.x],
@@ -245,7 +248,7 @@ class IiwaSunrise(object):
 
     self.publishJointPositionCommand(t)
 
-    logdebug('timing: %s ms', 1.0e3 * (clock() - T0))
+    logdebug('timing: %s ms', 1.0e3 * (perf_counter() - T0))
 
   def commandPoseLinCb(self, msg):
     self.commandPoseCb(msg)
