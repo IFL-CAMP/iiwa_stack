@@ -4,7 +4,8 @@ ROS Indigo/Kinetic metapackage for the KUKA LBR IIWA R800/R820 (7/14 Kg).
 **Current version : v-1.3.0 for Sunrise 1.10 - 1.16**    
 [Using a previous version of Sunrise?](https://github.com/SalvoVirga/iiwa_stack/wiki/FAQ#which-version-of-sunriseossunrise-workbench-is-supported)    
 
-[![Build Status](https://travis-ci.org/IFL-CAMP/iiwa_stack.svg?branch=master)](https://travis-ci.org/IFL-CAMP/iiwa_stack)
+[![Build Status](https://dl.circleci.com/status-badge/img/gh/IFL-CAMP/iiwa_stack/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/IFL-CAMP/iiwa_stack/tree/master)
+
 ___
 ### Features
 - Native ROSJava nodes running on the robot as a Sunrise RoboticApplication: supports ROS parameters, topics, services, etc.
