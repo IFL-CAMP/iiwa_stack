@@ -1,0 +1,34 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/configuration-reference/#jobs
+jobs:
+  build:
+    # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/configuration-reference/#executor-job
+    docker:
+      - image: moveit/moveit:noetic-release 
+    # Add steps to the job
+    # See: https://circleci.com/docs/configuration-reference/#steps
+    steps:
+      - run:
+          name: "APT update"
+          command: "apt update"
+      - run:
+          name: "Install Build Tools"
+          command: "apt install -y git python3-catkin-tools"
+      - run:
+          name: "Checkout"
+          command: "mkdir -p ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts && mkdir src && cd src && git clone -b \"$CIRCLE_BRANCH\" \"$CIRCLE_REPOSITORY_URL\" && cd .."
+      - run:
+          name: "Catkin Build"
+          command: "source /opt/ros/noetic/setup.bash && catkin build --no-status --summarize"
+
+# Orchestrate jobs using workflows
+# See: https://circleci.com/docs/configuration-reference/#workflows
+workflows:
+  ci:
+    jobs:
+      - build
