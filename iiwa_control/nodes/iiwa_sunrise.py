@@ -29,7 +29,7 @@
 
 import rospy
 
-from iiwa_msgs.msg import JointPosition
+from iiwa_msgs.msg import JointPosition, JointQuantity
 from iiwa_msgs.srv import ConfigureControlMode, ConfigureControlModeRequest, ConfigureControlModeResponse
 from iiwa_msgs.srv import SetSmartServoJointSpeedLimits, SetSmartServoJointSpeedLimitsRequest, SetSmartServoJointSpeedLimitsResponse
 from iiwa_msgs.srv import SetSmartServoLinSpeedLimits, SetSmartServoLinSpeedLimitsRequest, SetSmartServoLinSpeedLimitsResponse
@@ -132,6 +132,7 @@ class IiwaSunrise(object):
     joint_position_sub = Subscriber('command/JointPosition', JointPosition, self.jointPositionCb, queue_size = 1)
 
     self.state_pose_pub = Publisher('state/CartesianPose', PoseStamped, queue_size = 1)
+    self.state_joint_pub = Publisher('state/JointPosition', JointPosition, queue_size = 1)
     self.joint_trajectory_pub = Publisher(
         '{}_trajectory_controller/command'.format(hardware_interface), JointTrajectory, queue_size = 1)
 
@@ -178,6 +179,22 @@ class IiwaSunrise(object):
 
   def jointStatesCb(self, msg):
     t = msg.position
+
+    self.state_joint_pub.publish(
+      JointPosition(
+        header = Header(
+          frame_id = '{}_link_0'.format(self.robot_name)),
+        position = JointQuantity(
+          a1=t[0],
+          a2=t[1],
+          a3=t[2],
+          a4=t[3],
+          a5=t[4],
+          a6=t[5],
+          a7=t[6],
+        )
+      )
+    )
 
     H02 = Hrrt(t[1], t[0], self.l02)
     H24 = Hrrt(-t[3], t[2], self.l24)
