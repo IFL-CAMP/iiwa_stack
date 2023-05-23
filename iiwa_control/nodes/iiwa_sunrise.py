@@ -225,7 +225,7 @@ class IiwaSunrise(object):
 
     (tys, tzs) = rr(p260)
     tp24z0 = 1/(2.0 * s) * (self.l24**2 - self.l46**2 + s**2)
-    tp240 = matrix([[-sqrt(self.l24**2 - tp24z0**2)], [0.0], [tp24z0]])
+    tp240 = matrix([[-sqrt(abs(self.l24**2 - tp24z0**2))], [0.0], [tp24z0]])
     p240 = Ryz(tys, tzs) * Rz(self.tr) * tp240
     (t[1], t[0]) = rr(p240)
 
