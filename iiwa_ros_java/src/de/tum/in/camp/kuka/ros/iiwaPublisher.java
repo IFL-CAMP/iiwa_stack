@@ -36,6 +36,7 @@ import org.ros.time.TimeProvider;
 // import com.kuka.generated.ioAccess.MediaFlangeIOGroup; // MEDIAFLANGEIO
 import com.kuka.roboticsAPI.deviceModel.LBR;
 import com.kuka.roboticsAPI.geometricModel.ObjectFrame;
+import com.kuka.roboticsAPI.ioModel.AbstractIOGroup;
 
 /**
  * This class implements a ROS Node that publishes the current state of the robot. <br>
@@ -62,11 +63,13 @@ public class iiwaPublisher extends AbstractNodeMain {
   // DestinationReachedFlag publisher
   private Publisher<std_msgs.Time> destinationReachedPublisher;
   // Publishes the status of the Media Flange button.
-  // private Publisher<std_msgs.Bool> mediaFlangeButtonPublisher; // MEDIAFLANGEIO
+  private Publisher<std_msgs.Bool> mediaFlangeButtonPublisher;
   // Name to use to build the name of the ROS topics
   private String robotName = "iiwa";
 
   private LBR robot;
+  
+  AbstractIOGroup mediaFlange;
 
   // Object to easily build iiwa_msgs from the current robot state
   private MessageGenerator helper;
@@ -84,7 +87,7 @@ public class iiwaPublisher extends AbstractNodeMain {
   private iiwa_msgs.JointVelocity jv;
   private std_msgs.Time t;
 
-  // private std_msgs.Bool flangeButton; // MEDIAFLANGEIO
+  private std_msgs.Bool flangeButton;
 
   /**
    * Create a ROS node with publishers for a robot state. <br>
@@ -93,9 +96,10 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @param robotName : name of the robot, topics will be created accordingly : <robot name>/state/<iiwa_msgs
    *          type> (e.g. MyIIWA/state/CartesianPosition)
    */
-  public iiwaPublisher(LBR robot, String robotName, TimeProvider timeProvider) {
+  public iiwaPublisher(LBR robot, String robotName, TimeProvider timeProvider, AbstractIOGroup mediaFlange) {
     this.robot = robot;
     this.robotName = robotName;
+    this.mediaFlange = mediaFlange;
     helper = new MessageGenerator(robotName, timeProvider);
 
     cp = helper.buildMessage(iiwa_msgs.CartesianPose._TYPE);
@@ -107,7 +111,7 @@ public class iiwaPublisher extends AbstractNodeMain {
     jv = helper.buildMessage(iiwa_msgs.JointVelocity._TYPE);
     js = helper.buildMessage(sensor_msgs.JointState._TYPE);
     t = helper.buildMessage(std_msgs.Time._TYPE);
-    // flangeButton = helper.buildMessage(std_msgs.Bool._TYPE); // MEDIAFLANGEIO
+    flangeButton = helper.buildMessage(std_msgs.Bool._TYPE);
   }
 
   /**
@@ -165,8 +169,9 @@ public class iiwaPublisher extends AbstractNodeMain {
 
     destinationReachedPublisher = connectedNode.newPublisher(robotName + "/state/DestinationReached", std_msgs.Time._TYPE);
 
-    // mediaFlangeButtonPublisher = connectedNode.newPublisher(robotName + "/state/MFButtonState",
-    // std_msgs.Bool._TYPE); // MEDIAFLANGEIO
+    if (mediaFlange != null) {
+      mediaFlangeButtonPublisher = connectedNode.newPublisher(robotName + "/state/MFButtonState", std_msgs.Bool._TYPE);
+    }
   }
 
   /**
@@ -193,7 +198,7 @@ public class iiwaPublisher extends AbstractNodeMain {
    * @param frame : the Cartesian information published will be relative to this frame
    * @throws InterruptedException
    */
-  public void publishCurrentState(ObjectFrame frame/* , MediaFlangeIOGroup mediaFlange */) throws InterruptedException { // MEDIAFLANGEIO
+  public void publishCurrentState(ObjectFrame frame) throws InterruptedException {
     if (cartesianPosePublisher.getNumberOfSubscribers() > 0) {
       helper.getCurrentCartesianPose(cp, robot, frame);
       helper.incrementSeqNumber(cp.getPoseStamped().getHeader());
@@ -235,12 +240,12 @@ public class iiwaPublisher extends AbstractNodeMain {
       helper.incrementSeqNumber(js.getHeader());
       jointStatesPublisher.publish(js);
     }
-
-    // Uncomment if using a Media Flange IO. // MEDIAFLANGEIO
-    // if (mediaFlange != null && mediaFlangeButtonPublisher.getNumberOfSubscribers() > 0) {
-    // flangeButton.setData(mediaFlange.getUserButton());
-    // mediaFlangeButtonPublisher.publish(flangeButton);
-    // }
+ 
+    if (mediaFlange != null && mediaFlangeButtonPublisher.getNumberOfSubscribers() > 0) {
+      // Uncomment if using a Media Flange IO.
+      // flangeButton.setData(((MediaFlangeIOGroup)mediaFlange).getUserButton()); // MEDIAFLANGEIO
+      mediaFlangeButtonPublisher.publish(flangeButton);
+    }
   }
 
   /**
