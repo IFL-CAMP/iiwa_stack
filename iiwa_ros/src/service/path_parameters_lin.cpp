@@ -36,7 +36,7 @@ namespace service {
 void PathParametersLinService::init(const std::string& robot_namespace) {
   setup(robot_namespace);
   ros::NodeHandle node_handle{};
-  service_name_ = ros_namespace_ + "configuration/setSmartServoLinSpeedLimits";
+  service_name_ = ros_namespace_ + "configuration/setSmartServoLinLimits";
   client_ = node_handle.serviceClient<iiwa_msgs::SetSmartServoLinSpeedLimits>(service_name_);
   service_ready_ = true;
 }
@@ -48,7 +48,7 @@ bool PathParametersLinService::callService() {
         service_error_ = config_.response.error;
         ROS_ERROR_STREAM(service_name_ << " failed, Java error: " << service_error_);
       } else if (verbose_) {
-        ROS_INFO_STREAM(ros::this_node::getName() << ":" << service_name_ << " successfully called.");
+        ROS_INFO_STREAM(ros::this_node::getName() << ": " << service_name_ << " successfully called.");
       }
     } else if (verbose_) {
       ROS_ERROR_STREAM(service_name_ << " could not be called");
@@ -60,6 +60,7 @@ bool PathParametersLinService::callService() {
 
 bool PathParametersLinService::setMaxCartesianVelocity(const geometry_msgs::Twist max_cartesian_velocity) {
   config_.request.max_cartesian_velocity = max_cartesian_velocity;
+  return callService();
 }
 
 }  // namespace service
